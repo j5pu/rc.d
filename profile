@@ -4,28 +4,43 @@
 
 # FIXME: only transition with /usr/local/bin/bashrc-btrap
 if test -d "${BASH_SOURCE[0]%/*}/.git"; then
-  export CONFIG="${USERHOME}/GitHub/data/config"
+  export XDG_CONFIG_DIR="${USERHOME}/GitHub/data/config"
 else
-  export CONFIG=""
+  export XDG_CONFIG_DIR=""
 fi
 
 #######################################
 # Bootstrap installation, configuration directories and repositories.
 
-#######################################
-# GITHUB:           GitHub login user.
-# GITHUB_EMAIL:     GitHub email.
-# GITHUB_ID:        GitHub organization ID.
-# GITHUB_ORG:       GitHub organization name.
-export GITHUB="j5pu"
-export GITHUB_EMAIL="63794670+${GITHUB}@users.noreply.github.com"
-export GITHUB_ID="4379404"
-export GITHUB_ORG="lumenbiomics"
-export GITHUB_RAW="https://raw.githubusercontent.com/${GITHUB}"
-
-####################################### bash-git-prompt
-# GIT_PROMPT_DISABLE:       "1" to disable 'GIT_PROMPT'.
-export GIT_PROMPT_DISABLE
+####################################### XDG
+# https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
+# XDG_CACHE_HOME      Base directory relative to which user-specific non-essential data files should be stored.
+#                     If $XDG_CACHE_HOME is either not set or empty,
+#                     a default equal to $HOME/.cache should be used.
+# XDG_CONFIG_DIRS     Defines the preference-ordered set of base directories to search for configuration
+#                     files in addition to the $XDG_CONFIG_HOME base directory.
+# XDG_CONFIG_HOME     Base directory relative to which user-specific configuration files should be stored.
+#                     If $XDG_CONFIG_HOME is either not set or empty,
+#                     a default equal to $HOME/.config should be used. (system "{prefix}/etc").
+# XDG_DATA_DIRS       Defines the preference-ordered set of base directories to search for data files in
+#                     addition to the $XDG_DATA_HOME base directory.
+# XDG_DATA_HOME       Base directory relative to which user-specific data files should be stored.
+#                     If $XDG_DATA_HOME is either not set or empty,
+#                     a default equal to $HOME/.local/share should be used (system "/usr/local/share").
+# XDG_RUNTIME_DIR     Base directory relative to which user-specific non-essential runtime files and
+#                     other file objects (such as sockets, named pipes, ...) should be stored.
+#                     The directory MUST be owned by the user, and he MUST be the only one having read and
+#                     write access to it. Its Unix access mode MUST be 0700
+# XDG_STATE_HOME      Base directory relative to which user-specific state files should be stored.
+#                     If $XDG_STATE_HOME is either not set or empty,
+#                     a default equal to $HOME/.local/state should be used (system "/usr/local/share").
+export XDG_CACHE_HOME
+export XDG_CONFIG_DIRS
+export XDG_CONFIG_HOME
+export XDG_DATA_DIRS
+export XDG_DATA_HOME
+export XDG_RUNTIME_DIR
+export XDG_STATE_HOME
 
 ####################################### GOOGLE CLOUD CONFIG
 # https://cloud.google.com/compute/docs/gcloud-compute
@@ -48,9 +63,9 @@ export CLOUDSDK_COMPUTE_ZONE="EUROPE-WEST1-B"
 # DOCKER_CONFIG:         The location of your client configuration files.
 # DOCKER_CONTEXT:        Name of the docker context to use (overrides DOCKER_HOST env var and default
 #                        context set with docker context use).
-# DOCKER_HOST:           Daemon socket to connect to.
+# DOCKER_HOST:           Daemon socket to connect to, i.e.: ssh://mini.com.
 export DOCKER_BUILDKIT="1"
-export DOCKER_CONFIG="${CONFIG}/docker"
+export DOCKER_CONFIG="${XDG_CONFIG_DIR}/docker"
 export DOCKER_CONTEXT
 export DOCKER_HOST
 
@@ -63,7 +78,7 @@ export DOCKER_HOST
 # GH_TOKEN:             Authentication token for github.com API requests. Setting this avoids being prompted
 #                       to authenticate and takes precedence over previously stored credentials.
 # GLAMOUR_STYLE.        Style to use for rendering Markdown.
-export GH_CONFIG_DIR="${CONFIG}/gh"
+export GH_CONFIG_DIR="${XDG_CONFIG_DIR}/gh"
 export GH_HOST="github.com"
 export GLAMOUR_STYLE="dark"
 
@@ -73,11 +88,27 @@ export GLAMOUR_STYLE="dark"
 # GIT_COMPLETION_SHOW_ALL:  Show --arguments in completions.
 # GIT_CONFIG_GLOBAL:        Configuration from the given file instead from global configuration.
 # GIT_CONFIG_SYSTEM:        Configuration from the given file instead from system configuration $(prefix)/etc/gitconfig.
-export GIT="${CONFIG}/git"
+export GIT="${XDG_CONFIG_DIR}/git"
 export GIT_COMPLETION_SHOW_ALL
 export GIT_CONFIG_GLOBAL="${GIT}/gitconfig"
 export GIT_CONFIG_SYSTEM
+export GIT_STORE
 export GIT_TEMPLATE_DIR="${GIT}/templates"
+
+####################################### GIT PROMPT
+# GIT_PROMPT_DISABLE:       "1" to disable 'GIT_PROMPT'.
+export GIT_PROMPT_DISABLE
+
+####################################### GITHUB
+# GITHUB:           GitHub login user.
+# GITHUB_EMAIL:     GitHub email.
+# GITHUB_ID:        GitHub organization ID.
+# GITHUB_ORG:       GitHub organization name.
+export GITHUB="j5pu"
+export GITHUB_EMAIL="63794670+${GITHUB}@users.noreply.github.com"
+export GITHUB_ID="4379404"
+export GITHUB_ORG="lumenbiomics"
+export GITHUB_RAW="https://raw.githubusercontent.com/${GITHUB}"
 
 ###################################### GO
 # https://go.dev/blog/go116-module-changes
@@ -145,7 +176,7 @@ export HOMEBREW_SIMULATE_MACOS_ON_LINUX
 # PIP_DISABLE_PIP_VERSION_CHECK:             If set, don’t periodically check PyPI to determine whether
 #                                            a new version of pip is available for download.
 export PIP_CACHE_DIR
-export PIP_CONFIG_FILE="${CONFIG}/pip/pip.conf"
+export PIP_CONFIG_FILE="${XDG_CONFIG_DIR}/pip/pip.conf"
 export PIP_DISABLE_PIP_VERSION_CHECK="1"
 
 ###################################### PYTHON
@@ -211,4 +242,3 @@ export PROMPT_COMMAND="history -a;history -r"
 export TERM="xterm-256color"
 export TERM_PROGRAM="iTerm.app"
 export VISUAL="vi"
-export XDG_CONFIG_DIR="${CONFIG}"
