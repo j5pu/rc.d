@@ -1,6 +1,7 @@
 #!/bin/bash
 
-#!/usr/bin/env bash
+export TEST_BASHRC="1"
+echo "/Users/jose/profile/profile"
 
 # FIXME: only transition with /usr/local/bin/bashrc-btrap
 if test -d "${BASH_SOURCE[0]%/*}/.git"; then
