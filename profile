@@ -1,11 +1,8 @@
 #!/bin/bash
 
-export TEST_BASHRC="1"
-echo "/Users/jose/profile/profile"
-
 # FIXME: only transition with /usr/local/bin/bashrc-btrap
 if test -d "${BASH_SOURCE[0]%/*}/.git"; then
-  export XDG_CONFIG_DIR="${USERHOME}/GitHub/data/config"
+  export XDG_CONFIG_HOME="${USERHOME}/GitHub/data/config"
 else
   export XDG_CONFIG_DIR=""
 fi
@@ -66,7 +63,7 @@ export CLOUDSDK_COMPUTE_ZONE="EUROPE-WEST1-B"
 #                        context set with docker context use).
 # DOCKER_HOST:           Daemon socket to connect to, i.e.: ssh://mini.com.
 export DOCKER_BUILDKIT="1"
-export DOCKER_CONFIG="${XDG_CONFIG_DIR}/docker"
+export DOCKER_CONFIG="${XDG_CONFIG_HOME}/docker"
 export DOCKER_CONTEXT
 export DOCKER_HOST
 
@@ -79,7 +76,7 @@ export DOCKER_HOST
 # GH_TOKEN:             Authentication token for github.com API requests. Setting this avoids being prompted
 #                       to authenticate and takes precedence over previously stored credentials.
 # GLAMOUR_STYLE.        Style to use for rendering Markdown.
-export GH_CONFIG_DIR="${XDG_CONFIG_DIR}/gh"
+export GH_CONFIG_DIR="${XDG_CONFIG_HOME}/gh"
 export GH_HOST="github.com"
 export GLAMOUR_STYLE="dark"
 
@@ -89,7 +86,7 @@ export GLAMOUR_STYLE="dark"
 # GIT_COMPLETION_SHOW_ALL:  Show --arguments in completions.
 # GIT_CONFIG_GLOBAL:        Configuration from the given file instead from global configuration.
 # GIT_CONFIG_SYSTEM:        Configuration from the given file instead from system configuration $(prefix)/etc/gitconfig.
-export GIT="${XDG_CONFIG_DIR}/git"
+export GIT="${XDG_CONFIG_HOME}/git"
 export GIT_COMPLETION_SHOW_ALL
 export GIT_CONFIG_GLOBAL="${GIT}/gitconfig"
 export GIT_CONFIG_SYSTEM
@@ -177,7 +174,7 @@ export HOMEBREW_SIMULATE_MACOS_ON_LINUX
 # PIP_DISABLE_PIP_VERSION_CHECK:             If set, don’t periodically check PyPI to determine whether
 #                                            a new version of pip is available for download.
 export PIP_CACHE_DIR
-export PIP_CONFIG_FILE="${XDG_CONFIG_DIR}/pip/pip.conf"
+export PIP_CONFIG_FILE="${XDG_CONFIG_HOME}/pip/pip.conf"
 export PIP_DISABLE_PIP_VERSION_CHECK="1"
 
 ###################################### PYTHON
