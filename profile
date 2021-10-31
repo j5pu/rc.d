@@ -1,14 +1,22 @@
-#!/bin/bash
+#!/bin/sh
+# shellcheck disable=SC1090
+
+################################x#######
+# Bootstrap installation, configuration directories and repositories.
+export USERNAME="jose"
+export USERHOME="/Users/${USERNAME}"
+export MACDEV="${USERHOME}/macdev"
+export ROOT="/opt"
 
 # FIXME: only transition with /usr/local/bin/bashrc-btrap
 if test -d "${BASH_SOURCE[0]%/*}/.git"; then
-  export XDG_CONFIG_HOME="${USERHOME}/GitHub/data/config"
+  export ROOT="${USERHOME}"
+  export XDG_CONFIG_HOME="${USERHOME}/GitHub/data/config"  # --> ROOT
 else
+  export ROOT="/opt"
   export XDG_CONFIG_DIR=""
 fi
 
-#######################################
-# Bootstrap installation, configuration directories and repositories.
 
 ####################################### XDG
 # https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
@@ -48,7 +56,7 @@ export XDG_STATE_HOME
 # CLOUDSDK_CORE_PROJECT:          Google Cloud SDK core project.
 # CLOUDSDK_COMPUTE_REGION:        Google Cloud compute region.
 # CLOUDSDK_COMPUTE_ZONE:          Google Cloud compute zone..
-export CLOUDSDK_CONFIG="${CONFIG}/gcloud"
+export CLOUDSDK_CONFIG="${XDG_CONFIG_HOME}/gcloud"
 export CLOUDSDK_CORE_PROJECT="jose-lumenbiomics"
 export CLOUDSDK_COMPUTE_REGION="EUROPE-WEST1"
 export CLOUDSDK_COMPUTE_ZONE="EUROPE-WEST1-B"
@@ -93,9 +101,6 @@ export GIT_CONFIG_SYSTEM
 export GIT_STORE
 export GIT_TEMPLATE_DIR="${GIT}/templates"
 
-####################################### GIT PROMPT
-# GIT_PROMPT_DISABLE:       "1" to disable 'GIT_PROMPT'.
-export GIT_PROMPT_DISABLE
 
 ####################################### GITHUB
 # GITHUB:           GitHub login user.
@@ -167,6 +172,15 @@ export HOMEBREW_NO_ANALYTICS="1"
 export HOMEBREW_UPDATE_REPORT_ONLY_INSTALLED="1"
 export HOMEBREW_SIMULATE_MACOS_ON_LINUX
 
+###################################### JETBRAINS
+# https://www.jetbrains.com/help/pycharm/tuning-the-ide.html
+# PYCHARM_PROPERTIES          Platform-specific and application properties.
+# PYCHARM_VM_OPTIONS          Preferred JVM options.
+export JETBRAINS="${MACDEV}/Library/Application Support/JetBrains"  # --> ROOT
+export PYCHARM="${JETBRAINS}/pycharm"
+export PYCHARM_PROPERTIES="${PYCHARM}/idea.properties"
+export PYCHARM_VM_OPTIONS="${PYCHARM}/pycharm.vmoptions"
+
 ###################################### PIP
 # https://pip.pypa.io/en/stable/topics/configuration/
 # PIP_<UPPER_LONG_COMMAND_LINE_OPTION_NAME>  Dashes (-) have to be replaced with underscores (_).
@@ -220,6 +234,7 @@ export PYTHONUSERBASE
 export PYTHONSTARTUP
 export PYTHONWARNINGS
 
+
 ###################################### STDLIB
 # BASH_SILENCE_DEPRECATION_WARNING:     If set suppress macOS bash deprecation warning.
 export BASH_SILENCE_DEPRECATION_WARNING="1"
@@ -235,8 +250,113 @@ export LC_ALL="en_US.UTF-8"
 export LESS="-R -F ${LESS}"
 export LSCOLORS="ExGxBxDxCxEgEdxbxgxcxd"
 export PAGER="most"
-export PATH="/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin"
 export PROMPT_COMMAND="history -a;history -r"
 export TERM="xterm-256color"
 export TERM_PROGRAM="iTerm.app"
 export VISUAL="vi"
+
+###################################### SHOPT
+# https://www.gnu.org/software/bash/manual/html_node/The-Shopt-Builtin.html
+if [ "${BASH_VERSINFO[0]}" -gt 3 ]; then
+  shopt -qs direxpand globstar
+fi
+
+if [ ! "${PS1-}" ]; then
+  return
+fi
+
+shopt -qs checkwinsize histappend
+
+###################################### PATH
+# export PATH="/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin"
+eval "$(brew shellenv --help)" 2>/dev/null
+
+###################################### COMPLETIONS
+# BASH_COMPLETION_COMPAT_DIR
+# BASH_COMPLETION_USER_FILE
+for i in "${HOMEBREW_PREFIX}"/etc/profile.d/*.sh; do
+  . "${i}"
+done
+
+if [ "${BASH_VERSINFO[0]}" -gt 4 ]; then
+  shopt -qs no_empty_cmd_completion progcomp_alias
+fi
+
+complete -c -F _minimal source
+
+###################################### RC
+RC_BASH=true
+RC_CURL=false
+RC_DOCKER=true
+RC_GIT=true
+RC_GIT_PROMPT=true
+RC_PS1=false
+RC_ROOT=true
+RC_STARSHIP=false
+
+####################################### GIT PROMPT
+# Commands: git_prompt_help, git_prompt_examples, git_prompt_list_themes
+# GIT_PROMPT_DISABLE="1":                  to disable 'GIT_PROMPT'.
+# GIT_PROMPT_END=...                       for custom prompt end sequence.
+# GIT_PROMPT_FETCH_REMOTE_STATUS="0"       to avoid fetching remote status.
+# GIT_PROMPT_FETCH_TIMEOUT="10"            fetch remote revisions every other minutes (default 5).
+# GIT_PROMPT_IGNORE_STASH="1"
+# GIT_PROMPT_IGNORE_SUBMODULES="1"         to avoid searching for changed files in submodules.
+# GIT_PROMPT_LEADING_SPACE="0"             to to have no leading space in front of the GIT prompt.
+# GIT_PROMPT_MASTER_BRANCHES="main"        branch name(s) that will use $GIT_PROMPT_MASTER_BRANCH color.
+# GIT_PROMPT_ONLY_IN_REPO=1
+# GIT_PROMPT_SHOW_CHANGED_FILES_COUNT="0"  to avoid printing the number of changed files.
+# GIT_PROMPT_SHOW_UNTRACKED_FILES="no"     can be no, normal or all; determines counting of untracked files.
+# GIT_PROMPT_SHOW_UPSTREAM=1               to show upstream tracking branch.
+# GIT_PROMPT_START=...                     for custom prompt start sequence.
+# GIT_PROMPT_THEME=Default                 use custom theme specified in file GIT_PROMPT_THEME_FILE (default ~/.git-prompt-colors.sh).
+# GIT_PROMPT_THEME_FILE=                   "${__GIT_PROMPT_DIR}/themes/Custom.bgptheme".
+# GIT_PROMPT_WITH_VIRTUAL_ENV="0"          to avoid setting virtual environment infos for node/python/conda environments.
+if $RC_GIT_PROMPT && [ -f "${HOMEBREW_PREFIX}/opt/bash-git-prompt/share/gitprompt.sh" ]; then
+  __GIT_PROMPT_DIR="${HOMEBREW_PREFIX}/opt/bash-git-prompt/share"
+  . "${__GIT_PROMPT_DIR}/prompt-colors.sh"
+  . "${__GIT_PROMPT_DIR}/gitprompt.sh"
+  PathShort="\w";
+  Time12a="\$(date +%H:%M)"
+
+  GIT_PROMPT_IGNORE_SUBMODULES="1"
+  GIT_PROMPT_MASTER_BRANCHES="main"
+  GIT_PROMPT_SHOW_CHANGED_FILES_COUNT="0"
+  GIT_PROMPT_SHOW_UNTRACKED_FILES="no"
+  GIT_PROMPT_THEME="Default"
+
+  GIT_PROMPT_START_ROOT="_LAST_COMMAND_INDICATOR_ ${DimWhite}${Time12a}${ResetColor} \
+${BoldRed}${HOSTNAME%%.*}${ResetColor}"
+  GIT_PROMPT_START_USER="_LAST_COMMAND_INDICATOR_ ${DimWhite}${Time12a}${ResetColor} \
+${Green}${HOSTNAME%%.*}${ResetColor}"
+  GIT_PROMPT_END_ROOT=" ${DimWhite}${PathShort}${ResetColor} ${BoldRed}# ${ResetColor}"
+  GIT_PROMPT_END_USER=" ${DimWhite}${PathShort}${ResetColor} ${Green}$ ${ResetColor}"
+fi
+
+###################################### STARSHIP
+# https://starship.rs/config/#prompt
+# STARSHIP_CONFIG
+if $RC_STARSHIP && which starship; then
+  export STARSHIP_CONFIG="$XDG_CONFIG_HOME/starship/config.toml"
+  eval "$(starship init bash)"
+fi
+
+###################################### PS1
+# xterm title set to host@user:dir with: \[\e]0;\h@\u: \w\a\]
+# PROMPT_SSH_THE_SAME       1 to have the same PS1 in SSH as local.
+if $RC_PS1 || { ! $RC_GIT_PROMPT && ! $RC_STARSHIP; }; then
+  _blue="$(tput setaf 4)"
+  _cyan="$(tput setaf 6)"
+  _green="$(tput setaf 2)"
+  _r="$(tput sgr0)"
+  _red="$(tput setaf 1)"
+  if [[ "$(id -u)" == "0" ]] || [[ "${SUDO_UID-}" ]]; then
+    PS1="\[\e]0;\h@\u: \w\a\]${_red}\h${_r} ${_blue}\w${_r} ${_red}#${_r} "
+  else
+    if [[ "$(uname -s)" == "Darwin" ]] || [[ "${PROMPT_SSH_THE_SAME-}" ]]; then
+      PS1="\[\e]0;\h@\u: \w\a\]${_green}\h${_r} ${_blue}\w${_r} ${_green}\$${_r} "
+    else
+      PS1="\[\e]0;\h@\u: \w\a\]${_green}\h${_r} ${_cyan}\u${_r} ${_blue}\w${_r} ${_green}\$${_r} "
+    fi
+  fi
+fi
