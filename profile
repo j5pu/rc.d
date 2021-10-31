@@ -172,6 +172,19 @@ export HOMEBREW_NO_ANALYTICS="1"
 export HOMEBREW_UPDATE_REPORT_ONLY_INSTALLED="1"
 export HOMEBREW_SIMULATE_MACOS_ON_LINUX
 
+export BREW_PREFIX="/usr/local"
+export BREW_CELLAR="${BREW_PREFIX}/Cellar"
+export BREW_ETC="${BREW_PREFIX}/etc"
+export BREW_OPT="${BREW_PREFIX}/opt"
+export BREW_REPOSITORY="${BREW_PREFIX}/Homebrew"
+export BREW_SHARE="${BREW_PREFIX}/share"
+export HOMEBREW_TAPS="${BREW_REPOSITORY}/Library/Taps"
+
+export BREW_COMPLETIONS="${BREW_ETC}/bash_completion.d"
+export BREW_PROFILE="${BREW_ETC}/profile.d"
+export BREW_INFO="${BREW_SHARE}/info"
+export BREW_MAN="${BREW_SHARE}/man"
+
 ###################################### JETBRAINS
 # https://www.jetbrains.com/help/pycharm/tuning-the-ide.html
 # PYCHARM_PROPERTIES          Platform-specific and application properties.
@@ -269,12 +282,14 @@ shopt -qs checkwinsize histappend
 
 ###################################### PATH
 # export PATH="/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin"
-eval "$(brew shellenv --help)" 2>/dev/null
+export PATH="${BREW_PREFIX}:${BREW_PREFIX}/sbin${PATH+:$PATH}";
+export MANPATH="${BREW_MAN}${MANPATH+:$MANPATH}:";
+export INFOPATH="${BREW_INFO}:${INFOPATH:-}";
 
 ###################################### COMPLETIONS
 # BASH_COMPLETION_COMPAT_DIR
 # BASH_COMPLETION_USER_FILE
-for i in "${HOMEBREW_PREFIX}"/etc/profile.d/*.sh; do
+for i in "${BREW_PREFIX}"/etc/profile.d/*.sh; do
   . "${i}"
 done
 
@@ -312,8 +327,8 @@ RC_STARSHIP=false
 # GIT_PROMPT_THEME=Default                 use custom theme specified in file GIT_PROMPT_THEME_FILE (default ~/.git-prompt-colors.sh).
 # GIT_PROMPT_THEME_FILE=                   "${__GIT_PROMPT_DIR}/themes/Custom.bgptheme".
 # GIT_PROMPT_WITH_VIRTUAL_ENV="0"          to avoid setting virtual environment infos for node/python/conda environments.
-if $RC_GIT_PROMPT && [ -f "${HOMEBREW_PREFIX}/opt/bash-git-prompt/share/gitprompt.sh" ]; then
-  __GIT_PROMPT_DIR="${HOMEBREW_PREFIX}/opt/bash-git-prompt/share"
+if $RC_GIT_PROMPT && [ -f "${BREW_OPT}/bash-git-prompt/share/gitprompt.sh" ]; then
+  __GIT_PROMPT_DIR="${BREW_OPT}/bash-git-prompt/share"
   . "${__GIT_PROMPT_DIR}/prompt-colors.sh"
   . "${__GIT_PROMPT_DIR}/gitprompt.sh"
   PathShort="\w";
