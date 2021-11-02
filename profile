@@ -8,13 +8,12 @@ export USERHOME="/Users/${USERNAME}"
 export MACDEV="${USERHOME}/macdev"
 export ROOT="/opt"
 
-# FIXME: only transition with /usr/local/bin/bashrc-btrap
 if test -d "${BASH_SOURCE[0]%/*}/.git"; then
   export ROOT="${USERHOME}"
-  export XDG_CONFIG_HOME="${USERHOME}/GitHub/data/config"  # --> ROOT
+  export XDG_CONFIG_HOME="${USERHOME}/GitHub/data/config"
 else
-  export ROOT="/opt"
-  export XDG_CONFIG_DIR=""
+  export ROOT
+  export XDG_CONFIG_DIR
 fi
 
 
@@ -100,7 +99,6 @@ export GIT_CONFIG_GLOBAL="${GIT}/gitconfig"
 export GIT_CONFIG_SYSTEM
 export GIT_STORE
 export GIT_TEMPLATE_DIR="${GIT}/templates"
-
 
 ####################################### GITHUB
 # GITHUB:           GitHub login user.
@@ -188,11 +186,10 @@ export BREW_MAN="${BREW_SHARE}/man"
 ###################################### JETBRAINS
 # https://www.jetbrains.com/help/pycharm/tuning-the-ide.html
 # PYCHARM_PROPERTIES          Platform-specific and application properties.
+#                             (default: /Applications/PyCharm.app/Contents/bin/idea.properties)
 # PYCHARM_VM_OPTIONS          Preferred JVM options.
-export JETBRAINS="${MACDEV}/Library/Application Support/JetBrains"  # --> ROOT
-export PYCHARM="${JETBRAINS}/pycharm"
-export PYCHARM_PROPERTIES="${PYCHARM}/idea.properties"
-export PYCHARM_VM_OPTIONS="${PYCHARM}/pycharm.vmoptions"
+#                             (default: /Applications/PyCharm.app/Contents/bin/pycharm.vmoptions)
+export PYCHARM="/Applications/PyCharm.app/Contents/bin"
 
 ###################################### PIP
 # https://pip.pypa.io/en/stable/topics/configuration/
@@ -270,7 +267,7 @@ export VISUAL="vi"
 
 ###################################### SHOPT
 # https://www.gnu.org/software/bash/manual/html_node/The-Shopt-Builtin.html
-if [ "${BASH_VERSINFO[0]}" -gt 3 ]; then
+if ! shopt -oq posix && [ "${BASH_VERSINFO[0]}" -gt 3 ]; then
   shopt -qs direxpand globstar
 fi
 
@@ -365,10 +362,10 @@ if $RC_PS1 || { ! $RC_GIT_PROMPT && ! $RC_STARSHIP; }; then
   _green="$(tput setaf 2)"
   _r="$(tput sgr0)"
   _red="$(tput setaf 1)"
-  if [[ "$(id -u)" == "0" ]] || [[ "${SUDO_UID-}" ]]; then
+  if [ "$(id -u)" = "0" ] || [ "${SUDO_UID-}" ]; then
     PS1="\[\e]0;\h@\u: \w\a\]${_red}\h${_r} ${_blue}\w${_r} ${_red}#${_r} "
   else
-    if [[ "$(uname -s)" == "Darwin" ]] || [[ "${PROMPT_SSH_THE_SAME-}" ]]; then
+    if [ "$(uname -s)" = "Darwin" ] || [ "${PROMPT_SSH_THE_SAME-}" ]; then
       PS1="\[\e]0;\h@\u: \w\a\]${_green}\h${_r} ${_blue}\w${_r} ${_green}\$${_r} "
     else
       PS1="\[\e]0;\h@\u: \w\a\]${_green}\h${_r} ${_cyan}\u${_r} ${_blue}\w${_r} ${_green}\$${_r} "
