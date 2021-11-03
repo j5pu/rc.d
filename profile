@@ -1,6 +1,18 @@
 #!/bin/sh
 # shellcheck disable=SC1090
 
+###################################### RC
+RC_BASH=true
+RC_COMPOSURE=true
+RC_CURL=false
+RC_DOCKER=true
+RC_GIT=true
+RC_GIT_PROMPT=false
+RC_ITERM_SHELL_INTEGRATION=true
+RC_PS1=false
+RC_ROOT=true
+RC_STARSHIP=true
+
 ################################x#######
 # Bootstrap installation, configuration directories and repositories.
 export USERNAME="jose"
@@ -11,11 +23,13 @@ export ROOT="/opt"
 if test -d "${BASH_SOURCE[0]%/*}/.git"; then
   export ROOT="${USERHOME}"
   export XDG_CONFIG_HOME="${USERHOME}/GitHub/data/config"
+  export XDG_DATA_HOME="${USERHOME}/GitHub/data/data"  # composure
 else
   export ROOT
   export XDG_CONFIG_DIR
 fi
 
+export CACHE="${HOME}/.cache"
 
 ####################################### XDG
 # https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
@@ -244,7 +258,6 @@ export PYTHONUSERBASE
 export PYTHONSTARTUP
 export PYTHONWARNINGS
 
-
 ###################################### STDLIB
 # BASH_SILENCE_DEPRECATION_WARNING:     If set suppress macOS bash deprecation warning.
 export BASH_SILENCE_DEPRECATION_WARNING="1"
@@ -265,10 +278,31 @@ export TERM="xterm-256color"
 export TERM_PROGRAM="iTerm.app"
 export VISUAL="vi"
 
+###################################### COMPOSURE
+# https://github.com/erichs/composure
+# LOAD_COMPOSED_FUNCTIONS     "0" disables automatically sourcing of all of composed functions
+#                             when composure.sh is sourced
+if $RC_COMPOSURE; then
+  export LOAD_COMPOSED_FUNCTIONS
+  repo="composure"
+  dest="${CACHE}/${repo}"
+  file="${CACHE}/${repo}/${repo}.sh"
+  mkdir -p "${CACHE}"
+  if test -d "${dest}"; then
+    git -C "${dest}" pull --quiet --force 1>/dev/null
+  else
+    git clone --quiet "https://github.com/erichs/${repo}.git" "${dest}" 1>/dev/null
+  fi
+  [ -r "${file}" ] && . "${file}"
+  unset dest file name
+fi
+
 ###################################### SHOPT
 # https://www.gnu.org/software/bash/manual/html_node/The-Shopt-Builtin.html
-if ! shopt -oq posix && [ "${BASH_VERSINFO[0]}" -gt 3 ]; then
-  shopt -qs direxpand globstar
+if [ "${BASH_VERSINFO-}" ]; then
+  if ! shopt -oq posix && [ "${BASH_VERSINFO[0]}" -gt 3 ]; then
+    shopt -qs direxpand globstar
+  fi
 fi
 
 if [ ! "${PS1-}" ]; then
@@ -296,17 +330,24 @@ fi
 
 complete -c -F _minimal source
 
-###################################### RC
-RC_BASH=true
-RC_CURL=false
-RC_DOCKER=true
-RC_GIT=true
-RC_GIT_PROMPT=true
-RC_PS1=false
-RC_ROOT=true
-RC_STARSHIP=false
 
-####################################### GIT PROMPT
+if [ "${BASH_VERSINFO-}" ]; then
+  ###################################### ITERM SHELL INTEGRATION
+  # https://iterm2.com/documentation-shell-integration.html
+  # LOAD_COMPOSED_FUNCTIONS     "0" disables automatically sourcing of all of composed functions
+  #                             when composure.sh is sourced
+  if $RC_ITERM_SHELL_INTEGRATION; then
+    file="${CACHE}/iterm2_shell_integration.bash"
+    if [ ! -f "${file}" ]; then
+      curl -qSsL "https://iterm2.com/shell_integration/bash" > "${file}"
+    fi
+    . "${file}"
+    unset file
+  fi
+
+  RC_PS1=false
+
+  ####################################### GIT PROMPT
 # Commands: git_prompt_help, git_prompt_examples, git_prompt_list_themes
 # GIT_PROMPT_DISABLE="1":                  to disable 'GIT_PROMPT'.
 # GIT_PROMPT_END=...                       for custom prompt end sequence.
@@ -324,39 +365,45 @@ RC_STARSHIP=false
 # GIT_PROMPT_THEME=Default                 use custom theme specified in file GIT_PROMPT_THEME_FILE (default ~/.git-prompt-colors.sh).
 # GIT_PROMPT_THEME_FILE=                   "${__GIT_PROMPT_DIR}/themes/Custom.bgptheme".
 # GIT_PROMPT_WITH_VIRTUAL_ENV="0"          to avoid setting virtual environment infos for node/python/conda environments.
-if $RC_GIT_PROMPT && [ -f "${BREW_OPT}/bash-git-prompt/share/gitprompt.sh" ]; then
-  __GIT_PROMPT_DIR="${BREW_OPT}/bash-git-prompt/share"
-  . "${__GIT_PROMPT_DIR}/prompt-colors.sh"
-  . "${__GIT_PROMPT_DIR}/gitprompt.sh"
-  PathShort="\w";
-  Time12a="\$(date +%H:%M)"
+  if $RC_GIT_PROMPT && [ -f "${BREW_OPT}/bash-git-prompt/share/gitprompt.sh" ]; then
+    __GIT_PROMPT_DIR="${BREW_OPT}/bash-git-prompt/share"
+    . "${__GIT_PROMPT_DIR}/prompt-colors.sh"
+    . "${__GIT_PROMPT_DIR}/gitprompt.sh"
+    PathShort="\w";
+    Time12a="\$(date +%H:%M)"
 
-  GIT_PROMPT_IGNORE_SUBMODULES="1"
-  GIT_PROMPT_MASTER_BRANCHES="main"
-  GIT_PROMPT_SHOW_CHANGED_FILES_COUNT="0"
-  GIT_PROMPT_SHOW_UNTRACKED_FILES="no"
-  GIT_PROMPT_THEME="Default"
+    GIT_PROMPT_IGNORE_SUBMODULES="1"
+    GIT_PROMPT_MASTER_BRANCHES="main"
+    GIT_PROMPT_SHOW_CHANGED_FILES_COUNT="0"
+    GIT_PROMPT_SHOW_UNTRACKED_FILES="no"
+    GIT_PROMPT_THEME="Default"
 
-  GIT_PROMPT_START_ROOT="_LAST_COMMAND_INDICATOR_ ${DimWhite}${Time12a}${ResetColor} \
+    # shellcheck disable=SC3028
+    GIT_PROMPT_START_ROOT="_LAST_COMMAND_INDICATOR_ ${DimWhite}${Time12a}${ResetColor} \
 ${BoldRed}${HOSTNAME%%.*}${ResetColor}"
-  GIT_PROMPT_START_USER="_LAST_COMMAND_INDICATOR_ ${DimWhite}${Time12a}${ResetColor} \
+    # shellcheck disable=SC3028
+    GIT_PROMPT_START_USER="_LAST_COMMAND_INDICATOR_ ${DimWhite}${Time12a}${ResetColor} \
 ${Green}${HOSTNAME%%.*}${ResetColor}"
-  GIT_PROMPT_END_ROOT=" ${DimWhite}${PathShort}${ResetColor} ${BoldRed}# ${ResetColor}"
-  GIT_PROMPT_END_USER=" ${DimWhite}${PathShort}${ResetColor} ${Green}$ ${ResetColor}"
-fi
+    GIT_PROMPT_END_ROOT=" ${DimWhite}${PathShort}${ResetColor} ${BoldRed}# ${ResetColor}"
+    GIT_PROMPT_END_USER=" ${DimWhite}${PathShort}${ResetColor} ${Green}$ ${ResetColor}"
 
-###################################### STARSHIP
-# https://starship.rs/config/#prompt
-# STARSHIP_CONFIG
-if $RC_STARSHIP && which starship; then
-  export STARSHIP_CONFIG="$XDG_CONFIG_HOME/starship/config.toml"
-  eval "$(starship init bash)"
+  ###################################### STARSHIP
+  # https://starship.rs/config/#prompt
+  # STARSHIP_CONFIG
+  elif $RC_STARSHIP && which starship 1>/dev/null; then
+    export STARSHIP_CONFIG="$XDG_CONFIG_HOME/starship/config.toml"
+    eval "$(starship init bash)"
+  else
+    RC_PS1=true
+  fi
+
+
 fi
 
 ###################################### PS1
 # xterm title set to host@user:dir with: \[\e]0;\h@\u: \w\a\]
 # PROMPT_SSH_THE_SAME       1 to have the same PS1 in SSH as local.
-if $RC_PS1 || { ! $RC_GIT_PROMPT && ! $RC_STARSHIP; }; then
+if $RC_PS1; then
   _blue="$(tput setaf 4)"
   _cyan="$(tput setaf 6)"
   _green="$(tput setaf 2)"
