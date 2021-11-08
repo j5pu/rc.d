@@ -1,0 +1,8 @@
+#!/bin/sh
+
+# TODO: Voy a usar el path de systema que tenga por defecto el git o sea, con root o sea SUDOC
+
+# TODO: Añadir mi sudo mi git y mi brew en el /opt a tomar por culo.
+# TODO: Ver los paths que se instalaria los man pages y los ifo en cada systema y actualizar una variabe
+# y ver si lo haria el python.
+#Usar EOT para git config y para gh config y para el inputrc .

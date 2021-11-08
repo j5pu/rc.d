@@ -1,0 +1,28 @@
+#!/bin/sh
+#
+# Absolute logical (symlink) or resolved (physical) path (if does not exists, accepts one level up to cd).
+
+# tests
+logical=false
+
+for arg do
+  case "${arg}" in
+    -h|--help)
+      $( which man ) -p cat "$(basename "${0}")" 2>/dev/null
+      exit
+      ;;
+    -l|--logical) logical=true ;;
+    *) relative="${arg}"
+  esac
+done
+
+relative="${relative-.}"
+[ -d "${relative}" ] || basename="/$(basename "${relative}")"  # does not exists or is file
+cd "$( dirname "${relative}" )" || exit 1
+
+if $logical; then
+  echo "$(pwd)${basename}"
+  exit
+fi
+echo "$(pwd -P)${basename}"
+

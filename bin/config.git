@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+
+
+function main() {
+  for i in "${!config[@]}"; do
+    git config "${1:---global}" --add "${i}" "${config[${i}]}"
+  done
+}
+
+declare -A config=(
+  ["advice.addIgnoredFile"]="false"
+  ["color.ui"]="true"
+  ["core.editor"]="vi"
+  ["core.autocrlf"]="input"
+  ["core.filemode"]="true"
+  ["core.sshCommand"]="/usr/bin/ssh"
+  ["fetch.prune"]="true"
+  ["git-extras.default-branch"]="main"
+  ["help.autocorrect"]="0"
+  ["http.postBuffer"]="15728640"
+  ["init.defaultBranch"]="${GIT_TEMPLATE_DIR}"
+  ["init.templateDir"]="${GIT_BRANCH}"
+  ["receive.fsckObjects"]="true"
+  ["receive.denyNonFastForwards"]="true"
+  ["tag.sort"]="creatordate"
+  ["user.name"]="${GIT}"
+  ["user.username"]="${GIT}"
+  ["user.email"]="${GIT_EMAIL}"
+)
+
+main
+
+declare -A config=(
+  ["core.repositoryformatversion"]="0"
+  ["core.filemode"]="true"
+  ["core.bare"]="false"
+  ["core.logallrefupdates"]="true"
+  ["core.ignorecase"]="true"
+  ["core.precomposeunicode"]="true"
+  ["branch.${GIT_BRANCH}.remote"]="${GIT_REMOTE}"
+  ["branch.${GIT_BRANCH}.merge"]="refs/heads/${GIT_BRANCH}"
+)
+
+main --file="${GIT_TEMPLATE_DIR}"

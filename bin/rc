@@ -1,0 +1,58 @@
+#!/bin/sh
+# System profile & rc file.
+
+###################################### Globals: export
+#
+# IS_BASH:              Is running in bash?.
+export IS_BASH=false
+# IS_SH:                true if running in sh (for instance: [[ can not be used).
+export IS_SH=true
+# BPATH:                Base PATH.
+export BPATH="/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:sbin"
+# PATH:                 PATH
+export PATH="${BPATH}"
+# RC:                   RC file absolute path.
+export RC="${0}"
+# RC_DIR:               RC file absolute directory.
+export RC_DIR
+# RC_NAME:              RC name.
+export RC_NAME
+# RC_SOURCED:           RC file has been sourced.
+export RC_SOURCED=false
+
+if [ "${BASH-no}" = "no" ]; then
+  return
+fi
+
+export PATH="${PBIN}:${ROOT}/bin:${BPATH}"
+
+###################################### Globals: IS_BASH and RC_SOURCED
+#
+if [ -n "${BASH_VERSION}" ]; then
+  (return 0 2>/dev/null) && export RC_SOURCED=true
+  # shellcheck disable=SC3028,SC3054
+  RC="${BASH_SOURCE[0]}"
+  export IS_BASH=true
+else
+  [ "${RC##*/}" = "sh" ] && export RC_SOURCED=true
+fi
+
+###################################### Globals: RC, RC_DIR and RC_NAME
+#
+RC_DIR="$(cd "$(dirname "${RC}")" && pwd )"
+RC_NAME="$(basename "${RC}")"
+RC="${RC_DIR}/${RC_NAME}"
+rc_log="${LOG}/${RC_NAME}/${USER}"
+{ mkdir -p "${rc-log}" && printf "" > "${rc_log}"; } || return 1
+
+
+###################################### Globals: RC, RC_DIR and RC_NAME
+for rc_extension in aliases constants lib vars; do
+  rc_cmd="${RC_DIR}/${RC_NAME}.${rc_extension}"
+  if [ -r "${rc_cmd}" ]; then
+    . "${rc_cmd}" || { echo "${rc_cmd}" >> "${rc_log}"; return 1; }
+  else
+    echo "${rc_cmd}" >> "${rc_log}"; return 1;
+  fi
+done
+unset rc_cmd rc_extension rc_log
