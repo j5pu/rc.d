@@ -1,1 +1,1 @@
-# profile
+# rc.d
