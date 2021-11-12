@@ -14,6 +14,7 @@ export PATH="/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin"
 #   DARWIN:               "1" if 'UNAME' is "Darwin".
 #   DEBIAN:               "1" if 'DIST_ID' is "debian".
 #   DEBIAN_LIKE:          "1" if "DIST_ID_LIKE is "debian".
+#   DEBIAN_FRONTEND:      "noninteractive" if 'IS_CONTAINER' and 'DEBIAN_LIKE' are set.
 #   DIST_CODENAME:        "Catalina", "Big Sur", "kali-rolling", "focal", etc.
 #   DIST_ID:              <alpine|centos|debian|kali|macOS|ubuntu>.
 #   DIST_ID_LIKE:         <alpine|debian|rhel fedora>.
