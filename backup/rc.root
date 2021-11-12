@@ -18,7 +18,7 @@ export COMPLETION="${ROOT}/completion"
 # CONFIG:               (SYNC - can be edited) Config directory, 'XDG_CONFIG_HOME' (/etc, ~/.config),
 #                       can not be installed by command or change config directory via XDG:CONFIG_HOME.
 export CONFIG="${ROOT}/config"
-#                       Dotfiles repository to sync and to install when globals can not be used for ROOT directories.
+# DOTFILES              Dotfiles repository to sync and to install when globals can not be used for ROOT directories.
 export DOTFILES="${ROOT}/dotfiles"
 # ETC:                  Etc directory, installed with command or package.
 export ETC="${ROOT}/etc"

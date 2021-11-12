@@ -1,0 +1,8 @@
+#!/bin/sh
+# System profile & rc file.
+
+
+if [ "${BASH-no}" = "no" ]; then
+  return
+fi
+

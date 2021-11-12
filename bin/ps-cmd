@@ -1,0 +1,29 @@
+#!/bin/sh
+
+#######################################
+# Process (ps) cmd.
+# Arguments:
+#   None
+# Outputs:
+#   Process (ps) cmd.
+#######################################
+
+# $$ is defined to return the process ID of the parent in a subshell; from the man page under "Special Parameters":
+# expands to the process ID of the shell. In a () subshell, it expands to the process ID of the current shell,
+# not the subshell
+if [ "${DARWIN-}" ]; then
+  ps -p$$ -ocommand=
+  return
+elif [ "${ALPINE-}" ] && [ "${BUSYBOX}" ]; then
+  ps -o pid= -o comm= | awk '/$$/ { $1=$1 };1' | grep "^$$ " | awk '{ print $2 }'
+  return
+elif ! which ps > /dev/null; then
+  if [ "${DEBIAN-}" ] || [ "${FEDORA-}" ] ; then
+    ${PM_INSTALL} procps || exit 1
+  else
+    echo "Do not know how to install: ps"
+    exit 1
+  fi
+fi
+ps -p$$ -ocmd=
+

@@ -1,0 +1,11 @@
+#!/bin/sh
+
+
+#######################################
+# Is user?.
+# Arguments:
+#   None
+# Returns:
+#   1   if is_root or is_sudo ("user" false)
+#######################################
+! is-root && ! is-sudo
