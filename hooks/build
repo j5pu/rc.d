@@ -1,0 +1,33 @@
+#!/bin/bash
+set -eo pipefail
+sourced=true
+build() {
+  docker build --build-arg "image=${image}" --target build --tag "${tag}" .
+  docker scan --accept-license --exclude-base --file Dockerfile "${tag}"
+  docker push "${tag}"
+}
+
+vars() {
+  local name
+  export image="${1:-alpine}:${2:-latest}${3:+-${3}}" target tag
+  target="$(echo "${name}" | sed 's/latest//g' | tr -d ":." )"
+  tag="j5pu/${name}"
+  echo "image: ${image}, target: ${target}, tag: ${tag}"
+#  docker build --build-arg "image" --target "${target}" --tag "${tag}" .
+#  docker scan --accept-license --exclude-base --file Dockerfile "${tag}"
+#  docker push "${tag}"
+}
+
+( return > /dev/null ) || sourced=false
+for base in alpine archlinux bash bats/bats busybox centos debian fedora kalilinux/kali-rolling nixos/nix \
+  python richxsl/rhel7 ubuntu jrei/systemd-ubuntu zshusers/zsh; do
+  if [ "${base}" = "python" ]; then
+    for size in alpine bullseye slim; do
+      for version in 3.9 3.10; do
+        main "${base}" "${version}" "${size}"
+    done
+    done
+  else
+    main "${base}"
+  fi
+done
