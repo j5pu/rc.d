@@ -1,0 +1,181 @@
+#!/usr/bin/env bash
+# bashsupport disable=BP5001
+# shellcheck disable=SC2207,SC2086,SC1090
+
+# System bootstrap
+# Globals:
+#   __DRY_RUN                   do not perform actions
+#   __EXECUTABLE                script installed executable
+#   __FORCE                     force command to overwrite if command previously created a file, set with --force
+#   __INTERNET                  new internet password to pass it to scripts in compat directories
+#   __NAME                      script name
+#   __PASSWORD                  new user/sudo password to pass it to scripts in compat directories
+#   _BTRAP_COMMANDS             script valid commands (persists if sourced and BASH_COMPLETION_VERSINFO/ZSH COMPLETIONS)
+#   _BTRAP_URL                  githubusercontent url (persists if sourced)
+
+# TODO: hacer source del profile, el profile source del secrets y del export. Me falta el generated.
+
+#######################################
+# Debug and stderr log files, write global vars to stderr log files (stderr only going to file if not sourced)
+log() {
+  if $sourced && [ ! "${DEBUG-}" ]; then
+    return
+  fi
+  local arg debug script=${BASH_SOURCE[0]##*/} stderr
+  debug="/tmp/${script}.debug"
+  stderr="/tmp/${script}.log"
+  if [ "${1-}" ]; then
+    for arg; do
+      echo "# ${arg}: \"${!arg}\"" >> "${stderr}"
+    done
+    return
+  fi
+  rm -f "${debug}"
+  rm -f "${stderr}"
+  if $sourced; then
+    echo "# Sourced" >> "${stderr}"
+  else
+    exec 19>"${debug}"
+    export BASH_XTRACEFD=19
+    exec 2>"${stderr}"
+    set -x
+    >&2 echo "# Not sourced"
+    >&2 echo "# 0: \"${0}\""
+  fi
+  {
+    echo "# BASH_SOURCE[0]: \"${BASH_SOURCE[0]}\""
+    echo "# command -v bashcompinit: \"$(command -v bashcompinit)\""
+  } >> "${stderr}"
+}
+
+
+#######################################
+# Globals: common for completions (when sourced) and execution of script.
+export __NAME="${BASH_SOURCE[0]##*/}"
+export _BTRAP_URL="${GITHUB_USER_RAW}/${__NAME}/main"
+log  # need __NAME
+log __NAME _BTRAP_URL BASH_COMPLETION_VERSINFO ZSH_EVAL_CONTEXT
+
+#######################################
+# Commit and push to use updated source from remote if executable is under git repository
+directory="$( dirname "${BASH_SOURCE[0]}" )"
+log directory
+if test -d "${directory}/.git"; then
+  (
+    cd "${directory}" || return 1
+    if [[ "$( basename "$(pwd)" )" == "${__NAME}" ]];
+    then
+      git_repo="1"
+      log git_repo
+      unset git_repo
+      chmod +x ./*/*.sh
+      git all
+    fi
+  )
+fi
+
+csv="$( curl -sL "${_BTRAP_URL}/commands.csv" )"
+commands_all="$( echo "${csv}" | awk -F ',' '{ print $1 }' )"
+commands_with_value="$( echo "${csv}" | awk -F ',' '/,value$/ { print $1 }' )"
+log commands_all commands_with_value csv
+unset log sourced
+
+#######################################
+# Log variables
+log-var() {
+  local arg
+  for arg; do
+    >&2 echo "# ${arg}: \"${!arg}\""
+  done
+}
+
+#######################################
+# Parse.
+>&2 echo "# \${@}: \"$( printf '%s\n' "${@}" )\""
+commands=()
+while ((${#})); do
+  case "${1}" in
+    -h|--help)
+      pad="                      "
+      msg=()
+      while IFS=, read -r opt cmd help val; do
+        unset add
+        if [[ "${val-}" ]]; then
+          add=" value"
+        fi
+        msg+=("  ${opt}${add}")
+        msg+=("${pad}${help}")
+      done <<< "${csv}"
+      output="$( printf '%s\n' "${msg[@]}" )"
+      cat<<EOF
+Usage: ${__NAME} [commands...] [options...] [arguments...]
+
+Description:
+  Runs bootstrap commands (order based on dependencies).
+  All are run if not commands are provided or executable (launcher) is not installed.
+  Commands with optional value are identified in filename with -value.sh suffix.
+  A global is defined: __COMMAND=value for commands with optional value are set.
+
+Commands:
+${output}
+
+Options:
+  --dry-run
+${pad}Do not perform actions (default: False)
+  --force
+${pad}Force command if command previously created file (default: False)
+
+Arguments:
+  -h,  --help
+${pad}Show help and exit
+
+Testing:
+  btrap --dry-run
+EOF
+      exit
+    ;;
+    --force)
+      export __FORCE="1"
+      log-var __FORCE
+      ;;
+    --dry-run)
+      export __DRY_RUN="1"
+      log-var __DRY_RUN
+      ;;
+    *)
+      if ! echo "${commands_all}" | grep -q -- "^${1}$"; then
+         echo "Invalid argument: ${1}"
+         exit 1
+      fi
+      commands+=("${1}")
+      if echo "${commands_with_value}" | grep -q -- "^${1}$"; then
+        variable="${1/--/__}"
+        if [[ ! "${2}" =~ ^-- ]] && [[ "${2}" != "-h" ]] ; then
+          shift
+          eval "export ${variable^^}=${1}"
+        fi
+        log-var "${variable^^}"
+      fi
+  esac
+  shift
+done
+unset variable
+
+#######################################
+# Run
+export __EXECUTABLE="/usr/bin/${__NAME}"
+log-var __EXECUTABLE
+if [[ "${commands-}" ]] || ! test -x "${__EXECUTABLE}"; then
+  >&2 echo "# Running all commands: \"$( ls -la "${__EXECUTABLE}" 2>&1 )\""
+  mapfile -t run < <( echo "${csv}" | awk -F ',' '{ print $2 }' )
+else
+  run=()
+  while IFS=, read -r opt cmd help val; do
+    unset add
+    if [[ "${commands[*]}" =~ ^"${opt}"$ ]]; then
+      run+=("${cmd}")
+    fi
+  done <<< "${csv}"
+fi
+>&2 echo "# \${commands[@]}: \"$( printf '%s\n' "${commands[@]}" )\""
+>&2 echo "# \${run[@]}: \"$( printf '%s\n' "${run[@]}" )\""

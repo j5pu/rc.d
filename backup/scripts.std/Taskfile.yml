@@ -1,0 +1,22 @@
+  version: '3'
+
+  tasks:
+    clean:
+      - rm -rf tests/output
+      - rm -rf tests/output
+      - rm -rf dist
+
+    chmod:
+      - chmod +x src/bin/*
+
+    build:
+      deps: [clean]
+      cmds:
+        - python3.9 -m build
+
+    publish:
+      deps: [build]
+      cmds:
+        - twine upload dist/*
+
+

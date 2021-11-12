@@ -1,0 +1,1 @@
+curl -fsSL "/btrap/main/defaults.d/gitkeep.sh" | bash -s

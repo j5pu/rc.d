@@ -1,0 +1,11 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="BashSupportPro: pwd $ProjectFileDir$" type="BashProRunConfiguration" singleton="false">
+    <scriptContent>pwd</scriptContent>
+    <option name="scriptParameters" value="BashSupportPro" />
+    <option name="scriptPath" value="$APPLICATION_CONFIG_DIR$/scratches/bash_man.sh" />
+    <option name="sourceType" value="snippet" />
+    <option name="workingDirectory" value="$ProjectFileDir$" />
+    <RunnerSettings bashdbVersion="Automatic" bashPathMapper="Automatic" RunnerId="pro.bashsupport.shDebugRunner" />
+    <method v="2" />
+  </configuration>
+</component>

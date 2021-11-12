@@ -1,0 +1,9 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="script.sh: task tests" type="TaskRunConfiguration" factoryName="TaskRunConfiguration" folderName="Taskfile">
+    <option name="arguments" value="" />
+    <option name="task" value="tests" />
+    <option name="taskPath" value="/usr/local/bin/task" />
+    <option name="taskfile" value="${HOME}/scripts.sh/Taskfile.yml" />
+    <method v="2" />
+  </configuration>
+</component>

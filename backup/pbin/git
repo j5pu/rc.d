@@ -1,0 +1,30 @@
+#!/bin/sh
+
+if ! cmd="$(which -a "$(basename "${0}")" | sed -n "2 p")"; then
+  exit 1
+fi
+
+
+if [ "${1}" = "" ]
+for arg do
+  skip=true
+  case "${1}" in
+    -h|--help) $( which man ) -p cat "$(basename "${0}")" 2>/dev/null; exit ;;
+    *) skip=false ;;
+  esac
+  shift
+  $skip || set -- "$@" "${arg}"  # save original
+done
+
+echo "${@}"
+
+${cmd} "${@}"
+
+
+#--system macOS no
+#--user|-u
+#-H
+#que haga login el ssh por defecto
+#que el sudo sea por defecto login asi solo pongo uno?
+#y el rsync
+#o hacerlo con funciones

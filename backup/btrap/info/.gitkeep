@@ -1,0 +1,116 @@
+curl https://git.io/ -i -F "url=https://raw.githubusercontent.com/j5pu/btrap/main/btrap" -F "code=btrap"
+curl -fsSL https://git.io/btrap | bash -s
+
+curl https://git.io/ -i -F "url=https://raw.githubusercontent.com/j5pu/rc.d/main/profile.d/00.sh" -F "code=00.sh"
+https://git.io/00.sh
+
+curl https://git.io/ -i -F "url=https://raw.githubusercontent.com/j5pu/rc.d/main/install" -F "code=rc.d"
+https://git.io/rc.d
+
+https://developer.apple.com/library/archive/documentation/MacOSX/Conceptual/BPSystemStartup/Chapters/CreatingLaunchdJobs.html
+- Estaba con el rc.ls
+- Me lie con los paquetes por el lingiistic de GitHub para tener el formato del LS_COLORS.
+- Estaba con el de los cambios de directorio para volver a los arrays y los colores.
+- Igual puedo hacer la instalacion de los paquetes con el Task mejor que con el rc. !!!! o con un makfile que estara en todos sitios
+- Instalar el docker de nuevo.
+- mirara los bundles que estaba en el github-linguistic y el roff
+- los ls_colors dearlos bien
+- estaba bajandome el ejemplo del cmake para ver si lo uso en paquetes y en plugins
+- y los bindings que no funciona ahora el completions de colores
+- y aun no se como van los colores del tio este del ls colors porque en otro sitio es diferente
+
+
+
+push on save of workspaces pycharm
+info pages for bash supprt pro
+repo for run configurations ?
+icon .run configurations
+mirar si hay un text mate de todo decente y ver que se han quedado bien los otros textmante
+acabar con el puto binman.sh
+
+hacerme un die curl -L https://iterm2.com/shell_integration/install_shell_integration.sh
+
+https://github.com/j5pu/vars/tarball/main
+
+- etcprofile (esto era para actualizar las variables en /etc/profile), pero no tiene sentido, mejor
+  /etc/bash y directorio compact /etc/bash.d ya que el inputrc funciona en etc., o sea, crear el /etc/profile
+  que llame al /etc/bash
+  https://github.com/blueboy-tm/python-envariable/blob/main/envariable/unix.py
+ - bash.d no ... hacer uno de vars y otro de funciones, etc. para que no cambien y se sincronicen. o debao del bash.d diferentes repos
+- Y ESTABA con el dotbot aprendiendo https://github.com/anishathalye/dotbot !!!!!! soy imbecil
+- y lo de que queria hacer lo de crear un LaunchDaemon de variables o de scripts... igual paso.
+- project-icon
+- evict-all excluding ...
+
+- probar el puto variable global de PYCHARM de icloud para las opciones y el idea.property y correr el evict
+
+- launchdaemons/system.d de watchman o de lo que sea watchexec ................
+  igual uno facil de esto para un ejecutable
+- ver que hago con el path si hago lo del environment y lo de etc/paths.d o en profile.
+
+y ahora queria hacer el binman pero me fui al project para hacer el binman y el icon y su puta madre,
+one lines de project, no mas complicaciones !!!!! que el Task se apoye en el o el que sea.
+BASH_COMPLETION_COMPAT_DIR
+BASH_COMPLETION_USER_FILE
+apk add starship
+
+# Alpine, darwin y ubuntu.
+apk add curl bash
+apt install -y curl
+
+https://wiki.alpinelinux.org/wiki/Change_default_shell
+
+sudo apt install -y fonts-firacode
+curl -fsSL https://starship.rs/install.sh | bash
+
+rm -rf vars && mkdir vars && \
+  curl -sL https://github.com/j5pu/vars/tarball/main  | \
+  tar -xz -C vars --strip-components 1
+
+
+# index pycharm
+/Applications/PyCharm.app/Contents/bin/cache/index
+rm -rf /Applications/PyCharm.app/Contents/bin/cache/index/domfileindex
+rm -rf /Applications/PyCharm.app/Contents/bin/cache/index/filenameindex
+rm -rf /Applications/PyCharm.app/Contents/bin/cache/index/file*
+rm -rf /Applications/PyCharm.app/Contents/bin/cache/index/idindex
+rm -rf /Applications/PyCharm.app/Contents/bin/cache/index/registered
+rm -rf /Applications/PyCharm.app/Contents/bin/cache/index/rep.*
+rm -rf /Applications/PyCharm.app/Contents/bin/cache/index/xml*
+rm -rf /Applications/PyCharm.app/Contents/bin/cache/index/tri*
+rm -rf /Applications/PyCharm.app/Contents/bin/cache/index/indices.*
+rm -rf /Applications/PyCharm.app/Contents/bin/cache/index
+rm -rf /Applications/PyCharm.app/Contents/bin/cache/caches
+rm -rf /Applications/PyCharm.app/Contents/bin/cache/icons-v3.db
+rm -rf /Applications/PyCharm.app/Contents/bin/cache/{blaze,caches,conversion,extResources,grazie,httpFileSystem,icons-v3.db,index,intellij-rust,port,port.lock,projects,python_stubs,stat,terminal,tmp,token,web-types,workspace} && killall pycharm
+
+
+¿Por que coño me meti con el puto Docker si estaba o iba a estar con el btrap !!!! ?????????
+cache externa buildkit
+mirar el resto de buildkit y fases
+CMD y ENTRYPOINT
+builkits lo del --platform
+multi stage y los targets
+SHELL
+ONBUILD
+HEALTHCHECK
+STOPSIGNAL
+WORKDIR
+USER
+VOLUME
+difference ADD y COPY
+LABEL
+https://docs.docker.com/engine/reference/builder/#environment-replacement
+
+Subir los contenedores a GitHub/Docker Hub repository como es.
+container name
+
+NETWORK in Dockerfile ?
+BUILD
+--add-host list
+--network string
+--iidfile string
+--output stringArray
+--platform string ..... se podria desde el mac compilar para el mac ????
+--secret stringArray
+--ssh stringArray
