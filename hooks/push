@@ -1,4 +1,4 @@
 #!/bin/bash
 set -e
 echo "${0}"
-docker push j5pu:alpine
+docker push j5pu/rc:alpine
