@@ -3,6 +3,7 @@ ARG cero
 ARG e
 ARG ls
 ARG ls_build
+ARG gittop
 ARG DOCKER_REPO
 ARG DOCKERFILE_PATH
 ARG DOCKER_TAG
@@ -20,6 +21,7 @@ ARG ENV=${ENV:-$BASH_ENV}
 FROM $image
 
 ARG args
+ARG gittop
 ARG cero
 ARG e
 ARG ls
@@ -31,6 +33,7 @@ ARG IMAGE_NAME
 ARG SOURCE_BRANCH
 ARG SOURCE_COMMIT
 
+ENV gittop $gittop
 ENV ls $ls
 ENV ls_build $ls_build
 ENV args $args

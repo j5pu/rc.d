@@ -5,6 +5,10 @@
 # https://docs.docker.com/engine/reference/commandline/cli/
 # DOCKER_BUILDKIT:       If set, enables building images with BuildKit. performance, storage management,
 #                        feature functionality, and security.
+# https://docs.docker.com/buildx/working-with-buildx/
+# Docker Buildx is included in Docker Desktop and Docker Linux packages when installed using the DEB or RPM packages.
+# --platform (for example, linux/amd64, linux/arm64, or darwin/amd64).
+#You can also download the latest buildx binary from the Docker buildx releases page on GitHub, copy it to ~/.docker/cli-plugins folder with name docker-buildx and change the permission to execute:
 export DOCKER_BUILDKIT="1"
 # DOCKER_CONFIG:         The location of your client configuration files.
 export DOCKER_CONFIG="${CONFIG}/docker"
