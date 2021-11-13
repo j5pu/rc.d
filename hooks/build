@@ -42,7 +42,7 @@ if [ "${SOURCE_COMMIT-}" ]; then
     --build-arg base --build-arg tag --tag "${image}" .
 export base="kalilinux/kali-bleeding-edge"
 export tag=""
-export   image="${DOCKER_REPO}:${base}"
+export   image="${DOCKER_REPO}:kali-bleeding-edge"
 
     docker build --build-arg base --build-arg tag --tag "${image}" .
 else
