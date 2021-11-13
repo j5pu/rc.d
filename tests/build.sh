@@ -4,10 +4,10 @@ set -e
 build() {
   local image tag
   while read -r image tag; do
+    echo $image $tag
     docker build --build-arg image="${image}" --target build --tag "${tag}" "${top}"
   done < <("${top}"/tools/images.sh tests)
 }
-
 
 remove() {
   local image

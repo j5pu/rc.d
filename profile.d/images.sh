@@ -3,25 +3,5 @@
 export IMAGES
 IMAGES=$(cat <<eot
 j5pu/rc:alpine
-j5pu/rc:archlinux
-j5pu/rc:bash
-j5pu/rc:bats
-j5pu/rc:busybox
-j5pu/rc:centos
-j5pu/rc:debian
-j5pu/rc:fedora
-j5pu/rc:systemd-ubuntu
-j5pu/rc:kali-rolling
-j5pu/rc:kali-bleeding-edge
-j5pu/rc:nix
-j5pu/rc:python3.9
-j5pu/rc:python3.9-bullseye
-j5pu/rc:python3.9-slim
-j5pu/rc:python3.10
-j5pu/rc:python3.10-bullseye
-j5pu/rc:python3.10-slim
-j5pu/rc:rhel7
-j5pu/rc:ubuntu
-j5pu/rc:zsh
 eot
 )

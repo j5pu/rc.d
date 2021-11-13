@@ -3,9 +3,9 @@ fail_fast: true
 repos:
   - repo: local
     hooks:
-      - id: tags-sh
-        name: "Create: tags.sh"
-        description: Create tags.sh
+      - id: images.sh
+        name: "Create: images.sh"
+        description: Create images.sh
         language: system
         entry: tools/images.sh images-sh
         stages:
