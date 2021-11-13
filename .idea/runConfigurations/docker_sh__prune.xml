@@ -1,0 +1,8 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="docker.sh: prune" type="BashProRunConfiguration" folderName="tests" singleton="false">
+    <option name="scriptParameters" value="prune" />
+    <option name="scriptPath" value="$PROJECT_DIR$/tests/docker.sh" />
+    <RunnerSettings bashdbVersion="Automatic" bashPathMapper="Automatic" RunnerId="pro.bashsupport.shDebugRunner" />
+    <method v="2" />
+  </configuration>
+</component>
