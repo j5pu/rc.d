@@ -29,10 +29,13 @@ if [ "${SOURCE_COMMIT-}" ]; then
   for i in COMMIT_MSG DOCKER_REPO DOCKER_TAG DOCKERFILE_PATH IMAGE_NAME SOURCE_BRANCH SOURCE_COMMIT; do
     echo "${i}: ${!i}"
   done
+  image="${DOCKER_REPO}:${base}"
 
   e="$(env)"
-  docker build --build-arg base  --build-arg cero --build-arg ls --build-arg ls_build --build-arg args --build-arg e --build-arg DOCKER_REPO --build-arg DOCKERFILE_PATH --build-arg tag --build-arg  --tag "${tag}" .
-  image="${DOCKER_REPO}:${base}"
+  docker build --build-arg cero --build-arg SOURCE_BRANCH \
+    --build-arg SOURCE_COMMIT --build-arg DOCKER_TAG --build-arg ls --build-arg IMAGE_NAME \
+    --build-arg ls_build --build-arg args --build-arg e --build-arg DOCKER_REPO --build-arg DOCKERFILE_PATH \
+    --build-arg base --build-arg tag --tag "${image}" .
 
 else
   image="${repo}:${base}"
