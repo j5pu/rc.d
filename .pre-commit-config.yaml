@@ -25,7 +25,7 @@ repos:
         name: "post-commit: testing"
         description: post commit testing
         language: system
-        entry: 'true'
+        entry: echo testing
         stages:
           - post-commit
         pass_filenames: false
@@ -35,7 +35,7 @@ repos:
         name: "tag"
         description: pre-push tag
         language: system
-        entry: 'true'
+        entry: echo pre-push
         stages:
           - push
         pass_filenames: false

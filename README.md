@@ -4,5 +4,5 @@
 ## pre-commit 
 After clone 
 ````bash
-pre-commit install-hooks  # install the hooks in the config
+pre-commit install --install-hooks -t pre-commit -t post-commit -t pre-push
 ````
