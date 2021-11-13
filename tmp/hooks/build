@@ -29,3 +29,15 @@ eot
 )
 
 main
+
+# docker system prune --all --volumes --force
+docker container prune --force
+docker image prune --all --force
+
+# list
+#docker container ls -a --filter status=exited --filter status=created
+
+# stop all
+#docker container stop $(docker container ls -aq)
+#docker container rm $(docker container ls -aq)
+#docker network prune

@@ -22,18 +22,18 @@ tag=""
 echo "\${0}: ${0}"
 repo="$(basename "${0}")"
 printf '%s\n' "${@}"
-cero="$0"
-gittop="$(git rev-parse --show-toplevel 2>/dev/null || true)"
-args="$(printf '%s\n' "${@}")"
-ls="$(ls -la "$(dirname "${DOCKERFILE_PATH}")" || true)"
-ls_build="$(ls -la "$(dirname "${DOCKERFILE_PATH}")"/hooks/build || true)"
+export cero="$0"
+export gittop="$(git rev-parse --show-toplevel 2>/dev/null || true)"
+export args="$(printf '%s\n' "${@}")"
+export ls="$(ls -la "$(dirname "${DOCKERFILE_PATH}")" || true)"
+export ls_build="$(ls -la "$(dirname "${DOCKERFILE_PATH}")"/hooks/build || true)"
 if [ "${SOURCE_COMMIT-}" ]; then
   for i in COMMIT_MSG DOCKER_REPO DOCKER_TAG DOCKERFILE_PATH IMAGE_NAME SOURCE_BRANCH SOURCE_COMMIT; do
     echo "${i}: ${!i}"
   done
   image="${DOCKER_REPO}:${base}"
 
-  e="$(env)"
+  export e="$(env)"
   docker build --build-arg cero --build-arg gittop --build-arg SOURCE_BRANCH \
     --build-arg SOURCE_COMMIT --build-arg DOCKER_TAG --build-arg ls --build-arg IMAGE_NAME \
     --build-arg ls_build --build-arg args --build-arg e --build-arg DOCKER_REPO --build-arg DOCKERFILE_PATH \
@@ -45,3 +45,4 @@ fi
 ls -la "$(dirname "${DOCKERFILE_PATH}")"
 #jrei/systemd-ubuntu:latest
 #python:3.9-alpine
+

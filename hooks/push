@@ -1,4 +1,5 @@
 #!/bin/bash
 set -e
 echo "${0}"
+# --all-tags
 docker push j5pu/rc:alpine
