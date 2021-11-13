@@ -11,7 +11,7 @@ ARG IMAGE_NAME
 ARG SOURCE_BRANCH
 ARG SOURCE_COMMIT
 
-ARG base=${base:=alpine}
+ARG base=${base:-alpine}
 ARG tag=${tag:-latest}
 ARG image="${base}:${tag}"
 
