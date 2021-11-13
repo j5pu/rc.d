@@ -4,9 +4,12 @@ set -e
 build() {
   local image tag
   while read -r image tag; do
-    echo $image $tag
     docker build --build-arg image="${image}" --target build --tag "${tag}" "${top}"
   done < <("${top}"/tools/images.sh tests)
+}
+
+prune() {
+  docker image prune --all --force
 }
 
 remove() {
@@ -32,7 +35,7 @@ scan() {
 main() {
   top="$(git top)"
   [ -x "${0}" ] || chmod +x "${0}"
-  case "${1}" in build|remove|scan) ${1} ;; esac
+  case "${1}" in build|prune|remove|scan) ${1} ;; esac
 }
 
 main "${@}"

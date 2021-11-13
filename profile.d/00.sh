@@ -19,6 +19,7 @@ export PATH="/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin"
 #   DIST_ID:              <alpine|centos|debian|kali|macOS|ubuntu>.
 #   DIST_ID_LIKE:         <alpine|debian|rhel fedora>.
 #   DIST_VERSION:         macOS <10.15.1|10.16|...>, kali <2021.2|...>, ubuntu <20.04|...>.
+#   ENV:                  Shell profile/rc start file (for 'ALPINE_LIKE').
 #   FEDORA:               "1" if 'DIST_ID' is "fedora".
 #   IS_CONTAINER:         "1" if running in docker container.
 #   FEDORA_LIKE:          "1" if 'DIST_ID' is "fedora" or "fedora" in "DIST_ID_LIKE".
@@ -26,6 +27,7 @@ export PATH="/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin"
 #   NIXOS:                "1" if 'DIST_ID' is "alpine" and "/etc/nix".
 #   PM:                   Package manager (apk, apt, brew, nix or yum) for 'DIST_ID'.
 #   PM_INSTALL            Package manager install command with options quiet.
+#   RC                    Script path.
 #   RHEL:                 "1" if 'DIST_ID' is "rhel".
 #   RHEL_LIKE:            "1" if 'DIST_ID' is "rhel" or "rhel" in "DIST_ID_LIKE".
 #   UBUNTU:               "1" if 'DIST_ID' is "ubuntu".
@@ -92,6 +94,7 @@ vars() {
           VERSION_CODENAME) DIST_CODENAME="${_value}" ;;
         esac
       done < "${_file}"
+      [ "${ALPINE_LIKE-}" ] && export ENV="${RC}"
       unset _var _value
     else
       [ -d "/sbin" ] && export BUSYBOX="1"
@@ -115,8 +118,6 @@ vars() {
   export PM_INSTALL="${PM} ${_install}"
   unset _install _nocache
 }
-vars
-unset -f vars
 
 ###################################### Globals: IS_BASH
 #
@@ -125,17 +126,20 @@ if [ -n "${BASH_VERSION}" ]; then
   export IS_BASH="1"
   (return 0 2>/dev/null) && sourced="1"
   # shellcheck disable=SC3028,SC3054
-  rc="${BASH_SOURCE[0]}"
+  export RC="${BASH_SOURCE[0]}"
 elif [ "${0##*/}" = "sh" ]; then
   sourced="1"
-  rc="${0}"
+  export RC="${0}"
 else
   return
 fi
 
-for script in "${rc}".d/??-*.sh ; do
-  if [ -r "${script}" ] ; then
-    . "${script}"
-  fi
-done
-unset rc script sourced
+vars
+unset -f vars
+
+#for script in "${rc}".d/??-*.sh ; do
+#  if [ -r "${script}" ] ; then
+#    . "${script}"
+#  fi
+#done
+#unset rc script sourced
