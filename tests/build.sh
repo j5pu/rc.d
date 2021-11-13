@@ -8,6 +8,7 @@ build() {
   done < <("${top}"/tools/images.sh tests)
 }
 
+
 remove() {
   local image
   while read -r image; do
