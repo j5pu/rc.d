@@ -1,75 +1,60 @@
-#!/text
-# alpine:edge (20210804)
-# alpine:latest (3, 3.14)
-alpine:latest
-# alpine:3.13
-# alpine:3.12
-
-# archlinux:base-devel
-#archlinux:latest
-
-# bash:devel
-#bash:latest
-# bash:5.1
-# bash:5.0
-# bash:4.4
-
-#bats/bats:latest
-
-#busybox:latest
-
-# centos:latest (8)
-#centos:latest
-# centos:7
-
-# debian:bookworm
-# debian:bookworm-backports
-# debian:bookworm-slim
-# debian:latest (bullseye)
-#debian:latest
-# debian:bullseye-backports
-# debian:bullseye-slim
-# debian:buster
-# debian:buster-backports
-# debian:buster-slim
-
-# fedora:36
-# fedora:latest (35)
-#fedora:latest
-# fedora:34
-
-# jrei/systemd-ubuntu:latest (20.04 - focal)
-#jrei/systemd-ubuntu:latest
-# jrei/systemd-ubuntu:focal
-# jrei/systemd-ubuntu:bionic
-
-# kalilinux/kali-rolling:latest (armhf, arm64, amd64)
-# apt -y install <package|kali-linux-headless|kali-linux-large>
-#kalilinux/kali-rolling:latest
-#kalilinux/kali-bleeding-edge:latest
-
-#nixos/nix:latest
-
-#python:3.9-alpine
-#python:3.9-bullseye
-#python:3.9-slim
-#python:3.10-alpine
-#python:3.10-bullseye
-#python:3.10-slim
-
-#richxsl/rhel7:latest
-
-# 22.04, jammy, devel
-# ubuntu:22.04
-# 21.10, impish, rolling
-# ubuntu:21.10
-# 21.04, hirsute
-# ubuntu:21.04
-# ubuntu:latest (20.04, focal)
-#ubuntu:latest
-# 16.04, xenial
-# ubuntu:16.04
-# 18.04, bionic
-# ubuntu:18.04
-
-#zshusers/zsh:latest
+# FROM  alpine:edge (20210804) as base
+# FROM  alpine:latest (3, 3.14) as base
+FROM alpine:latest as base
+# FROM  alpine:3.13 as base
+# FROM  alpine:3.12 as base
+# FROM  archlinux:base-devel as base
+# FROM archlinux:latest as base
+# FROM  bash:devel as base
+# FROM bash:latest as base
+# FROM  bash:5.1 as base
+# FROM  bash:5.0 as base
+# FROM  bash:4.4 as base
+# FROM bats/bats:latest as base
+# FROM busybox:latest as base
+# FROM  centos:latest (8) as base
+# FROM centos:latest as base
+# FROM  centos:7 as base
+# FROM  debian:bookworm as base
+# FROM  debian:bookworm-backports as base
+# FROM  debian:bookworm-slim as base
+# FROM  debian:latest (bullseye) as base
+# FROM debian:latest as base
+# FROM  debian:bullseye-backports as base
+# FROM  debian:bullseye-slim as base
+# FROM  debian:buster as base
+# FROM  debian:buster-backports as base
+# FROM  debian:buster-slim as base
+# FROM  fedora:36 as base
+# FROM  fedora:latest (35) as base
+# FROM fedora:latest as base
+# FROM  fedora:34 as base
+# FROM  jrei/systemd-ubuntu:latest (20.04 - focal) as base
+# FROM jrei/systemd-ubuntu:latest as base
+# FROM  jrei/systemd-ubuntu:focal as base
+# FROM  jrei/systemd-ubuntu:bionic as base
+# FROM  kalilinux/kali-rolling:latest (armhf, arm64, amd64) as base
+# FROM  apt -y install <package|kali-linux-headless|kali-linux-large> as base
+# FROM kalilinux/kali-rolling:latest as base
+# FROM kalilinux/kali-bleeding-edge:latest as base
+# FROM nixos/nix:latest as base
+# FROM python:3.9-alpine as base
+# FROM python:3.9-bullseye as base
+# FROM python:3.9-slim as base
+# FROM python:3.10-alpine as base
+# FROM python:3.10-bullseye as base
+# FROM python:3.10-slim as base
+# FROM richxsl/rhel7:latest as base
+# FROM  22.04, jammy, devel as base
+# FROM  ubuntu:22.04 as base
+# FROM  21.10, impish, rolling as base
+# FROM  ubuntu:21.10 as base
+# FROM  21.04, hirsute as base
+# FROM  ubuntu:21.04 as base
+# FROM  ubuntu:latest (20.04, focal) as base
+# FROM ubuntu:latest as base
+# FROM  16.04, xenial as base
+# FROM  ubuntu:16.04 as base
+# FROM  18.04, bionic as base
+# FROM  ubuntu:18.04 as base
+# FROM zshusers/zsh:latest as base

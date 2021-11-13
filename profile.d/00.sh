@@ -94,7 +94,6 @@ vars() {
           VERSION_CODENAME) DIST_CODENAME="${_value}" ;;
         esac
       done < "${_file}"
-      [ "${ALPINE_LIKE-}" ] && export ENV="${RC}"
       unset _var _value
     else
       [ -d "/sbin" ] && export BUSYBOX="1"

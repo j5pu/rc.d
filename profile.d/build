@@ -1,0 +1,38 @@
+#!/bin/bash
+set -e
+
+#######################################
+# Docker hub build hook
+# https://docs.docker.com/docker-hub/builds/advanced/
+# https://dev.to/samuelea/automate-your-builds-on-docker-hub-by-writing-a-build-hook-script-13fp
+# https://codeclimbing.com/automate-your-builds-on-docker-hub-by-writing-a-build-hook-script/
+# COMMIT_MSG:         Message from the commit being tested and built.
+# DOCKER_REPO:        Name of the Docker repository being built.
+# DOCKER_TAG:         Docker repository tag being built.
+# DOCKERFILE_PATH:    Dockerfile currently being built.
+# IMAGE_NAME:         Name and tag of the Docker repository being built.
+#                     (This variable is a combination of DOCKER_REPO:DOCKER_TAG.)
+# SOURCE_BRANCH:      Name of the branch or the tag that is currently being tested.
+# SOURCE_COMMIT:      SHA1 hash of the commit being tested.
+#######################################
+
+base="alpine"
+tag=""
+echo "\${0}: ${0}"
+repo="$(basename "${0}")"
+prinf '%s\n' "${@}"
+if [ "${SOURCE_COMMIT-}" ]; then
+  for i in COMMIT_MSG DOCKER_REPO DOCKER_TAG DOCKERFILE_PATH IMAGE_NAME SOURCE_BRANCH SOURCE_COMMIT; do
+    echo "${i}: ${!i}"
+  done
+  env
+  image="${DOCKER_REPO}:${base}"
+  docker build --build-arg base="${base}" --build-args tag="${tag}" --tag "${image}"
+
+else
+  image="${repo}:${base}"
+  docker build --build-arg base="${base}" --build-args tag="${tag}" --tag "${image}"
+fi
+ls -la "$(dirname "${DOCKERFILE_PATH}")"
+#jrei/systemd-ubuntu:latest
+#python:3.9-alpine

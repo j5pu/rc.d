@@ -7,7 +7,8 @@ repos:
         name: "Create: images.sh"
         description: Create images.sh
         language: system
-        entry: tools/images.sh images-sh
+        entry: echo
+#        entry: tools/images.sh images-sh
         stages:
           - commit
         pass_filenames: false
@@ -16,7 +17,8 @@ repos:
         name: "Update: hooks"
         description: Update hooks
         language: system
-        entry: tools/images.sh hooks
+        entry: echo
+#        entry: tools/images.sh hooks
         stages:
           - commit
         pass_filenames: false
@@ -25,7 +27,8 @@ repos:
         name: "post-commit: testing build images"
         description: post commit testing build images
         language: system
-        entry: tests/build.sh build
+        entry: echo
+#        entry: tests/build.sh build
         stages:
           - post-commit
         pass_filenames: false
@@ -34,7 +37,8 @@ repos:
         name: "post-commit: testing remove images"
         description: post commit testing remove images
         language: system
-        entry: tests/build.sh remove
+        entry: echo
+#        entry: tests/build.sh remove
         stages:
           - post-commit
         pass_filenames: false
@@ -43,7 +47,8 @@ repos:
         name: "post-commit: prune"
         description: post commit prune
         language: system
-        entry: docker images prune
+        entry: echo
+#        entry: docker images prune
         stages:
           - post-commit
         pass_filenames: false
@@ -53,7 +58,8 @@ repos:
         name: "tag"
         description: pre-push tag
         language: system
-        entry: echo pre-push
+        entry: echo
+#        entry: echo pre-push
         stages:
           - push
         pass_filenames: false
