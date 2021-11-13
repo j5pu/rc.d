@@ -4,6 +4,7 @@
     <globalVariables>
       <var name="images" />
       <var name="TAGS" />
+      <var name="input" />
     </globalVariables>
   </component>
 </project>

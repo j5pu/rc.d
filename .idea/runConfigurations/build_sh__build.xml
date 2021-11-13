@@ -1,0 +1,8 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="build.sh: build" type="BashProRunConfiguration" folderName="tests" singleton="false">
+    <option name="scriptParameters" value="build" />
+    <option name="scriptPath" value="$PROJECT_DIR$/tests/build.sh" />
+    <RunnerSettings bashdbVersion="Automatic" bashPathMapper="Automatic" RunnerId="pro.bashsupport.shDebugRunner" />
+    <method v="2" />
+  </configuration>
+</component>

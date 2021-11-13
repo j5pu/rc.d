@@ -1,11 +1,11 @@
 .git
 .gitignore
+.pre-commit-config.yaml
 backup
-bin
+src
 tests
-install
+tools
 README.md
-Taskfile.yml
 
 ### Linux template
 *~

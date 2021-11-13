@@ -1,0 +1,7 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="pre-commit-install.sh" type="BashProRunConfiguration" folderName="tools" singleton="false">
+    <option name="scriptPath" value="$PROJECT_DIR$/tools/pre-commit-install.sh" />
+    <RunnerSettings bashdbVersion="Automatic" bashPathMapper="Automatic" RunnerId="pro.bashsupport.shDebugRunner" />
+    <method v="2" />
+  </configuration>
+</component>
