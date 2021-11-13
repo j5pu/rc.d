@@ -10,12 +10,10 @@ ARG DOCKER_TAG
 ARG IMAGE_NAME
 ARG SOURCE_BRANCH
 ARG SOURCE_COMMIT
-ARG tag
-ARG base
 
-ARG base=${base:-alpine}
+ARG base=${base:=alpine}
 ARG tag=${tag:-latest}
-ARG image=${base}:${tag}
+ARG image="${base}:${tag}"
 
 ARG BASH_ENV=${BASH_ENV:-/etc/profile}
 ARG ENV=${ENV:-$BASH_ENV}
@@ -37,9 +35,12 @@ ARG SOURCE_COMMIT
 ARG tag
 ARG base
 ARG image
+RUN echo $tag
 
 ENV image $image
+
 ENV tag $tag
+RUN echo $tag
 ENV base $base
 ENV gittop $gittop
 ENV ls $ls
