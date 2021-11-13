@@ -1,0 +1,41 @@
+fail_fast: true
+
+repos:
+  - repo: local
+    hooks:
+      - id: tags-sh
+        name: "Create: tags.sh"
+        description: Create tags.sh
+        language: system
+        entry: tools/images.sh tags-sh
+        stages:
+          - commit
+        pass_filenames: false
+
+      - id: hooks
+        name: "Update: hooks"
+        description: Update hooks
+        language: system
+        entry: tools/images.sh hooks
+        stages:
+          - commit
+        pass_filenames: false
+
+      - id: testing
+        name: "post-commit: testing"
+        description: post commit testing
+        language: system
+        entry: 'true'
+        stages:
+          - post-commit
+        pass_filenames: false
+
+      # TODO: pre-push hook con tag y opciones (no vale por la version)
+      - id: pre-push
+        name: "tag"
+        description: pre-push tag
+        language: system
+        entry: 'true'
+        stages:
+          - push
+        pass_filenames: false

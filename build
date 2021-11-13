@@ -5,7 +5,7 @@ main() {
   local image tag
   while read -r image tag; do
     echo "${image} ${tag}"
-#    docker build --build-arg image="${image}" --target build --tag "${tag}" .
+    docker build --build-arg image="${image}" --target build --tag "${tag}" .
   done <<< "${images}"
 }
 
