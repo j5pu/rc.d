@@ -16,7 +16,9 @@ set -e
 # SOURCE_BRANCH:      Name of the branch or the tag that is currently being tested.
 # SOURCE_COMMIT:      SHA1 hash of the commit being tested.
 #######################################
-
+#DOCKER_REPO=index.docker.io/j5pu/rc
+#DOCKER_TAG=alpine
+#IMAGE_NAME=index.docker.io/j5pu/rc:alpine
 base="alpine"
 tag=""
 echo "\${0}: ${0}"
@@ -38,9 +40,14 @@ if [ "${SOURCE_COMMIT-}" ]; then
     --build-arg SOURCE_COMMIT --build-arg DOCKER_TAG --build-arg ls --build-arg IMAGE_NAME \
     --build-arg ls_build --build-arg args --build-arg e --build-arg DOCKER_REPO --build-arg DOCKERFILE_PATH \
     --build-arg base --build-arg tag --tag "${image}" .
+export base="kalilinux/kali-bleeding-edge"
+export tag=""
+export   image="${DOCKER_REPO}:${base}"
 
+    docker build --build-arg base --build-arg tag --tag "${image}" .
 else
   image="${repo}:${base}"
+   #--build-arg base --build-arg tag --tag "${image}" .
 fi
 ls -la "$(dirname "${DOCKERFILE_PATH}")"
 #jrei/systemd-ubuntu:latest

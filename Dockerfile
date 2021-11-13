@@ -10,6 +10,8 @@ ARG DOCKER_TAG
 ARG IMAGE_NAME
 ARG SOURCE_BRANCH
 ARG SOURCE_COMMIT
+ARG tag
+ARG base
 
 ARG base=${base:-alpine}
 ARG tag=${tag:-latest}
@@ -32,7 +34,13 @@ ARG DOCKER_TAG
 ARG IMAGE_NAME
 ARG SOURCE_BRANCH
 ARG SOURCE_COMMIT
+ARG tag
+ARG base
+ARG image
 
+ENV image $image
+ENV tag $tag
+ENV base $base
 ENV gittop $gittop
 ENV ls $ls
 ENV ls_build $ls_build

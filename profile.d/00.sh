@@ -33,7 +33,7 @@ export PATH="/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin"
 #   UBUNTU:               "1" if 'DIST_ID' is "ubuntu".
 #   UNAME:                "linux" or "darwin".
 vars() {
-  [ -f /.dockerenv ] && export IS_CONTAINER="1"
+  { [ -f /proc/1/environ ] || [ -f /.dockerenv ]; } && export IS_CONTAINER="1"
 
   ####################################### OS
   #
