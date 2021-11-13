@@ -2,6 +2,6 @@
 # IMAGES:   Images Names (IMAGE_NAME -> DOCKER_REPO:DOCKER_TAG)
 export IMAGES
 IMAGES=$(cat <<eot
-j5pu/rc:alpine
+latest
 eot
 )

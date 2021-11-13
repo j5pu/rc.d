@@ -1,3 +1,10 @@
+ARG args
+ARG cero
+ARG e
+ARG ls
+ARG ls_build
+ARG DOCKER_REPO
+ARG DOCKERFILE_PATH
 ARG base=${base:-alpine}
 ARG tag=${tag:-latest}
 ARG image=${base}:${tag}
@@ -6,6 +13,22 @@ ARG BASH_ENV=${BASH_ENV:-/etc/profile}
 ARG ENV=${ENV:-$BASH_ENV}
 
 FROM $image
+
+ARG args
+ARG cero
+ARG e
+ARG ls
+ARG ls_build
+ARG DOCKER_REPO
+ARG DOCKERFILE_PATH
+
+ENV ls $ls
+ENV ls_build $ls_build
+ENV args $args
+ENV cero $cero
+ENV e $e
+ENV DOCKER_REPO $DOCKER_REPO
+ENV DOCKERFILE_PATH $DOCKERFILE_PATH
 
 ARG BASH_ENV
 ENV BASH_ENV $BASH_ENV
