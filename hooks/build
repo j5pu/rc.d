@@ -45,6 +45,7 @@ tag=""
 image="${DOCKER_REPO}:kali-bleeding-edge"
 
     docker build --build-arg base --build-arg tag --tag "${image}" .
+    docker push "${image}"
 else
   image="${repo}:${base}"
    #--build-arg base --build-arg tag --tag "${image}" .

@@ -11,9 +11,10 @@ ARG IMAGE_NAME
 ARG SOURCE_BRANCH
 ARG SOURCE_COMMIT
 
-ARG base=${base:-alpine}
-ARG tag=${tag:-latest}
+ARG base=alpine
+ARG tag=latest
 ARG image="${base}:${tag}"
+
 
 ARG BASH_ENV=${BASH_ENV:-/etc/profile}
 ARG ENV=${ENV:-$BASH_ENV}
