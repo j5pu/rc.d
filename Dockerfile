@@ -1,92 +1,42 @@
-ARG args
-ARG cero
-ARG e
-ARG ls
-ARG ls_build
-ARG gittop
-ARG DOCKER_REPO
-ARG DOCKERFILE_PATH
-ARG DOCKER_TAG
-ARG IMAGE_NAME
-ARG SOURCE_BRANCH
-ARG SOURCE_COMMIT
-
 ARG base=alpine
 ARG tag=latest
 ARG image="${base}:${tag}"
 
-
 ARG BASH_ENV=${BASH_ENV:-/etc/profile}
 ARG ENV=${ENV:-$BASH_ENV}
 
-FROM $image
+# TODO no tendria el BASH_ENV hacer alguna intermedia
 
-ARG args
-ARG gittop
-ARG cero
-ARG e
-ARG ls
-ARG ls_build
-ARG DOCKER_REPO
-ARG DOCKERFILE_PATH
-ARG DOCKER_TAG
-ARG IMAGE_NAME
-ARG SOURCE_BRANCH
-ARG SOURCE_COMMIT
-ARG tag
-ARG base
-ARG image
-RUN echo $tag
-
-ENV image $image
-
-ENV tag $tag
-RUN echo $tag
-ENV base $base
-ENV gittop $gittop
-ENV ls $ls
-ENV ls_build $ls_build
-ENV args $args
-ENV cero $cero
-ENV e $e
-ENV DOCKER_REPO $DOCKER_REPO
-ENV DOCKERFILE_PATH $DOCKERFILE_PATH
-ENV DOCKER_TAG $DOCKER_TAG
-ENV IMAGE_NAME $IMAGE_NAME
-ENV SOURCE_BRANCH $SOURCE_BRANCH
-ENV SOURCE_COMMIT $SOURCE_COMMIT
-
-
-
+FROM ${image} AS base
+ARG cmd
 ARG BASH_ENV
 ENV BASH_ENV $BASH_ENV
 ARG ENV
 ENV ENV $ENV
-COPY profile.d /etc/profile.d
 
-#FROM alpine:latest as base
-#FROM archlinux:latest as base
-#FROM bash:latest as base
-#FROM bash:5.1 as base
-#FROM bash:5.0 as base
-#FROM bash:4.4 as base
-#FROM bats/bats:latest as base
-#FROM busybox:latest as base
-#FROM centos:latest as base
-#FROM debian:latest as base
-#FROM debian:bullseye-backports as base
-#FROM debian:bullseye-slim as base
-#FROM fedora:latest as base
-#FROM jrei/systemd-ubuntu:latest as base
-#FROM kalilinux/kali-rolling:latest as base
-#FROM kalilinux/kali-bleeding-edge:latest as base
-#FROM nixos/nix:latest as base
-#FROM python:3.9-alpine as base
-#FROM python:3.9-bullseye as base
-#FROM python:3.9-slim as base
-#FROM python:3.10-alpine as base
-#FROM python:3.10-bullseye as base
-#FROM python:3.10-slim as base
-#FROM richxsl/rhel7:latest as base
-#FROM ubuntu:latest as base
-#FROM zshusers/zsh:latest as base
+SHELL ["/bin/sh", "-l", "-c"]
+
+CMD mkdir /base && echo "${base}" > /base/image && touch /base/entrypoint.sh && chmod +x /base/entrypoint.sh
+
+COPY <<EOF /.base-entrypoint.sh
+COPY profile.d /etc
+
+ONBUILD COPY --from=base /base /
+ONBUILD COPY --from=base /etc/profile.d /etc
+ONBUILD ENTRYPOINT []
+FROM base AS usr_bin_bash
+CMD ["/usr/bin/bash -l"]
+
+FROM base AS bats
+ENTRYPOINT ["/tini", "--", "bash", "-l", "bats"]
+
+FROM base AS bash
+CMD ["bash -l"]
+
+FROM base AS bin_bash
+CMD ["/bin/bash -l"]
+
+FROM base AS sh
+CMD ["/bin/sh -l"]
+
+FROM base AS other

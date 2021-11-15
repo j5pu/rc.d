@@ -1,6 +1,35 @@
 #!/bin/bash
 set -e
 
+images="alpine
+archlinux
+bash
+bash 5.1
+bash 5.0
+bash 4.4
+bats/bats
+busybox
+centos
+debian
+debian bullseye-backports
+debian bullseye-slim
+fedora
+jrei/systemd-ubuntu
+kalilinux/kali-rolling
+kalilinux/kali-bleeding-edge
+nixos/nix
+python 3.9-alpine
+python 3.9-bullseye
+python 3.9-slim
+python 3.10-alpine
+python 3.10-bullseye
+python 3.10-slim
+richxsl/rhel7
+ubuntu
+zshusers/zsh"
+
+declare -A targets=( ["bash"]="bash debian kalilinux ubuntu" ["bin_bash"]="centos fedora richxsl" ["sh"]="alpine busybox nix" ["usr_bin_bash"]="archlinux")
+
 #######################################
 # Docker hub build hook
 # https://docs.docker.com/docker-hub/builds/advanced/
@@ -8,7 +37,7 @@ set -e
 # https://codeclimbing.com/automate-your-builds-on-docker-hub-by-writing-a-build-hook-script/
 # on macOS builds for linux/amd64 (OS, ARCH). Igual hay ue compilar para ms pero el mac no puede
 # COMMIT_MSG:         Message from the commit being tested and built.
-# DOCKER_REPO:        Name of the Docker repository being built.
+# DOCKER_REPO:        Name of the Docker repository being built (index.docker.io/<USER>/<repo>)
 # DOCKER_TAG:         Docker repository tag being built.
 # DOCKERFILE_PATH:    Dockerfile currently being built.
 # IMAGE_NAME:         Name and tag of the Docker repository being built.
@@ -16,45 +45,36 @@ set -e
 # SOURCE_BRANCH:      Name of the branch or the tag that is currently being tested.
 # SOURCE_COMMIT:      SHA1 hash of the commit being tested.
 #######################################
-#DOCKER_REPO=index.docker.io/j5pu/rc
-#DOCKER_TAG=alpine
-#IMAGE_NAME=index.docker.io/j5pu/rc:alpine
-base="alpine"
-tag=""
-echo "\${0}: ${0}"
-repo="$(basename "${0}")"
-printf '%s\n' "${@}"
-export cero="$0"
-gittop="$(git rev-parse --show-toplevel 2>/dev/null || true)"
-args="$(printf '%s\n' "${@}")"
-ls="$(ls -la "$(dirname "${DOCKERFILE_PATH}")" || true)"
-ls_build="$(ls -la "$(dirname "${DOCKERFILE_PATH}")"/hooks/build 2>/dev/null || true)"
-if [ "${SOURCE_COMMIT-}" ]; then
-  for i in COMMIT_MSG DOCKER_REPO DOCKER_TAG DOCKERFILE_PATH IMAGE_NAME SOURCE_BRANCH SOURCE_COMMIT; do
-    echo "${i}: ${!i}"
-  done
-  image="${DOCKER_REPO}:${base}"
-
-  e="$(env)"
-  docker build --build-arg cero --build-arg gittop --build-arg SOURCE_BRANCH \
-    --build-arg SOURCE_COMMIT --build-arg DOCKER_TAG --build-arg ls --build-arg IMAGE_NAME \
-    --build-arg ls_build --build-arg args --build-arg e --build-arg DOCKER_REPO --build-arg DOCKERFILE_PATH \
-    --build-arg base --build-arg tag --tag "${image}" .
-base="kalilinux/kali-bleeding-edge"
-tag=""
-image="${DOCKER_REPO}:kali-bleeding-edge"
-
-    docker build --build-arg base --build-arg tag --tag "${image}" .
-    docker push "${image}"
-else
-  image="${repo}:${base}"
-   #--build-arg base --build-arg tag --tag "${image}" .
-   export base="kalilinux/kali-bleeding-edge"
-tag=""
-image="j5pu/rc:kali-bleeding-edge"
-  cd $gittop
+build() {
   docker build --build-arg base --build-arg tag --tag "${image}" .
-fi
-#jrei/systemd-ubuntu:latest
-#python:3.9-alpine
+}
 
+info() {
+  local base_repo base_tag
+  while read -r base_repo base_tag; do
+    :
+  done <<< "${images}"
+}
+#######################################
+# Main function
+# Globals:
+#   DOCKERFILE_PATH:  Dockerfile currently being built.
+#   HUB:              Running in auto build Docker Hub.
+#######################################
+main() {
+  export DOCKERFILE_PATH HUB=true
+  if [ ! "${DOCKERFILE_PATH-}" ]; then
+    HUB=false
+    DOCKERFILE_PATH="$(dirname "${0}")/../Dockerfile"
+    case "${1}" in build|info) ${1} ;; esac
+  else
+    HUB=true
+    build "${@}"
+  fi
+
+
+
+}
+
+
+main "${@}"

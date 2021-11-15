@@ -1,0 +1,7 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="alpine: env" type="BashProRunConfiguration" folderName="docker" singleton="false">
+    <scriptContent>docker run --rm j5pu/rc:alpine env</scriptContent>
+    <option name="sourceType" value="snippet" />
+    <method v="2" />
+  </configuration>
+</component>

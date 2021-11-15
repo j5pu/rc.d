@@ -9,6 +9,7 @@ export PATH="/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin"
 #   ALPINE                "1" if 'DIST_ID' is "alpine".
 #   ALPINE_LIKE:          "1" if 'DIST_ID' is "alpine".
 #   ARCHLINUX:            "1" if 'DIST_ID' is "arch".
+#   BASE_PATH:            Base image directory path if 'IS_CONTAINER'.
 #   BUSYBOX:              "1" if not "/etc/os-release" and not "/sbin".
 #   CENTOS:               "1" if 'DIST_ID' is "centos".
 #   DARWIN:               "1" if 'UNAME' is "Darwin".
@@ -103,10 +104,10 @@ vars() {
     unset _file
   fi
 
-  ####################################### IS_CONTAINER, PM and PM_INSTALL
+  ####################################### BASE_PATH, IS_CONTAINER, PM and PM_INSTALL
   #
   case "${PM}" in
-    apk) _install="add -q --no-progress" ;;
+    apk) _install="add -q --no-progress" _nocache="--no-cache" ;;
     apt) _install="install -y -qq" ;;
     brew) _install="install --quiet" ;;
     dnf) _install="install -y -q" ;;
@@ -115,6 +116,11 @@ vars() {
     yum) _install="install -y -q" ;;
   esac
   export PM_INSTALL="${PM} ${_install}"
+  if [ "${IS_CONTAINER-}" ]; then
+    export BASE_PATH="/base"
+    PATH="${BASE_PATH}:${PATH}"
+    PM_INSTALL="${PM_INSTALL} ${_nocache}"
+  fi
   unset _install _nocache
 }
 

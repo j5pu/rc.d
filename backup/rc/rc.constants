@@ -1,5 +1,8 @@
 #!/bin/sh
 
+###################################### MOST
+# man most to see the vars. Control+G stops and current line
+# MOST_INITFILE
 ###################################### DOCKER
 # https://docs.docker.com/develop/develop-images/build_enhancements/#to-enable-buildkit-builds
 # https://docs.docker.com/engine/reference/commandline/cli/
@@ -41,6 +44,7 @@ export CLOUDSDK_COMPUTE_ZONE="EUROPE-WEST1-B"
 # https://git-scm.com/docs/git-config
 # https://git-scm.com/docs/git-init
 # GIT_COMPLETION_SHOW_ALL:                     Show --arguments in completions.
+export GIT_PAGER="less"
 export GIT_COMPLETION_SHOW_ALL
 export GIT_CONFIG_GLOBAL="${CONFIG}/git/gitconfig"
 export GIT_TEMPLATE_DIR="${CONFIG}/git/templates"
@@ -142,7 +146,7 @@ export HISTFILESIZE="999999"
 export INPUTRC="/etc/inputrc"
 export LANG="en_US.UTF-8"
 export LC_ALL="en_US.UTF-8"
-export LESS="-R -F ${LESS}"
+export LESS="-F -R -X ${LESS}"
 # LSCOLORS:                                    macOS
 export LSCOLORS="ExGxBxDxCxEgEdxbxgxcxd"
 export PAGER="most"

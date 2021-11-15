@@ -9,6 +9,8 @@ pre-commit install --install-hooks -t pre-commit -t post-commit -t pre-push
 ## docker auto build
 
 ### Private repos
+I was not able to hae it working. 
+
 ```bash
 ssh-keygen -t rsa -C "rc@docker.com" -f ~/.ssh/rc.docker
 ssh-keygen -t ed25519 -C "rc@docker.com"
