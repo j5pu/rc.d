@@ -1,4 +1,4 @@
-# rc
+# rc.d
 
 ## pre-commit 
 After clone 
