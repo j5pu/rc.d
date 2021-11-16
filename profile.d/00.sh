@@ -4,40 +4,354 @@
 
 export PATH="/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin"
 
+####################################### x color: unset function
+# Set color globals
+# https://www.lihaoyi.com/post/BuildyourownCommandLinewithANSIescapecodes.html
+# Contain the unicode Ansi escapes (\u001b) to be used in any language, e.g. Java, Python and Javascript).
+# Global vars
+#   <Name>                 Color foreground.
+#   <Name>Bg               Color background.
+#   <Name>Bold             Color bold/bright.
+#   <Name>Dim              Color dimmed.
+#   <Name>Under            Color underscored.
+#   COLORS                 All color (Black Red Green Yellow Blue Magenta Cyan White) combinations.
+#   Reset                  Reset color.
+# Arguments:
+#   None
+# ######################################
+# shellcheck disable=SC2034
+color() {
+  c() { [ "${COLORS-}" ] && s=" "; export COLORS="${COLORS}${s}${1}"; eval "export ${1}='\033[${2}${3}'"; }
+  c "Reset" "0" "m"
+  i="0"
+  for n in Black Red Green Yellow Blue Magenta Cyan Grey; do
+    c "${n}" "3${i}" "m"
+    c "${n}Bold" "3${i}" ";1m"
+    c "${n}Dim" "3${i}" ";2m"
+    c "${n}Under" "3${i}" ";4m"
+    c "${n}Invert" "3${i}" ";7m"
+    c "${n}Bg" "4${i}" "m"
+    i="$((i+1))"
+  done; unset c i s; unset -f c
+}
+
+####################################### ✓ completed: exported function
+# Show completed message in white with green ✓ symbol
+# Globals:
+#   Green              Green color for ✓ symbol.
+#   Reset              Reset color.
+# Arguments:
+#   -h, --help         Show help message and exit.
+#   Message            Message to show in white with green ✓ symbol.
+# Output:
+#   Message or help message to stdout.
+#######################################
+completed() {
+  helpin "${@}" || exit 1
+  printf '%b\n' "${Green}✓${Reset} $*"
+}
+
+####################################### x constants: unset function
+# Constants
+# Arguments:
+#   None
+#######################################
 constants() {
   true
 }
 
+####################################### ✓ die: exported function
+# Show message (completed, error and warning) with symbol (✓, x and ! respectively) based on status code and exit
+# Globals:
+#   Green              Green color for ✓ symbol (status code: 0).
+#   Yellow             Yellow color for warning message and ! symbol (status code: -1).
+#   Red                Red color for error message and x symbol (status code: 1-255).
+#   Reset              Reset color.
+# Arguments:
+#   -h, --help         Show help message and exit.
+#   code               -1 warning, 1-255 for error and 0 for completed (default: 0).
+#   message            Message to show in red.
+# Output:
+#   Message to stderr if status code 1-255 and stdout for completed and warning.
+#   Help message to stdout.
+# Returns:
+#   1-255 for error, 0 for completed and warning.
 #######################################
+die() {
+  helpin "${@}" || exit 1
+  rc="${1}"
+  case "${rc}" in
+    0) shift; completed "${@}" ;;
+    -1) rc="0"; shift; warn "${@}" ;;
+    [1-9]|[0-9][0-9]|[1-2][0-5][0-5]) shift; error "${@}" ;;
+    *) completed "${@}" ;;
+  esac
+  exit "${rc}"
+}
+
+####################################### ✓ error: exported function
+# Show error message with x symbol in red
+# Globals:
+#   Red                 Red color for error message and x symbol.
+#   Reset               Reset color.
+# Arguments:
+#   -h, --help          Show help message and exit.
+#   Message             Message to show in red with x symbol.
+# Output:
+#   Message to stderr or help message to stdout.
+#######################################
+error() {
+  helpin "${@}" || exit 1
+  printf '%b\n' "${Red}x $*${Reset}" >&2
+}
+
+####################################### ✓ has: exported function
+# Check if a command or function exists
+# Arguments:
+#   -h, --help          Show help message and exit.
+#   Command             Command to check.
+# Returns:
+#   1 if does not exists
+# Output:
+#   Help message to stdout.
+#######################################
+has() {
+  helpin "${@}" || exit 1
+  command -v "${1}" 1>/dev/null 2>&1
+}
+
+# TODO: examples, comprobar que las funciones se exportan en sh y zsh o en cuales
+####################################### ✓ helpin: exported function
+# Show man page (no pager) and die if --help or -h in arguments, checks caller filename otherwise caller function name.
+# Arguments:
+#   -h, --help:            Show help message and exit.
+# Output:
+#   Man page with no pager to stdout.
+# Returns:
+#   1 if -h or --help and no man page.
+#######################################
+helpin() {
+  for arg do
+    case "${arg}" in
+      -h|--help)
+        if has caller && has man; then
+          # shellcheck disable=SC3044
+          c="$(caller 0)"
+          if [ "${c-}" ]; then
+            if ! man -p cat "$(basename "$(echo "${c}" | awk '{ print $3 }')")" 2>/dev/null; then
+              func="$(echo "${c}" | awk '{ print $2 }')"
+              { [ "${func}" != 'main' ] && man -p cat "${func}" 2>/dev/null; } || exit 1
+            fi
+          elif [ "${FUNCNAME[0]-}" ]; then
+            # shellcheck disable=SC3054
+            man -p cat "${FUNCNAME[0]}" 2>/dev/null || exit 1
+          else
+            exit 1
+          fi
+        fi
+        unset arg c func
+        exit
+        ;;
+    esac
+  done
+}
+
+####################################### ✓ info: exported function
+# Show info message with > symbol in grey bold
+# Globals:
+#   GreyBold           Grey bold color for info message and > symbol.
+#   Reset              Reset color.
+# Arguments:
+#   -h, --help         Show help message and exit.
+#   Message            Message to show in grey bold with > symbol.
+# Output:
+#   Message to stdout or help message.
+# Returns:
+#   1 if -h or --help and not  man page.
+#######################################
+info() {
+  helpin "${@}" || exit 1
+  printf '%b\n' "${GreyBold}> $*${Reset}"
+}
+
+####################################### ✓ isroot: exported function
+# Is root (id -u is 0)?
+# Arguments:
+#   -h, --help            Show help message and exit.
+# Output:
+#   Help message to stdout.
+# Returns:
+#   1 if no root and -h or --help and not man page.
+#######################################
+isroot() {
+  helpin "${@}" || exit 1
+  [ "$(id -u)" -eq 0 ]
+}
+
+####################################### ✓ issudo: exported function
+# Is sudo (SUDO_UID is set)?
+# Arguments:
+#   -h, --help            Show help message and exit.
+# Output:
+#   Help message to stdout.
+# Returns:
+#   1 if no 'SUDO_UID' and -h or --help and not man page.
+#######################################
+issudo() {
+  helpin "${@}" || exit 1
+  [ "${SUDO_UID-}" ]
+}
+
+####################################### ✓ isuser: exported function
+# Is user (not root and not sudo)?
+# Arguments:
+#   -h, --help            Show help message and exit.
+# Output:
+#   Help message to stdout.
+# Returns:
+#   1 if no root and not sudo and -h or --help and not man page
+#######################################
+isuser() {
+  helpin "${@}" || exit 1
+  ! isroot "" && ! issudo ""
+}
+
+####################################### ✓ pscmd: exported function
+# Parent process cmd (cmd/command part of ps) if in a subshell or cmd of the current shell if running in a subshell.
+# $$ is defined to return the process ID of the parent in a subshell; from the man page under "Special Parameters":
+# expands to the process ID of the shell. In a () subshell, it expands to the process ID of the current shell,
+# not the subshell.
+# Arguments:
+#   -h, --help            Show help message and exit.
+# Outputs:
+#   Process (ps) cmd.
+# Returns:
+#   1 if error during instalation of procps or not know to install ps  or -h or --help and not man page.
+# ######################################
+pscmd() {
+  helpin "${@}" || exit 1
+  if has ps; then
+    if [ "${DARWIN-}" ]; then
+      ps -p$$ -ocommand=
+    elif [ "${ALPINE-}" ] && [ "${BUSYBOX-}" ]; then
+      ps -o pid= -o comm= | awk '/$$/ { $1=$1 };1' | grep "^$$ " | awk '{ print $2 }'
+    else
+      ps -p$$ -ocmd=
+    fi
+  else
+    if [ "${DEBIAN-}" ] || [ "${FEDORA-}" ] ; then
+      ${PM_INSTALL} procps || die 1 "procps: could not be installed"
+      ps -p$$ -ocmd=
+    else
+      die 1 "ps: do not know how to install"
+    fi
+  fi
+}
+
+####################################### ✓ real: exported function
+# Absolute logical (symlink) or resolved (physical) path (if does not exists, accepts one level up to cd).
+# Arguments:
+#   -h, --help            Show help message and exit.
+#   path                  Path (default: cwd).
+# Output:
+#   Path or help message to stdout.
+# Returns:
+#   1 if parent directory does not exists or -h or --help and not man page.
+#######################################
+real() {
+  helpin "${@}" || exit 1
+  logical=false
+
+  for arg do
+    case "${arg}" in
+      -l|--logical) logical=true ;;
+      *) relative="${arg}"
+    esac
+  done
+
+  relative="${relative-.}"
+  [ -d "${relative}" ] || basename="/$(basename "${relative}")"  # does not exists or is file
+  cd "$(dirname "${relative}")" || exit 1
+
+  if $logical; then
+    echo "$(pwd)${basename}"
+  else
+    echo "$(pwd -P)${basename}"
+  fi
+  unset arg basename logical relative
+}
+
+####################################### ✓ shell: exported function
+# Which shell has sourced me?.
+# Global vars
+#   IS_BASH              true if has been sourced in BASH.
+#   IS_BSH               true if has been sourced in BASH or SH.
+#   IS_DASH              true if has been sourced in DASH.
+#   IS_FISH              true if has been sourced in FISH.
+#   IS_KSH               true if has been sourced in KSH.
+#   IS_SH                true if has been sourced in SH.
+#   IS_ZSH               true if has been sourced in ZSH.
+# Arguments:
+#   -h, --help            Show help message and exit.
+# Output:
+#   Help message to stdout.
+# Returns:
+#   1 if -h or --help and not not man page.
+#######################################
+shell() {
+  helpin "${@}" || exit 1
+  export IS_BASH=false IS_BSH=false IS_DASH=false IS_FISH=false IS_KSH=false IS_SH=false IS_XONSH=false IS_ZSH=false
+  sh="${0##*/}"
+  if [ "${sh}" = "sh" ]; then
+    export IS_SH=true IS_BSH=true
+  elif [ -n "${BASH_VERSION}" ]; then
+    export IS_BASH=true IS_BSH=true
+  elif [ -n "${ZSH_EVAL_CONTEXT}" ]; then
+    export IS_ZSH=true
+  elif [ -n "${KSH_VERSION}" ]; then
+    export IS_KSH=true
+  elif [ "${sh}" = "dash" ]; then
+    export IS_DASH=true
+  elif [ "${XONSH_VERSION-}" ]; then
+    export IS_XONSH=true
+  else
+    unset sh
+    exit
+  fi
+  unset sh
+}
+
+####################################### x vars: unset function
 # Sets OS globals (this function is unset)
 # Global vars
-#   ALPINE:               "1" if 'DIST_ID' is "alpine".
-#   ALPINE_LIKE:          "1" if 'DIST_ID' is "alpine".
-#   ARCHLINUX:            "1" if 'DIST_ID' is "arch".
-#   BASE_PATH:            Base image directory path if 'IS_CONTAINER'.
-#   BUSYBOX:              "1" if not "/etc/os-release" and not "/sbin".
-#   CENTOS:               "1" if 'DIST_ID' is "centos".
-#   DARWIN:               "1" if 'UNAME' is "Darwin".
-#   DEBIAN:               "1" if 'DIST_ID' is "debian".
-#   DEBIAN_LIKE:          "1" if "DIST_ID_LIKE is "debian".
-#   DEBIAN_FRONTEND:      "noninteractive" if 'IS_CONTAINER' and 'DEBIAN_LIKE' are set.
-#   DIST_CODENAME:        "Catalina", "Big Sur", "kali-rolling", "focal", etc.
-#   DIST_ID:              <alpine|centos|debian|kali|macOS|ubuntu>.
-#   DIST_ID_LIKE:         <alpine|debian|rhel fedora>.
-#   DIST_VERSION:         macOS <10.15.1|10.16|...>, kali <2021.2|...>, ubuntu <20.04|...>.
-#   ENV:                  Shell profile/rc start file (for 'ALPINE_LIKE').
-#   FEDORA:               "1" if 'DIST_ID' is "fedora".
-#   IS_CONTAINER:         "1" if running in docker container.
-#   FEDORA_LIKE:          "1" if 'DIST_ID' is "fedora" or "fedora" in "DIST_ID_LIKE".
-#   KALI:                 "1" if 'DIST_ID' is "kali".
-#   NIXOS:                "1" if 'DIST_ID' is "alpine" and "/etc/nix".
-#   PM:                   Package manager (apk, apt, brew, nix or yum) for 'DIST_ID'.
-#   PM_INSTALL            Package manager install command with options quiet.
-#   RC                    Script path.
-#   RHEL:                 "1" if 'DIST_ID' is "rhel".
-#   RHEL_LIKE:            "1" if 'DIST_ID' is "rhel" or "rhel" in "DIST_ID_LIKE".
-#   UBUNTU:               "1" if 'DIST_ID' is "ubuntu".
-#   UNAME:                "linux" or "darwin".
+#   ALPINE               "1" if 'DIST_ID' is "alpine".
+#   ALPINE_LIKE          "1" if 'DIST_ID' is "alpine".
+#   ARCHLINUX            "1" if 'DIST_ID' is "arch".
+#   BASE_PATH            Base image directory path if 'IS_CONTAINER'.
+#   BUSYBOX              "1" if not "/etc/os-release" and not "/sbin".
+#   CENTOS               "1" if 'DIST_ID' is "centos".
+#   DARWIN               "1" if 'UNAME' is "Darwin".
+#   DEBIAN               "1" if 'DIST_ID' is "debian".
+#   DEBIAN_LIKE          "1" if "DIST_ID_LIKE is "debian".
+#   DEBIAN_FRONTEND      "noninteractive" if 'IS_CONTAINER' and 'DEBIAN_LIKE' are set.
+#   DIST_CODENAME        "Catalina", "Big Sur", "kali-rolling", "focal", etc.
+#   DIST_ID              <alpine|centos|debian|kali|macOS|ubuntu>.
+#   DIST_ID_LIKE         <alpine|debian|rhel fedora>.
+#   DIST_VERSION         macOS <10.15.1|10.16|...>, kali <2021.2|...>, ubuntu <20.04|...>.
+#   ENV                  Shell profile/rc start file (for 'ALPINE_LIKE').
+#   FEDORA               "1" if 'DIST_ID' is "fedora".
+#   IS_CONTAINER         "1" if running in docker container.
+#   FEDORA_LIKE          "1" if 'DIST_ID' is "fedora" or "fedora" in "DIST_ID_LIKE".
+#   KALI                 "1" if 'DIST_ID' is "kali".
+#   NIXOS                "1" if 'DIST_ID' is "alpine" and "/etc/nix".
+#   PM                   Package manager (apk, apt, brew, nix or yum) for 'DIST_ID'.
+#   PM_INSTALL           Package manager install command with options quiet.
+#   RHEL                 "1" if 'DIST_ID' is "rhel".
+#   RHEL_LIKE            "1" if 'DIST_ID' is "rhel" or "rhel" in "DIST_ID_LIKE".
+#   UBUNTU               "1" if 'DIST_ID' is "ubuntu".
+#   UNAME                "linux" or "darwin".
+# Arguments:
+#   None
 vars() {
   { [ -f /proc/1/environ ] || [ -f /.dockerenv ]; } && export IS_CONTAINER="1"
 
@@ -130,12 +444,46 @@ vars() {
   unset _install _nocache
 }
 
-. "$(command -v shell.lib)"
+####################################### ✓ warn - exported function
+# Show warning message with ! symbol in yellow
+# Globals:
+#   Yellow             Yellow color for warning message and ! symbol.
+#   Reset              Reset color.
+# Arguments:
+#   -h, --help         Show help message and exit.
+#   Message            Message to show in yellow with ! symbol.
+# Output:
+#   Message or help message to stdout.
+# Returns:
+#   1 if -h or --help and not not man page.
+#######################################
+warn() {
+  helpin "${@}" || exit 1
+  printf '%b\n' "${Yellow}! $*${Reset}"
+}
 
-###################################### functions
-# run functions which will be unset after execution
+###################################### > functions: run
+# run functions
 ######################################
-for function in constants vars; do
+for function in color constants shell vars; do
   ${function}
+done
+
+###################################### > functions: export
+# export functions
+######################################
+for function in completed die error has helpin info isroot issudo isuser pscmd real ret root shell warn; do
+   if ! $IS_DASH || ! $IS_KSH; then
+    continue
+  else
+    # shellcheck disable=SC3045
+    export -f "${function?}" 2>/dev/null || true
+  fi
+done
+
+###################################### > functions: unset
+# export functions
+######################################
+for function in color constants vars; do
   unset -f "${function}"
 done; unset function

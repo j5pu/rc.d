@@ -1,10 +1,7 @@
-.PHONY: executables tests
+.PHONY: chmod tests
 
-executables:
-	@chmod +x ./hooks/*
-	@chmod +x ./lib/*.lib
-	@chmod +x ./tests/*.sh
-	@chmod +x ./install
+chmod:
+	@for i in bin hooks lib tests; do chmod +x ./$${i}/* 2>/dev/null || true; done
 
-tests: executables
+tests: chmod
 	@for i in ./tests/test-*.sh; do $${i}; done

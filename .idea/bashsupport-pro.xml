@@ -13,6 +13,7 @@
       <var name="s" />
       <var name="GreyBold" />
       <var name="Grey" />
+      <var name="arg" />
     </globalVariables>
   </component>
 </project>

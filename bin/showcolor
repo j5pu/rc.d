@@ -1,0 +1,19 @@
+#!/bin/bash
+
+[ "${BASH_VERSION-}" ] || exit
+
+#######################################
+# Show colors
+#######################################
+main() {
+  for i in ${COLORS}; do
+    # shellcheck disable=SC3053
+    printf "%b\n" "${!i}${i}${Reset}"
+  done
+  info Info message
+  warn Warning message
+  error Error message
+  die Completed message and die
+}
+
+main
