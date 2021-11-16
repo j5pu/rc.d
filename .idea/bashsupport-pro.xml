@@ -5,6 +5,14 @@
       <var name="images" />
       <var name="TAGS" />
       <var name="input" />
+      <var name="Red" />
+      <var name="Reset" />
+      <var name="Yellow" />
+      <var name="Green" />
+      <var name="RedBold" />
+      <var name="s" />
+      <var name="GreyBold" />
+      <var name="Grey" />
     </globalVariables>
   </component>
 </project>

@@ -4,8 +4,12 @@ curl -fsSL https://git.io/btrap | bash -s
 curl https://git.io/ -i -F "url=https://raw.githubusercontent.com/j5pu/rc.d/main/profile.d/00.sh" -F "code=00.sh"
 https://git.io/00.sh
 
+curl https://git.io/ -i -F "url=https://raw.githubusercontent.com/j5pu/rc.d/main/profile.d/color.sh" -F "code=rc.color"
+https://git.io/rc.color
+
 curl https://git.io/ -i -F "url=https://raw.githubusercontent.com/j5pu/rc.d/main/install" -F "code=rc.d"
 https://git.io/rc.d
+
 
 https://developer.apple.com/library/archive/documentation/MacOSX/Conceptual/BPSystemStartup/Chapters/CreatingLaunchdJobs.html
 - Estaba con el rc.ls

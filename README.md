@@ -1,5 +1,10 @@
 # rc.d
 
+## Install 
+````bash
+curl -fsSL https://git.io/rc.d | sh -s
+````
+
 ## pre-commit 
 After clone 
 ````bash

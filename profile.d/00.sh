@@ -1,12 +1,17 @@
-#!/bin/sh
+# shellcheck shell=sh
 #
 # System profile & rc file.
 
 export PATH="/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin"
 
+constants() {
+  true
+}
+
 #######################################
+# Sets OS globals (this function is unset)
 # Global vars
-#   ALPINE                "1" if 'DIST_ID' is "alpine".
+#   ALPINE:               "1" if 'DIST_ID' is "alpine".
 #   ALPINE_LIKE:          "1" if 'DIST_ID' is "alpine".
 #   ARCHLINUX:            "1" if 'DIST_ID' is "arch".
 #   BASE_PATH:            Base image directory path if 'IS_CONTAINER'.
@@ -35,6 +40,7 @@ export PATH="/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin"
 #   UNAME:                "linux" or "darwin".
 vars() {
   { [ -f /proc/1/environ ] || [ -f /.dockerenv ]; } && export IS_CONTAINER="1"
+
 
   ####################################### OS
   #
@@ -124,27 +130,12 @@ vars() {
   unset _install _nocache
 }
 
-###################################### Globals: IS_BASH
-#
-if [ -n "${BASH_VERSION}" ]; then
-  # IS_BASH: "1" if running in bash.
-  export IS_BASH="1"
-  (return 0 2>/dev/null) && sourced="1"
-  # shellcheck disable=SC3028,SC3054
-  export RC="${BASH_SOURCE[0]}"
-elif [ "${0##*/}" = "sh" ]; then
-  sourced="1"
-  export RC="${0}"
-else
-  return
-fi
+. "$(command -v shell.lib)"
 
-vars
-unset -f vars
-
-#for script in "${rc}".d/??-*.sh ; do
-#  if [ -r "${script}" ] ; then
-#    . "${script}"
-#  fi
-#done
-#unset rc script sourced
+###################################### functions
+# run functions which will be unset after execution
+######################################
+for function in constants vars; do
+  ${function}
+  unset -f "${function}"
+done; unset function
