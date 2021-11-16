@@ -2,6 +2,10 @@
 #
 # System profile & rc file.
 
+# TODO: examples
+# TODO: comprobar que las funciones se exportan en sh y zsh o en cuales
+# TODO: bash-lib
+
 export PATH="/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin"
 
 ####################################### x color: unset function
@@ -120,7 +124,6 @@ has() {
   command -v "${1}" 1>/dev/null 2>&1
 }
 
-# TODO: examples, comprobar que las funciones se exportan en sh y zsh o en cuales
 ####################################### ✓ helpin: exported function
 # Show man page (no pager) and die if --help or -h in arguments, checks caller filename otherwise caller function name.
 # Arguments:
@@ -484,6 +487,6 @@ done
 ###################################### > functions: unset
 # export functions
 ######################################
-for function in color constants vars; do
-  unset -f "${function}"
-done; unset function
+for i in color constants vars; do
+  unset -f "${i}"
+done; unset i

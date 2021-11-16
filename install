@@ -4,11 +4,6 @@ set -eu
 clear
 printf '\n'
 
-script="$(basename "${0}")"
+curl -fsSL "https://git.io/00.sh" -o "/tmp/00.sh" && . "/tmp/00.sh"
 
-for file in 00.sh rc.color; do
-  curl -fsSL https://git.io/rc.color -o "/tmp/${file}"
-  . "/tmp/${file}"
-done
-
-echo install
+info Started instalation
