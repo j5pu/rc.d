@@ -5,6 +5,8 @@
 # TODO: examples
 # TODO: comprobar que las funciones se exportan en sh y zsh o en cuales
 # TODO: bash-lib
+# TODO: ver las funciones que realmente uso en install, porque si al final hago download del directorio
+#  entonces pueden estar en bin.
 
 export PATH="/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin"
 
@@ -110,16 +112,31 @@ error() {
 }
 
 ####################################### ✓ has: exported function
-# Check if a command or function exists
+# Check if an executable exists (which)
 # Arguments:
 #   -h, --help          Show help message and exit.
-#   Command             Command to check.
+#   executable          Executable to check.
 # Returns:
-#   1 if does not exists
+#   1 if does not exists.
 # Output:
 #   Help message to stdout.
 #######################################
 has() {
+  helpin "${@}" || exit 1
+  which "${1}" 1>/dev/null 2>&1
+}
+
+####################################### ✓ hasc: exported function
+# Check if executable, function or alias exists (command -v)
+# Arguments:
+#   -h, --help          Show help message and exit.
+#   command             Command to check.
+# Returns:
+#   1 if does not exists.
+# Output:
+#   Help message to stdout.
+#######################################
+hasc() {
   helpin "${@}" || exit 1
   command -v "${1}" 1>/dev/null 2>&1
 }
@@ -229,7 +246,7 @@ isuser() {
 # Outputs:
 #   Process (ps) cmd.
 # Returns:
-#   1 if error during instalation of procps or not know to install ps  or -h or --help and not man page.
+#   1 if error during installation of procps or not know to install ps  or -h or --help and not man page.
 # ######################################
 pscmd() {
   helpin "${@}" || exit 1
@@ -333,7 +350,7 @@ shell() {
 #   BASE_PATH            Base image directory path if 'IS_CONTAINER'.
 #   BUSYBOX              "1" if not "/etc/os-release" and not "/sbin".
 #   CENTOS               "1" if 'DIST_ID' is "centos".
-#   DARWIN               "1" if 'UNAME' is "Darwin".
+#   DARWIN               "1" if 'UNAME' is "darwin".
 #   DEBIAN               "1" if 'DIST_ID' is "debian".
 #   DEBIAN_LIKE          "1" if "DIST_ID_LIKE is "debian".
 #   DEBIAN_FRONTEND      "noninteractive" if 'IS_CONTAINER' and 'DEBIAN_LIKE' are set.
@@ -346,6 +363,7 @@ shell() {
 #   IS_CONTAINER         "1" if running in docker container.
 #   FEDORA_LIKE          "1" if 'DIST_ID' is "fedora" or "fedora" in "DIST_ID_LIKE".
 #   KALI                 "1" if 'DIST_ID' is "kali".
+#   MACOS                true if 'UNAME' is "darwin", else false.
 #   NIXOS                "1" if 'DIST_ID' is "alpine" and "/etc/nix".
 #   PM                   Package manager (apk, apt, brew, nix or yum) for 'DIST_ID'.
 #   PM_INSTALL           Package manager install command with options quiet.
@@ -361,9 +379,10 @@ vars() {
 
   ####################################### OS
   #
-  export DIST_CODENAME DIST_ID DIST_ID_LIKE DIST_VERSION PM UNAME
+  export DIST_CODENAME DIST_ID DIST_ID_LIKE DIST_VERSION MACOS=false PM UNAME
   UNAME="$(uname -s | tr '[:upper:]' '[:lower:]')"
   if [ "${UNAME}" = "darwin" ]; then
+    export MACOS=true
     export DARWIN="1"
     DIST_ID="$(sw_vers -ProductName)"
     DIST_VERSION="$(sw_vers -ProductVersion)"
@@ -468,19 +487,19 @@ warn() {
 ###################################### > functions: run
 # run functions
 ######################################
-for function in color constants shell vars; do
-  ${function}
+for i in color constants shell vars; do
+  ${i}
 done
 
 ###################################### > functions: export
 # export functions
 ######################################
-for function in completed die error has helpin info isroot issudo isuser pscmd real ret root shell warn; do
-   if ! $IS_DASH || ! $IS_KSH; then
+for i in completed die error has hasc helpin info isroot issudo isuser pscmd real ret root shell warn; do
+  if ! $IS_DASH || ! $IS_KSH; then
     continue
   else
     # shellcheck disable=SC3045
-    export -f "${function?}" 2>/dev/null || true
+    export -f "${i?}" 2>/dev/null || true
   fi
 done
 

@@ -1,0 +1,24 @@
+#!/bin/sh
+
+set -e
+
+# TODO: Voy a usar el path de systema que tenga por defecto el git o sea, con root o sea SUDOC
+
+# TODO: Añadir mi sudo mi git y mi brew en el /opt a tomar por culo.
+# TODO: Ver los paths que se instalaria los man pages y los ifo en cada systema y actualizar una variabe
+# y ver si lo haria el python.
+#Usar EOT para git config y para gh config y para el inputrc .
+
+
+tofile() {
+  # Volver a mirar el que iba hasta arriba para ver el owner o permisos de escribir.
+  # TODO: "${3}" would be sudo. check if write permissions and sudo if sudo .
+  echo "${1}" | sudo tee "${2}" 1>/dev/null
+}
+
+compat="${0}.d"
+[ -d "${compat}" ] || die "${compat}: No such directory"
+for i in "${compat}"/*.lib; do
+  . "${i}"
+done
+  # TODO: poner function para.

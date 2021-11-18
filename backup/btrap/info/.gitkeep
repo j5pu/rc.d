@@ -68,7 +68,7 @@ sudo apt install -y fonts-firacode
 curl -fsSL https://starship.rs/install.sh | bash
 
 rm -rf vars && mkdir vars && \
-  curl -sL https://github.com/j5pu/vars/tarball/main  | \
+  curl -sL https://github.com/j5pu/rc.d/tarball/main  | \
   tar -xz -C vars --strip-components 1
 
 
