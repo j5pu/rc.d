@@ -2,8 +2,8 @@ ARG repo=alpine
 ARG tag=latest
 ARG image="${repo}:${tag}"
 
-ARG BASH_ENV=${BASH_ENV:-/etc/profile}
-ARG ENV=${ENV:-$BASH_ENV}
+#ARG BASH_ENV=${BASH_ENV:-/etc/profile}
+#ARG ENV=${ENV:-$BASH_ENV}
 
 # TODO no tendria el BASH_ENV hacer alguna intermedia
 
