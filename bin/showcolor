@@ -10,10 +10,10 @@ main() {
     # shellcheck disable=SC3053
     printf "%b\n" "${!i}${i}${Reset}"
   done
-  info Info message
+  inf Info message
   warn Warning message
-  error Error message
-  die Completed message and die
+  err Error message
+  false || die Die with error message
 }
 
 main

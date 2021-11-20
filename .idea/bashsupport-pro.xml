@@ -17,6 +17,11 @@
       <var name="i" />
       <var name="Blue" />
       <var name="Magenta" />
+      <var name="GreyDim" />
+      <var name="CyanDim" />
+      <var name="RedDim" />
+      <var name="YellowDim" />
+      <var name="add" />
     </globalVariables>
   </component>
 </project>

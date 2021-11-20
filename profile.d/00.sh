@@ -41,22 +41,6 @@ color() {
   done; unset c i s; unset -f c
 }
 
-####################################### ✓ completed: exported function
-# Show completed message in white with green ✓ symbol
-# Globals:
-#   Green              Green color for ✓ symbol.
-#   Reset              Reset color.
-# Arguments:
-#   -h, --help         Show help message and exit.
-#   Message            Message to show in white with green ✓ symbol.
-# Output:
-#   Message or help message to stdout.
-#######################################
-completed() {
-  helpin "${@}" || exit 1
-  printf '%b\n' "${Green}✓${Reset} $*"
-}
-
 ####################################### x constants: unset function
 # Constants
 # Arguments:
@@ -67,35 +51,31 @@ constants() {
 }
 
 ####################################### ✓ die: exported function
-# Show message (completed, error and warning) with symbol (✓, x and ! respectively) based on status code and exit
+# Show message (ok or error) with symbol (✓, x respectively) based on status code and exit
 # Globals:
-#   Green              Green color for ✓ symbol (status code: 0).
-#   Yellow             Yellow color for warning message and ! symbol (status code: -1).
-#   Red                Red color for error message and x symbol (status code: 1-255).
+#   Green              Green color for ✓ symbol.
+#   Red                Red color for error message and x symbol.
 #   Reset              Reset color.
 # Arguments:
 #   -h, --help         Show help message and exit.
-#   code               -1 warning, 1-255 for error and 0 for completed (default: 0).
-#   message            Message to show in red.
+#   message            Message to show.
 # Output:
-#   Message to stderr if status code 1-255 and stdout for completed and warning.
+#   Message to stderr if error and stdout for ok.
 #   Help message to stdout.
 # Returns:
-#   1-255 for error, 0 for completed and warning.
+#   1-255 for error, 0 for ok.
 #######################################
 die() {
+  rc=$?
   helpin "${@}" || exit 1
-  rc="${1}"
   case "${rc}" in
-    0) shift; completed "${@}" ;;
-    -1) rc="0"; shift; warn "${@}" ;;
-    [1-9]|[0-9][0-9]|[1-2][0-5][0-5]) shift; error "${@}" ;;
-    *) completed "${@}" ;;
+    0) ok "${@}" ;;
+    *) err "${@}" ;;
   esac
   exit "${rc}"
 }
 
-####################################### ✓ error: exported function
+####################################### ✓ err: exported function
 # Show error message with x symbol in red
 # Globals:
 #   Red                 Red color for error message and x symbol.
@@ -106,9 +86,16 @@ die() {
 # Output:
 #   Message to stderr or help message to stdout.
 #######################################
-error() {
+# shellcheck disable=SC3044
+err() {
   helpin "${@}" || exit 1
-  printf '%b\n' "${Red}x $*${Reset}" >&2
+  if hasc caller; then
+    c="$(caller 0)"
+    if [ "$(echo "${c}" | awk '{ print $2 }')" = "die" ]; then c="$(caller 1)"; fi
+    add="${RedDim}$(basename "$(echo "${c}" | awk '{ print $3 }')")[$(echo "${c}" | awk '{ print $1 }')]${Reset} "
+  fi
+  printf '%b\n' "${Red}x${Reset} ${add}${Red}$*${Reset}" >&2
+  unset add c
 }
 
 ####################################### ✓ has: exported function
@@ -176,10 +163,10 @@ helpin() {
   done
 }
 
-####################################### ✓ info: exported function
+####################################### ✓ inf: exported function
 # Show info message with > symbol in grey bold
 # Globals:
-#   GreyBold           Grey bold color for info message and > symbol.
+#   GreyDim            Grey dimmed color for info message and > symbol.
 #   Reset              Reset color.
 # Arguments:
 #   -h, --help         Show help message and exit.
@@ -189,9 +176,9 @@ helpin() {
 # Returns:
 #   1 if -h or --help and not  man page.
 #######################################
-info() {
+inf() {
   helpin "${@}" || exit 1
-  printf '%b\n' "${GreyBold}> $*${Reset}"
+  printf '%b\n' "${GreyDim}> $*${Reset}"
 }
 
 ####################################### ✓ isroot: exported function
@@ -234,6 +221,22 @@ issudo() {
 isuser() {
   helpin "${@}" || exit 1
   ! isroot "" && ! issudo ""
+}
+
+####################################### ✓ ok: exported function
+# Show ok message in white with green ✓ symbol
+# Globals:
+#   Green              Green color for ✓ symbol.
+#   Reset              Reset color.
+# Arguments:
+#   -h, --help         Show help message and exit.
+#   Message            Message to show in white with green ✓ symbol.
+# Output:
+#   Message or help message to stdout.
+#######################################
+ok() {
+  helpin "${@}" || exit 1
+  printf '%b\n' "${Green}✓${Reset} $*"
 }
 
 ####################################### ✓ pscmd: exported function
@@ -475,13 +478,20 @@ vars() {
 #   -h, --help         Show help message and exit.
 #   Message            Message to show in yellow with ! symbol.
 # Output:
-#   Message or help message to stdout.
+#   Message to stderr or help message to stdout.
 # Returns:
 #   1 if -h or --help and not not man page.
 #######################################
+# shellcheck disable=SC3044
 warn() {
   helpin "${@}" || exit 1
-  printf '%b\n' "${Yellow}! $*${Reset}"
+  if hasc caller; then
+    c="$(caller 0)"
+    if [ "$(echo "${c}" | awk '{ print $2 }')" = "die" ]; then c="$(caller 1)"; fi
+    add="${YellowDim}$(basename "$(echo "${c}" | awk '{ print $3 }')")[$(echo "${c}" | awk '{ print $1 }')]${Reset} "
+  fi
+  printf '%b\n' "${Yellow}x${Reset} ${add}${Yellow}$*${Reset}" >&2
+  unset add c
 }
 
 ###################################### > functions: run
@@ -494,7 +504,7 @@ done
 ###################################### > functions: export
 # export functions
 ######################################
-for i in completed die error has hasc helpin info isroot issudo isuser pscmd real ret root shell warn; do
+for i in die err has hasc helpin inf isroot issudo isuser ok pscmd real ret root shell warn; do
   if ! $IS_DASH || ! $IS_KSH; then
     continue
   else
