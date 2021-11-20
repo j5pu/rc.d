@@ -466,43 +466,22 @@ ${Yellow}Examples${Reset}:
 #######################################
 # Main function
 # Globals:
-#   EXCLUDE           Excluded IDs when doing 'docker run' for all (not shell CMD/ENTRYPOINT).
-#   FORCE             Force creation of container, default true for --test.
-#   OUTPUT            show output in plain format even if succesful build.
-#   PUSH              Push after build.
 #   REPOSITORIES      [Internal]: repositories names.
-#   SHOW              Show image id for exec and run.
 #   TARGET            Build target.
 #   TARGETS           targets.
 #   TEST_ADD          Prefix or suffix to add for test images.
 #######################################
 # shellcheck disable=SC2086
 build::main() {
-  local dry=false func  msg="argument"
   export REPOSITORIES=("base")
-  export EXCLUDE="^bats|^python"  ID PUSH=false
-  export FORCE=false CACHE OUTPUT=false SHOW=false TARGET TARGETS
+  export   TARGET TARGETS
   if [ "${DOCKERFILE_PATH-}" ]; then
     :
   else
     TARGETS="$(awk '! /^#/ && / AS / || / as / { print $4 }' "${DOCKERFILE_PATH}")"
     [ ! "${1-}" ] && build::usage && exit
     for arg; do
-      if $finish; then
-        args+=("${arg}")
-        continue
-      fi
       case "${arg}" in
-        --dry-run) dry=true ;;
-        --force) FORCE=true ;;
-        --id=*)
-          ID="${arg/--id=/}"
-          echo "${ids}" | grep -q "${ID}" || die Invalid ID: "${ID}"
-          ;;
-        --no-cache) CACHE="${arg}" ;;
-        --output) OUTPUT=true ;;
-        --push) PUSH=true ;;
-        --show) SHOW=true ;;
         --target=*)
           TARGET="${arg/--target=/}"
           [ "${TARGET-}" ] || die Empty target provided
@@ -510,72 +489,8 @@ build::main() {
           echo "${TARGETS}" | grep -q "${TARGET}" || die Invalid target: "${TARGET}"
           TARGET="--target ${TARGET}"
           ;;
-        --) finish=true ;;
-        base|build|clean|create|exec|id|image|run|vars)
-          if ! $finish; then
-            [ ! "${func-}" ] || die Two commands provided: "${arg}" and "${1}"
-            [ "${arg}" != "base" ] || BASE=true
-            func="build::${arg}"
-          fi
-          ;;
-        *)
-          [ "${arg:0:1}" = "-" ] || msg="command"
-          false || die Invalid "${msg}": "${arg}"
-          ;;
       esac
     done
-
-    if [[ "${func/build::/}" =~ ^exec$|^run$ ]]; then
-      if ! $finish; then
-        false || die Arguments passed to "${func/build::/}" must be separated with: --, i.e.: build run -- ls
-      else
-        [ "${args-}" ] || die Not arguments provided to "${func/build::/}"
-      fi
-    fi
-
-    if $BASE; then
-      PUSH=false
-      if [ "${REPOSITORY}" = "base" ]; then
-        TEST=false
-      else
-        REPOSITORY="${REPOSITORY}-test"
-      fi
-     :
-    fi
-    : "${REPOSITORY:=${REPOSITORIES[0]}}"
-
-    if $TEST; then
-      PUSH=false
-      if [ "${REPOSITORY}" = "base" ]; then
-        TEST=false
-      else
-        REPOSITORY="${REPOSITORY}-test"
-      fi
-    fi
-
-    REPOSITORIES=("${REPOSITORY}")
-
-    if [ "${func-}" ]; then
-      if $dry; then
-        inf CACHE: "${CACHE}"
-        inf DOCKERFILE_PATH: "${DOCKERFILE_PATH}"
-        inf ID: "${ID}"
-        inf EXCLUDE: "${EXCLUDE}"
-        inf FORCE: "${FORCE}"
-        inf HUB: "${HUB}"
-        inf PROGRESS: "${PROGRESS}"
-        inf PUSH: "${PUSH}"
-        inf REPOSITORIES: "${REPOSITORIES[@]}"
-        inf REPOSITORY: "${REPOSITORY}"
-        inf SHOW: "${SHOW}"
-        inf TARGET: "${TARGET}"
-        inf TARGETS: ${TARGETS}
-        inf TEST: "${TEST}"
-        die "${func/build::/}" "${args[@]}"
-      fi
-      ${func} "${args[@]}"
-    fi
   fi
 }
 
-build::main "${@}"

@@ -65,43 +65,44 @@ build::build() {
 #######################################
 # Shows images and containers variables in fields
 # Globals:
-#   GIT           GitHub and Docker Hub repository owner.
-#   IMAGES        <repo owner>|<repo name>|<tag>
-#   FIELDS        Fields in 'IMAGES' global.
-#   REPOSITORY    [Internal]: repository name (default: rc).
-#                 - Format: <repository name>
-#                 - Examples: base, rc
+#   GIT               GitHub and Docker Hub repository owner.
+#   IMAGES            <repo owner>|<repo name>|<tag>
+#   FIELDS            Fields in 'IMAGES' global.
+#   REPOSITORY        [Internal]: repository name (default: rc).
+#                     - Format: <repository name>
+#                     - Examples: base, rc
+#   TEST              Build prefix test images for rc (never get pushed).
 # Locals:
-#   enable       '1' if enable, enable field of 'IMAGES'.
-#   name          [Base]: image repository name, <repo name> field of 'IMAGES' (default: <repo owner>).
-#                 - Format: <repo name>
-#                 - Examples: alpine, systemd-ubuntu.
-#   owner         [Base]: image repository owner, <repo owner> field of 'IMAGES'.
-#                 - Format: <repo name>
-#                 - Examples: alpine, systemd-ubuntu.
-#   short         [Base]: image shortened tag.
-#                 - Format: <tag> (-alpine removed)
-#                 - Examples: 3.9
-#   stripname     strip from <repo name>, stripname field of 'IMAGES'.
-#   striptag      strip from <tag>, striptag field of 'IMAGES'.
+#   enable            '1' if enable, enable field of 'IMAGES'.
+#   name              [Base]: image repository name, <repo name> field of 'IMAGES' (default: <repo owner>).
+#                     - Format: <repo name>
+#                     - Examples: alpine, systemd-ubuntu.
+#   owner             [Base]: image repository owner, <repo owner> field of 'IMAGES'.
+#                     - Format: <repo name>
+#                     - Examples: alpine, systemd-ubuntu.
+#   short             [Base]: image shortened tag.
+#                     - Format: <tag> (-alpine removed)
+#                     - Examples: 3.9
+#   stripname         strip from <repo name>, stripname field of 'IMAGES'.
+#   striptag          strip from <tag>, striptag field of 'IMAGES'.
 # Outputs:
-#   id            [Internal] tag (default: alpine)
-#                 - Format: 1) <name>-<short>
-#                           2) <name> (if tag is latest)
-#                           3) <name><short> (for images with 'short' starting with numbers)
-#                 - Examples: alpine, systemd-ubuntu, python3.9, bash5.1
-#   build         [Internal]: image, default triggers auto build in Docker Hub (default: GIT/rc:alpine).
-#                 - Format: <GIT>/<repository>:<id>
-#                 - Examples: <GIT>/base:alpine, <GIT>/base:systemd-ubuntu, <GIT>/rc:python3.9
-#   container     [Internal]: container name.
-#                 - Format: <repository>@<id>
-#                 - Examples: base@alpine, rc@systemd-ubuntu, base@python3.9, rc@bash5.1
-#   repo          [Base]: image repository, similar to 'DOCKER_REPO' global, $1 of 'images' variable.
-#                 - Format: index.docker.io/<repo owner>/<repo name>.
-#                 - Examples: alpine, jrei/systemd-ubuntu.
-#   tag           [Base]: image tag, similar to 'DOCKER_TAG', <tag> field of 'IMAGES'(default: latest).
-#                 - Format: <tag>
-#                 - Examples: latest, 3.9-alpine.
+#   id                [Internal] tag (default: alpine)
+#                     - Format: 1) <name>-<short>
+#                               2) <name> (if tag is latest)
+#                               3) <name><short> (for images with 'short' starting with numbers)
+#                     - Examples: alpine, systemd-ubuntu, python3.9, bash5.1
+#   build             [Internal]: image, default triggers auto build in Docker Hub (default: GIT/rc:alpine).
+#                     - Format: <GIT>/<repository>:<id>
+#                     - Examples: <GIT>/base:alpine, <GIT>/base:systemd-ubuntu, <GIT>/rc:python3.9
+#   container         [Internal]: container name.
+#                     - Format: <repository>@<id>
+#                     - Examples: base@alpine, rc@systemd-ubuntu, base@python3.9, rc@bash5.1
+#   repo              [Base]: image repository, similar to 'DOCKER_REPO' global, $1 of 'images' variable.
+#                     - Format: index.docker.io/<repo owner>/<repo name>.
+#                     - Examples: alpine, jrei/systemd-ubuntu.
+#   tag               [Base]: image tag, similar to 'DOCKER_TAG', <tag> field of 'IMAGES'(default: latest).
+#                     - Format: <tag>
+#                     - Examples: latest, 3.9-alpine.
 #######################################
 build::vars() {
   local enable owner name tag stripname striptag
@@ -138,15 +139,21 @@ build::vars() {
 #   BASE              Base images (never get pushed).
 #   CACHE             build --no-cache
 #   DOCKERFILE_PATH   Dockerfile currently being built.
+#   EXCLUDE           Excluded IDs when doing 'docker run' for all (not shell CMD/ENTRYPOINT).
+#   FORCE             Force creation of container, default true for --test.
+#   GIT               Docker Hub User.
 #   HUB               Running in auto build Docker Hub.
 #   ID                ID to build, create, exec or run command (default: all).
+#   OUTPUT            show output in plain format even if succesful build.
+#   PUSH              Push after build.
 #   REPOSITORY        rc.
-#   TEST              Build test images for rc (never get pushed).
+#   SHOW              Show image id for exec and run.
+#   TEST              Build prefix test images for rc (never get pushed).
 #######################################
 build::main() {
-  local arg args=() finish=false ids
-  export BASE=false CACHE DOCKERFILE_PATH GIT=j5pu HUB=true REPOSITORY="rc"
-  export TEST
+  local arg args=() command dry=false finish=false func ids msg="argument"
+  export BASE=false CACHE DOCKERFILE_PATH EXCLUDE="^bats|^python" FORCE=false GIT=j5pu HUB=true ID OUTPUT=false
+  export PUSH=false REPOSITORY="rc" SHOW=false TEST
   if [ "${DOCKERFILE_PATH-}" ]; then
     build::build
   else
@@ -163,8 +170,66 @@ build::main() {
       fi
       case "${arg}" in
         --base) BASE=true ;;
+        --dry-run) dry=true ;;
+        --force) FORCE=true ;;
+        --id=*)
+          ID="${arg/--id=/}"
+          echo "${ids}" | grep -q "${ID}" || die Invalid ID: "${ID}"
+          ;;
+        --no-cache) CACHE="${arg}" ;;
+        --output) OUTPUT=true ;;
+        --push) PUSH=true ;;
+        --show) SHOW=true ;;
         --test) CACHE="--no-cache"; TEST="test-" ;;
+        --) finish=true ;;
+        build|clean|create|exec|id|image|pull|run|vars)
+          if ! $finish; then
+            [ ! "${func-}" ] || die Two commands provided: "${arg}" and "${1}"
+            command="${arg}"
+          fi
+          ;;
+        *)
+          [ "${arg:0:1}" = "-" ] || msg="command"
+          false || die Invalid "${msg}": "${arg}"
+          ;;
       esac
     done
+
+    if [[ "${command}" =~ ^exec$|^run$ ]]; then
+      if ! $finish; then
+        false || die Arguments passed to "${command}" must be separated with: --, i.e.: build run -- ls
+      else
+        [ "${args-}" ] || die Not arguments provided to "${command}"
+      fi
+    fi
+
+    if $BASE; then
+      unset TEST
+      PUSH=false
+      [ "${command}" != "build" ] || command="pull"
+    fi
+
+    [ ! "${TEST-}" ] || PUSH=false
+
+    if [ "${command-}" ]; then
+      if $dry; then
+        inf BASE: "${BASE}"
+        inf CACHE: "${CACHE}"
+        inf DOCKERFILE_PATH: "${DOCKERFILE_PATH}"
+        inf EXCLUDE: "${EXCLUDE}"
+        inf FORCE: "${FORCE}"
+        inf HUB: "${HUB}"
+        inf ID: "${ID}"
+        inf OUTPUT: "${OUTPUT}"
+        inf PUSH: "${PUSH}"
+        inf REPOSITORY: "${REPOSITORY}"
+        inf SHOW: "${SHOW}"
+        inf TEST: "${TEST}"
+        die "${command}" "${args[@]}"
+      fi
+      build::${command} "${args[@]}"
+    fi
   fi
 }
+
+build::main "${@}"
