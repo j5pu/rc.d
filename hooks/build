@@ -94,6 +94,7 @@ build::build() {
     if command -v tar; then
       tar --help
     fi
+    exit
   fi
 
   [ ! "${TARGETS-}" ] || die Build Targets not Implemented  # if TARGETS create all targets?
