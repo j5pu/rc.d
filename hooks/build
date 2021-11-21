@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC1091
 set -eo pipefail
-shopt -s inherit_errexit
+shopt -s inherit_errexit 2>/dev/null || true
 
 # TODO: que el docker mio haga el env cuando hay run y exec, etc. y pille los secretos.... no funcionaria si es swarm?
 #   o no host ?
