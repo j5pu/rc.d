@@ -123,7 +123,7 @@ config=$(cat<<EOF
       "defaultKeepStorage": "20GB"
     }
   },
-  "experimental": false,
+  "experimental": true,
   "features": {
     "buildkit": true
   }

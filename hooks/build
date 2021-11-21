@@ -3,9 +3,16 @@
 set -eo pipefail
 shopt -s inherit_errexit
 
-# IMAGES: enable;<repo owner>;<repo name>;<tag>;stripname;striptag
-#
+# TODO: que el docker mio haga el env cuando hay run y exec, etc. y pille los secretos.... no funcionaria si es swarm?
+#   o no host ?
+#######################################
+# EXCLUDE           Excluded IDs when doing 'docker run' for all (not shell CMD/ENTRYPOINT if 'ENTRY' unset).
+EXCLUDE="^bats|^python"
+#######################################
+# FIELDS            Fields in 'IMAGES' global.
 FIELDS="6"
+#######################################
+# IMAGES            enable;<repo owner>;<repo name>;<tag>;stripname;striptag
 IMAGES=$(cat <<EOF
 1;alpine;;;;
 1;archlinux;;;;
@@ -20,7 +27,7 @@ IMAGES=$(cat <<EOF
 1;debian;;bullseye-backports;;bullseye-
 1;debian;;bullseye-slim;;bullseye-
 1;fedora;;;;
-1;jrei;systemd-ubuntu;;;
+0;jrei;systemd-ubuntu;;;
 1;kalilinux;kali-rolling;;-rolling;
 1;kalilinux;kali-bleeding-edge;;-bleeding;
 1;nixos;nix;;;
@@ -30,7 +37,6 @@ IMAGES=$(cat <<EOF
 1;python;;3.10-alpine;;-alpine
 1;python;;3.10-bullseye;;
 1;python;;3.10-slim;;
-1;richxsl;rhel7;;;
 1;ubuntu;;;;
 1;zshusers;zsh;;;
 EOF
@@ -52,22 +58,633 @@ EOF
 #   SOURCE_BRANCH      Name of the branch or the tag that is currently being tested.
 #   SOURCE_COMMIT      SHA1 hash of the commit being tested.
 # Globals:
+#   BASE              Base images (never get pushed).
 #   HUB               Running in auto build Docker Hub.
+#   ID                ID to build, create, exec or run command (default: all).
+#   OUTPUT            show output in plain format even if succesful build.
+#   PUSH              Push after build.
+#   SHOW              Show image id for exec and run.
+#   TARGET            --target option.
+#   TARGETS           Targets from Dockerfile.
 #######################################
+# shellcheck disable=SC2086
 build::build() {
+  local base=$BASE image output param="${1:-${ID}}" target="${TARGET:+--target ${TARGET}}"
+  local id build container repo tag
+
   if $HUB; then
-    curl --help
-  else
-    :
+    if command -v curl; then
+      curl --help || true
+    fi
+    if command -v wget; then
+      wget --help || true
+    fi
+    echo "\$0: ${0}"
+    echo "dirname \$0: $(dirname "${0}")"
+    echo "ls dirname: $(ls -la "$(dirname "${0}")")"
+    echo "ls dirname dirname: $(ls -la "$(dirname "$(dirname "${0}")")")"
+    echo "pwd: $(pwd)"
+    echo "uname: $(uname)"
+    if test -f /etc/os-release; then command cat /etc/os-release; fi
+    echo "DOCKERFILE_PATH: ${DOCKERFILE_PATH}"
+    if command -v git; then
+      echo "top: $(git rev-parse --show-toplevel)"
+      echo "ls top: $(ls -la "$(git rev-parse --show-toplevel)")"
+    fi
+    if command -v tar; then
+      tar --help
+    fi
   fi
+
+  [ ! "${TARGETS-}" ] || die Build Targets not Implemented  # if TARGETS create all targets?
+  while read -r id build container repo tag; do
+    if [ "${param-}" ] && [ "${param}" != "${id}" ]; then continue; fi
+    BASE=true && build::pull "${id}" && BASE=$base
+    output="$(build::tmp "${id}")"
+    if docker build --progress plain ${CACHE} ${target} \
+      --build-arg repo="${repo}" --build-arg tag="${tag}" \
+      --file "${DOCKERFILE_PATH}" --tag "${build}" . &>"${output}"; then
+      image="${repo}:${tag}"
+      grep -q -E "FROM.*/${image}" "${output}" || die Invalid FROM image in Dockerfile: "$(cat "${output}")"
+      if $SHOW || [[ "${FUNCNAME[1]}" =~ build::create::force|build::main ]] ; then
+        if $TEST; then
+          ok "${build}"
+        else
+          ok Built: "${build}", from: "${image}"
+          if ! $HUB && $SCAN; then build::scan "${build}"; fi
+        fi
+      fi
+      if $OUTPUT; then inf Build Output: "${build}" "$(cat "${output}")"; fi
+      build::push "${id}" "${build}"
+    else
+      die Build Error: "${build}" "$(cat "${output}")"
+    fi
+  done < <(build::vars "")
+}
+
+build::build::test::quiet::die() {
+  local container containers exists=false i output running=false
+  if $TEST; then
+    ID="${1}"
+    output="$(build::tmp "${1}")"
+    containers="$(docker ps -a -q  --filter="ancestor=${2}")"  # Gives all containers regardless of the tag.
+    for i in ${containers}; do
+      if [ "$(docker inspect "${i}" --format "{{.Config.Image}}")" = "${2}" ]; then
+        exists=true
+        container="$(docker ps -q -f status=running -f name="${3}")"
+        if [ "${container-}" ]; then running=true; fi
+        if $exists  && docker rm --force "${i}" &>"${output}"; then
+          if $SHOW && [[ ! "${FUNCNAME[1]}" =~ build::run ]]; then
+            if $WARN; then warn Removed Container: "${i}", exists: "${exists}", running: "${running}", \
+FORCE: "${FORCE}", TEST: "${TEST}"; fi
+          fi
+        else
+          die Remove Container: "${i}" "$(cat "${output}")"
+        fi
+      fi
+    done
+    exists=false
+    if docker inspect "${2}" &>"${output}"; then
+      exists=true
+    fi
+    if $exists; then
+      if docker rmi --force "${2}" &>"${output}"; then
+        if $SHOW && [[ ! "${FUNCNAME[1]}" =~ build::run|build::exec::rm ]]; then
+          if $WARN; then warn Removed Image: "${2}", exists: "${exists}", FORCE: "${FORCE}", TEST: "${TEST}"; fi
+        fi
+      else
+        die Remove Image: "${2}" "$(cat "${output}")"
+      fi
+    fi
+    build::build "${1}"
+  elif $SHOW; then
+    ok "${2}"
+  fi
+}
+
+build::clean() {
+  local i
+  docker container prune --force &>/dev/null
+  # shellcheck disable=SC2046
+  for i in $(docker ps -q -f status=paused); do
+    docker container unpause "${i}" &>/dev/null && docker stop "${i}" &>/dev/null
+  done
+  for i in $(comm -23 <(docker ps -aq | sort) <(docker ps -q -f status=running | sort)); do \
+    docker rm --volumes "${i}"; done
+  docker image prune --all --force &>/dev/null
+  docker volume prune --force &>/dev/null
+  docker network prune --force &>/dev/null
+  docker system prune --all --volumes --force &>/dev/null
+  docker builder prune --all --force &>/dev/null
+  docker system df
+}
+
+#######################################
+# Create a container with default name if it does not exists.
+# Globals:
+#   ID                ID to build, create, exec or run command (default: all).
+#######################################
+build::create() {
+  local image
+  local id build container repo tag
+  if [ "${ID-}" ]; then
+    image="$(build::image "${ID}")"
+    container="$(build::vars | grep "^${ID} " | awk '{ print $3 }')"
+    build::create::force "${ID}" "${image}" "${container}"
+  else
+    while read -r id build container repo tag; do
+      build::create::force "${id}" "${build}" "${container}"
+    done < <(build::vars)
+  fi
+}
+
+build::create::force() {
+  local container create=true exists=false output running=false
+  build::build::test::quiet::die "${1}" "${2}"
+  if docker container inspect "${3}" &>/dev/null; then
+    exists=true
+    container="$(docker ps -q -f status=running -f name="${3}")"
+    if [ "${container-}" ] && running=true && ! $TEST && ! $FORCE; then create=false; fi
+  fi
+  if $create; then
+    if { $exists || $running; } && docker rm --force "${3}" &>/dev/null; then
+      if $WARN; then warn Removed: "${3}", exists: "${exists}", running: "${running}", FORCE: "${FORCE}", \
+TEST: "${TEST}"; fi
+    fi
+    output="$(build::tmp "${1}")"
+    if docker create -it --name "${3}" "${2}" &>"${output}"; then
+      ok Created: "${3}"
+      if $START; then
+        if docker start "${3}" >/dev/null; then
+          ok Started: "${3}"
+        else
+          false || die Start: "${3}"
+        fi
+      fi
+      return
+    fi
+    if ! docker manifest inspect "${2}" &>"${output}"; then
+      if grep -q "^no such manifest:" "${output}"; then
+        if $WARN; then No Manifest: "${2}"; fi
+        { $BASE || $TEST; } || PUSH=true
+        build::build "$(build::id "${2}")"
+      elif grep -q "^unauthorized: authentication required" "${output}"; then
+        false || die Authentication Required: "${2}"
+      elif grep -q "^unsupported manifest media type and no default available" "${output}"; then
+        if $WARN; then warn Manifest Unsupported: "${2}"; fi
+        { $BASE || $TEST; } || PUSH=true
+        build::build "$(build::id "${2}")"
+      elif [ -n "$(command cat "${output}")" ]; then
+        false || die Manifest Error: "${2}" "$(cat "${output}")"
+      fi
+    fi
+    if docker create -it --name "${3}" "${2}" &>"${output}"; then
+      ok Created: "${3}"
+      if $START; then
+        if docker start "${3}" >/dev/null; then
+          ok Started: "${3}"
+        else
+          false || die Start: "${3}"
+        fi
+      fi
+    else
+      die Create Error: "${3}" "$(cat "${output}")"
+    fi
+  fi
+}
+
+build::entry() { echo "${ENTRY:+--entrypoint ${ENTRY}}"; }
+
+#######################################
+# Exec command in an ephemeral container.
+# Globals:
+#   ID                ID to build, create, exec or run command (default: all).
+#   SHOW              Show image id for exec and run.
+#   TEST              Build local images if repository is not base.
+#######################################
+build::exec() {
+  local i image
+  export ARGUMENTS=("${@}")
+  if [ "${ID-}" ]; then
+    image="$(build::image "${ID}")"
+    build::exec::rm "${ID}" "${image}"
+  else
+    for i in $(build::id); do
+      image="$(build::image "${i}")"
+      build::exec::rm "${i}" "${image}"
+    done
+  fi
+}
+
+# shellcheck disable=SC2046
+build::exec::rm() {
+  local name="exec-${1}" output
+  output="$(build::tmp "${name}")"
+  docker rm --force "${name}" &>/dev/null || true
+  if ! $TEST; then
+    if ! docker inspect "${2}" &>"${output}"; then
+      build::build "${1}"
+    fi
+  fi
+  build::build::test::quiet::die "${1}" "${2}"
+  docker rm --force "${name}" &>/dev/null || true
+  if docker run -dit $(build::entry) --name "${name}" "${2}" >/dev/null; then
+    set +e
+    docker exec -it "${name}" "${ARGUMENTS[@]}"
+    set -e
+    docker rm --force "${name}" &>/dev/null || true
+  fi
+}
+
+#######################################
+# Shows ids or image/container
+# Globals:
+#   IMAGE              IMAGE (default: all).
+# Arguments:
+#   image              IMAGE (default: all).
+#######################################
+build::id() {
+  local ids images param vars
+  param="${1:-${IMAGE}}"
+  vars="$(build::vars)"
+  ids="$(echo "${vars}" | awk '{ print $1 }')"
+  images="$(echo "${vars}" | awk '{ print $2 }')"
+  if [ "${param-}" ]; then
+    echo "${images}" | grep -q "^${param}$" || die Invalid Image: "${param}"
+    echo "${vars}" | grep " ${param} " | awk '{ print $1 }'
+  else
+    echo "${ids}"
+  fi
+}
+
+#######################################
+# Shows image for id.
+# Globals:
+#   ID                ID to build, create, exec or run command (default: all).
+# Arguments:
+#   id                ID to build, create, exec or run command (default: all).
+# ######################################
+build::image() {
+  local ids images param vars
+  param="${1:-${ID}}"
+  vars="$(build::vars)"
+  ids="$(echo "${vars}" | awk '{ print $1 }')"
+  images="$(echo "${vars}" | awk '{ print $2 }')"
+  if [ "${param-}" ]; then
+    echo "${ids}" | grep -q "^${param}$" || die Invalid ID: "${param}"
+    echo "${vars}" | awk "/^${param} / { print \$2 }"
+  else
+    echo "${images}"
+  fi
+}
+
+#######################################
+# Pull for base images.
+# Globals:
+#   ID                ID to pull (default: all).
+# Arguments:
+#   id                ID to pull (default: all).
+#######################################
+build::pull() {
+  local param="${1:-${ID}}"
+  local id build container repo tag
+  if [ "${param-}" ]; then
+    build::pull::id "${param}" "$(build::image "${param}")"
+  else
+    while read -r id build container repo tag; do
+      if [ "${param-}" ] && [ "${param}" != "${id}" ]; then continue; fi
+      build::pull::id "${param}" "${build}"
+    done < <(build::vars)
+  fi
+}
+
+build::pull::id() {
+  local output
+  output="$(build::tmp "${1}")"
+  if docker pull "${2}" &>"${output}"; then
+    if $SHOW || [ "${FUNCNAME[1]}" = "build::main" ]; then
+      if ! grep -q "Status: Image is up to date for ${2}" "${output}"; then
+        ok Pulled: "${2}"
+      fi
+    fi
+    if $OUTPUT; then inf Pull output: "${2}" "$(cat "${output}")"; fi
+  else
+    die Pull Error: "${2}" "$(cat "${output}")"
+  fi
+}
+
+#######################################
+# push
+# Globals:
+#   BASE              Base images (never get pushed).
+#   HUB               Running in auto build Docker Hub.
+#   PUSH              Push after build.
+#   OUTPUT            show output in plain format even if succesful build.
+#   SHOW              Show image id for exec and run.
+# Arguments:
+#   id
+#   image
+#######################################
+build::push() {
+  local output
+  output="$(build::tmp "${1}")"
+  if ! $BASE; then
+    if $HUB || $PUSH; then
+      if docker push "${2}" &>"${output}"; then
+        if $SHOW || [[ "${FUNCNAME[1]}" =~ build::build|build::main ]] ; then ok Pushed: "${2}" ; fi
+        if $OUTPUT; then inf Push output: "${2}" "$(cat "${output}")"; fi
+      else
+        die Push Error: "${2}" "$(cat "${output}")"
+      fi
+    fi
+  fi
+}
+
+#######################################
+# Runs command in an ephemeral container.
+# Globals:
+#   EXCLUDE           Excluded IDs when doing 'docker run' for all (not shell CMD/ENTRYPOINT if 'ENTRY' unset).
+#   ID                ID to build, create, exec or run command (default: all).
+#   SHOW              Show image id for exec and run.
+#   TEST              Build local images if repository is not base.
+#######################################
+# shellcheck disable=SC2046
+build::run() {
+  local i image output
+  if [ "${ID-}" ]; then
+    image="$(build::image "${ID}")"
+    output="$(build::tmp "${ID}")"
+    if ! docker inspect "${image}" &>"${output}" && ! $TEST; then
+      build::build "${ID}"
+    fi
+    build::build::test::quiet::die "${ID}" "${image}"
+    set +eo pipefail
+    docker run -it $(build::entry) --rm "${image}" "${@}" | grep -v "failed to resize tty"
+    set -eo pipefail
+    if $TEST; then docker rmi "${image}" >/dev/null; fi
+  else
+    for i in $(build::id); do
+      if [[ "${i}" =~ ${EXCLUDE} ]] && [ ! "${ENTRY-}" ]; then continue; fi
+      output="$(build::tmp "${i}")"
+      image="$(build::image "${i}")"
+      if ! docker inspect "${image}" &>"${output}" && ! $TEST; then
+        build::build "${i}"
+      fi
+      build::build::test::quiet::die "${i}" "${image}"
+      set +eo pipefail
+      docker run -it $(build::entry) --rm "${image}" "${@}" | grep -v "failed to resize tty"
+      set -eo pipefail
+      $TEST && docker rmi "${image}" >/dev/null
+    done
+  fi
+}
+
+build::scan() {
+  docker scan --accept-license --exclude-base --file "${DOCKERFILE_PATH}" "${1}"
+}
+
+build::tmp() { local tmp="/tmp/${FUNC}"; mkdir -p "${tmp}" && echo "${tmp}/${1:-${ID}}-${FUNCNAME[1]##*:}.out"; }
+
+build::usage() {
+    echo -e "
+${Yellow}Usage${Reset}:
+  ${Green}./hooks/build${Reset} [command] [options] [-- args]
+
+${Yellow}Description${Reset}:
+  ${Blue}Output${Reset} is ${Red}not shown${Reset} for ${Green}create${Reset}, ${Green}exec${Reset} and \
+${Green}run${Reset} unless: ${Magenta}--show${Reset} or ${Magenta}--output${Reset}.
+  ${Blue}Development tests${Reset} (a new build/no push is run each time the script is called) can be run with: \
+${Magenta}--test${Reset}, and check the output or error code.
+  ${Blue}Portability tests${Reset} can be 'run' for all images using: ${Magenta}--show${Reset}, to see which \
+image is producing the output.
+
+${Yellow}Commands${Reset}:
+  ${Green}build${Reset}                 Build (will be changed to pull when --base).
+  ${Green}clean${Reset}                 Prune.
+  ${Green}create${Reset}                Create containers.
+  ${Green}exec${Reset}                  Exec command in an ephemeral containers for all (rc, --base or test-rc) \
+or --id container.
+  ${Green}id${Reset}                    Show IDs for all or for image/container.
+  ${Green}image${Reset}                 Show images for repository, --base or repository --test.
+  ${Green}pull${Reset}                  Pull base images for --base.
+  ${Green}run${Reset}                   Run command in an ephemeral containers for all (rc, --base or test-rc \
+excluding containers with no shell ENTRYPOINT/CMD, i.e: bats, python) or --id container.
+  ${Green}vars${Reset}                  Show vars for rc, --base or test-rc (--test).
+
+${Yellow}Options${Reset}:
+  ${Green}--base${Reset}                Use base containers.
+  ${Green}--dry-run${Reset}             Dry-run.
+  ${Green}--entry=[entrypoint]${Reset}  Overwrite default rc ENTRYPOINT (/bin/sh), \
+--entry="" to restore Dockerfile ENTRYPOINT.
+  ${Green}--force${Reset}               Force new build and re-creation of container (remove existing containers), \
+default true for --test.
+  ${Green}--id=<id>${Reset}             ID for all or image.
+  ${Green}--image=<image>${Reset}       Image for getting ID.
+  ${Green}--no-cache${Reset}            Build with no cache.
+  ${Green}--output${Reset}              Shows the output of the container after it has been build \
+(docker build --output=plain) or output of silent commands (docker pull, etc.).
+  ${Green}--push${Reset}                Push image after build (only for rc)
+  ${Green}--repo=<repo>${Reset}         Repository to customize vars.
+  ${Green}--start${Reset}               Start after create.
+  ${Green}--show${Reset}                Prepend a line with the image name for exec and run (helpful for portability \
+tests to see which image produced the output).
+  ${Green}--test${Reset}                Use a local test image for rc.
+  ${Green}--${Reset}                    Separator for exec or run command to provide docker exec/run command and \
+arguments.
+  ${Green}args${Reset}                  Exec/run command and arguments to pass to docker exec/run.
+
+${Yellow}Errors${Reset}:
+  $(ok ./hooks/build "${Green}build${Reset}" -python3.99)
+  $(ok ./hooks/build "${Green}build${Reset}" python3.99)
+  $(ok ./hooks/build "${Green}build${Reset}" --id=python3.99)
+  $(ok ./hooks/build "${Green}build${Reset}" --target=foo)
+  $(ok ./hooks/build "${Green}build${Reset}" "${Green}run${Reset}")
+  $(ok ./hooks/build "${Green}exec${Reset}" --id=python3.10 ls)
+  $(ok ./hooks/build "${Green}exec${Reset}")
+  $(ok ./hooks/build "${Green}exec${Reset}" --)
+  $(ok ./hooks/build "${Green}id${Reset}" --image=foo)
+  $(ok ./hooks/build "${Green}image${Reset}" --id=foo)
+  $(ok ./hooks/build "${Green}run${Reset}" --dry-run)
+  $(ok ./hooks/build "${Green}run${Reset}" --dry-run --)
+
+${Yellow}Examples${Reset}:
+  $(inf [Docker Hub]: build and push, [Local]: help)
+  $(ok ./hooks/build)
+
+  $(inf Build ID)
+  $(ok ./hooks/build "${Green}build${Reset}" --id="alpine")
+  $(inf Build python3.9 with new test build and show build output)
+  $(ok ./hooks/build "${Green}build${Reset}" --id="python3.10" --no-cache --output --test)
+  $(inf Pull base images)
+  $(ok ./hooks/build "${Green}build${Reset}" --pull)
+  $(inf Pull base ID image)
+  $(ok ./hooks/build "${Green}build${Reset}" --pull --id="alpine")
+  $(inf Build ID and push)
+  $(ok ./hooks/build "${Green}build${Reset}" --id="alpine" --push)
+  $(inf Build ID with test)
+  $(ok ./hooks/build "${Green}build${Reset}" --id="alpine" --test)
+  $(inf Build all)
+  $(ok ./hooks/build "${Green}build${Reset}")
+  $(inf Build and Push all)
+  $(ok ./hooks/build "${Green}build${Reset}" --push)
+  $(inf Build all test)
+  $(ok ./hooks/build "${Green}build${Reset}" --test)
+
+  $(inf Clean removes all but running containers)
+  $(ok ./hooks/build "${Green}clean${Reset}")
+
+  $(inf Create)
+  $(ok ./hooks/build "${Green}create${Reset}")
+  $(inf Create and force removing running containers)
+  $(ok ./hooks/build "${Green}create${Reset}" --force)
+  $(inf Create with new test build)
+  $(ok ./hooks/build "${Green}create${Reset}" --test)
+  $(inf Create alpine container)
+  $(ok ./hooks/build "${Green}create${Reset}" --id="alpine")
+  $(inf Create alpine container and force removing running existing container)
+  $(ok ./hooks/build "${Green}create${Reset}" --id="alpine" --force)
+  $(inf Create alpine container with new test build)
+  $(ok ./hooks/build "${Green}create${Reset}" --id="alpine" --test)
+  $(inf Create alpine container with new test build and start)
+  $(ok ./hooks/build "${Green}create${Reset}" --id="alpine" --test --start)
+  $(inf Create for base)
+  $(ok ./hooks/build "${Green}create${Reset}" --base)
+  $(inf Create and start for base)
+  $(ok ./hooks/build "${Green}create${Reset}" --base --start)
+  $(inf Create and force removing running containers for base)
+  $(ok ./hooks/build "${Green}create${Reset}" --base --force)
+  $(inf Create alpine container for base)
+  $(ok ./hooks/build "${Green}create${Reset}" --base --id="alpine")
+  $(inf Create alpine container and force removing running existing container for base)
+  $(ok ./hooks/build "${Green}create${Reset}" --base --id="alpine" --force)
+
+  $(inf Dry run)
+  $(ok ./hooks/build "${Green}--dry-run${Reset}" -- ls)
+
+  $(inf Exec command for rc)
+  $(ok ./hooks/build "${Green}exec${Reset}" -- whoami)
+  $(inf Exec command with new test build for rc)
+  $(ok ./hooks/build "${Green}exec${Reset}" --test -- whoami)
+  $(inf Exec command and add image name to output for rc repository)
+  $(ok ./hooks/build "${Green}exec${Reset}" --show -- whoami)
+  $(inf Exec command with new test build and add image name to output for rc)
+  $(ok ./hooks/build "${Green}exec${Reset}" --show --test -- whoami)
+  $(inf Exec command override ENTRYPOINT)
+  $(ok ./hooks/build "${Green}exec${Reset}" --entry="" --id="bash" -- whoami)
+  $(inf Exec command for rc)
+  $(ok ./hooks/build "${Green}exec${Reset}" --id=alpine -- whoami)
+  $(inf Exec command with new test build and add image name to output  for rc)
+  $(ok ./hooks/build "${Green}exec${Reset}" --test --id=alpine -- whoami)
+  $(inf Exec command and add image name to output  for rc)
+  $(ok ./hooks/build "${Green}exec${Reset}" --show --id=alpine -- whoami)
+  $(inf Exec command with new test build and add image name to output  for rc)
+  $(ok ./hooks/build "${Green}exec${Reset}" --show --test --id=alpine -- whoami)
+  $(inf Exec command for base)
+  $(ok ./hooks/build "${Green}exec${Reset}" --base -- whoami)
+  $(inf Exec command and add image name to output for base)
+  $(ok ./hooks/build "${Green}exec${Reset}" --base --show -- whoami)
+  $(inf Exec command for base)
+  $(ok ./hooks/build "${Green}exec${Reset}" --base --id="alpine" -- whoami)
+  $(inf Exec command and add image name to output  for base)
+  $(ok ./hooks/build "${Green}exec${Reset}" --base --show --id="alpine" -- whoami)
+
+  $(inf IDs)
+  $(ok ./hooks/build "${Green}id${Reset}")
+  $(inf ID for image)
+  $(ok ./hooks/build "${Green}id${Reset}" --image="alpine:latest" --base)
+
+  $(inf Images for rc)
+  $(ok ./hooks/build "${Green}image${Reset}")
+  $(inf Image for base)
+  $(ok ./hooks/build "${Green}image${Reset}" --base)
+  $(inf Image for test)
+  $(ok ./hooks/build "${Green}image${Reset}" --test)
+  $(inf Image for rc and id)
+  $(ok ./hooks/build "${Green}image${Reset}" --id="python3.10")
+  $(inf Image for base and id)
+  $(ok ./hooks/build "${Green}image${Reset}" --base --id="python3.10")
+  $(inf Image for test and id)
+  $(ok ./hooks/build "${Green}image${Reset}" --test --id="python3.10")
+
+  $(inf Pull base images)
+  $(ok ./hooks/build "${Green}pull${Reset}")
+  $(inf Pull base ID image)
+  $(ok ./hooks/build "${Green}pull${Reset}" --id="alpine")
+  $(inf Pull base ID image)
+  $(ok ./hooks/build "${Green}pull${Reset}" --id="alpine" --output)
+
+  $(inf Run command for rc)
+  $(ok ./hooks/build "${Green}run${Reset}" -- -c whoami)
+  $(inf Run command --dry-run for rc and all IDs)
+  $(ok ./hooks/build "${Green}run${Reset}" --dry-run -- -c ls)
+  $(inf Run command with new test build for rc)
+  $(ok ./hooks/build "${Green}run${Reset}" --test -- -c whoami)
+  $(inf Run command and add image name to output for rc)
+  $(ok ./hooks/build "${Green}run${Reset}" --show -- -c whoami)
+  $(inf Run command with new test build and add image name to output for rc)
+  $(ok ./hooks/build "${Green}run${Reset}" --show --test -- -c whoami)
+  $(inf Run command for rc)
+  $(ok ./hooks/build "${Green}run${Reset}" --id="alpine" -- -c whoami)
+  $(inf Run command with new test build for rc)
+  $(ok ./hooks/build "${Green}run${Reset}" --test --id="alpine" -- -c whoami)
+  $(inf Run command and add image name to output  for rc)
+  $(ok ./hooks/build "${Green}run${Reset}" --show --id="alpine" -- -c whoami)
+  $(inf Run command with new test build  and add image name to output  for rc)
+  $(ok ./hooks/build "${Green}run${Reset}" --show --test --id="alpine" -- -c whoami)
+  $(inf Run command for base)
+  $(ok ./hooks/build "${Green}run${Reset}" --base -- -c whoami)
+  $(inf Run command and add image name to output for base)
+  $(ok ./hooks/build "${Green}run${Reset}" --base --show -- -c whoami)
+  $(inf Run command for base)
+  $(ok ./hooks/build "${Green}run${Reset}" --base --id="alpine" -- -c whoami)
+  $(inf Run command and add image name to output  for base)
+  $(ok ./hooks/build "${Green}run${Reset}" --base --show --id="alpine" -- -c whoami)
+
+  $(inf Variables)
+  $(ok ./hooks/build "${Green}vars${Reset}")
+  $(inf Variables for testing)
+  $(ok ./hooks/build "${Green}vars${Reset}" --test)
+  $(inf Variables for base)
+  $(ok ./hooks/build "${Green}vars${Reset}" --base)
+  $(inf Variables for repository)
+  $(ok ./hooks/build "${Green}vars${Reset}" --repo="foo")
+  $(inf Variables for repository and testing)
+  $(ok ./hooks/build "${Green}vars${Reset}" --repo="foo" --test)
+
+${Yellow}Summary${Reset}:
+  $(ok ./hooks/build "${Green}build${Reset}")
+  $(ok ./hooks/build "${Green}build${Reset}" --id="alpine")
+  $(ok ./hooks/build "${Green}build${Reset}" --scan)
+  $(ok ./hooks/build "${Green}build${Reset}" --push)
+  $(ok ./hooks/build "${Green}build${Reset}" --test)
+  $(ok ./hooks/build "${Green}create${Reset}" --base)
+  $(ok ./hooks/build "${Green}create${Reset}" --base --start --force)
+  $(ok ./hooks/build "${Green}create${Reset}" --base --force)
+  $(ok ./hooks/build "${Green}create${Reset}")
+  $(ok ./hooks/build "${Green}create${Reset}" --test --id="python3.10" --start --force)
+  $(ok ./hooks/build "${Green}exec${Reset}" --id="bash" -- sh -c \"command -v wget\")
+  $(ok ./hooks/build "${Green}exec${Reset}" --id="bash" --entry="" -- bash --version)
+  $(ok ./hooks/build "${Green}exec${Reset}" -- sh -c \"command -v wget\")
+  $(ok ./hooks/build "${Green}exec${Reset}" --show -- sh -c \"command -v wget\")
+  $(ok ./hooks/build "${Green}exec${Reset}" --base --show -- sh -c \"command -v wget\")
+  $(ok ./hooks/build "${Green}exec${Reset}" --base --show --id="archlinux" -- sh -c \"command -v curl\")
+  $(ok ./hooks/build "${Green}exec${Reset}" --base --show -- sh -c \"command -v curl\")
+  $(ok ./hooks/build "${Green}exec${Reset}" --test --show -- sh -c \"command -v wget\")
+  $(ok ./hooks/build "${Green}run${Reset}" --id="bash" -c whoami)
+  $(ok ./hooks/build "${Green}run${Reset}" --id="bash" --entry="" -- bash --version)
+  $(ok ./hooks/build "${Green}run${Reset}" -- -c whoami)
+  $(ok ./hooks/build "${Green}run${Reset}" --show -- -c whoami)
+  $(ok ./hooks/build "${Green}run${Reset}" --base --show -- -c whoami)
+  $(ok ./hooks/build "${Green}run${Reset}" --test --show -- -c whoami)
+"
 }
 
 #######################################
 # Shows images and containers variables in fields
 # Globals:
 #   GIT               GitHub and Docker Hub repository owner.
-#   IMAGES            <repo owner>|<repo name>|<tag>
-#   FIELDS            Fields in 'IMAGES' global.
+#   IMAGES
+#   FIELDS
 #   REPOSITORY        [Internal]: repository name (default: rc).
 #                     - Format: <repository name>
 #                     - Examples: base, rc
@@ -103,15 +720,18 @@ build::build() {
 #   tag               [Base]: image tag, similar to 'DOCKER_TAG', <tag> field of 'IMAGES'(default: latest).
 #                     - Format: <tag>
 #                     - Examples: latest, 3.9-alpine.
+# Arguments:
+#   repository        Repository or target.
 #######################################
 build::vars() {
+  local param="${1:-${REPOSITORY}}"
   local enable owner name tag stripname striptag
   local id build container repo tag
-  local git line sep short suffix
+  local line sep short suffix
 
   echo "${IMAGES}" | while read -r line; do
     [ "$(echo "${line}" | awk -F ';' '{ print NF-1 }')" -eq "$(( FIELDS-1 ))" ] \
-      || die Incorrect number of fields for: "${line}"
+      || die Incorrect Fields: "${line}"
   done
 
   while IFS=";" read -r enable owner name tag stripname striptag; do
@@ -125,13 +745,19 @@ build::vars() {
     [ "${short}" = "latest" ] || suffix="${sep}${short}"
     name="${name/${stripname}/}"
     id="${name:-${owner}}${suffix}"
-    { [ "${TEST-}" ] || $BASE; } || git="${GIT}/"
-    build="${git}${TEST}${REPOSITORY}:${id}"
-    container="${TEST}${REPOSITORY}.${id}"
+    if $BASE; then
+      build="${repo}:${tag}"
+      container="base.${id}"
+    elif $TEST; then
+      build="test.${param}:${id}"
+      container="test.${param}.${id}"
+    else
+      build="${GIT}/${param}:${id}"
+      container="${param}.${id}"
+    fi
     echo "${id} ${build} ${container} ${repo} ${tag}"
   done <<< "${IMAGES}"
 }
-
 
 #######################################
 # Main function
@@ -139,97 +765,129 @@ build::vars() {
 #   BASE              Base images (never get pushed).
 #   CACHE             build --no-cache
 #   DOCKERFILE_PATH   Dockerfile currently being built.
-#   EXCLUDE           Excluded IDs when doing 'docker run' for all (not shell CMD/ENTRYPOINT).
+#   DEFAULT_TARGET    When targets are active.
+#   ENTRY             Overwrite ENTRYPOINT.
 #   FORCE             Force creation of container, default true for --test.
 #   GIT               Docker Hub User.
 #   HUB               Running in auto build Docker Hub.
 #   ID                ID to build, create, exec or run command (default: all).
+#   IMAGE             IMAGE to get ID (default: all).
+#   FUNC              Functions prefix.
 #   OUTPUT            show output in plain format even if succesful build.
 #   PUSH              Push after build.
 #   REPOSITORY        rc.
+#   SCAN              Scan.
 #   SHOW              Show image id for exec and run.
+#   START             Start container after creation.
+#   TARGET            --target option.
+#   TARGETS           Targets from Dockerfile.
 #   TEST              Build prefix test images for rc (never get pushed).
+#   WARN              Show warnings.
 #######################################
+# shellcheck disable=SC2086
 build::main() {
-  local arg args=() command dry=false finish=false func ids msg="argument"
-  export BASE=false CACHE DOCKERFILE_PATH EXCLUDE="^bats|^python" FORCE=false GIT=j5pu HUB=true ID OUTPUT=false
-  export PUSH=false REPOSITORY="rc" SHOW=false TEST
-  if [ "${DOCKERFILE_PATH-}" ]; then
-    build::build
-  else
+  local arg args=() command dry=false finish=false ids msg="Option" targets
+  export BASE=false CACHE DOCKERFILE_PATH ENTRY="/bin/sh" FORCE=false GIT=j5pu HUB=true ID IMAGE
+  export FUNC="${FUNCNAME[0]%%:*}" OUTPUT=false PUSH=false REPOSITORY="rc" SCAN=false SHOW=false START=false TARGET
+  export TARGETS TEST=false WARN=false
+  if [ ! "${DOCKERFILE_PATH-}" ]; then
     cd "$(dirname "${0}")/.." || exit 1
     command -v ok >/dev/null || source ./profile.d/00.sh
     DOCKERFILE_PATH="./Dockerfile"
     HUB=false
-    ids="$(build::id)"
-    [ ! "${1-}" ] && build::usage && exit
-    for arg; do
-      if $finish; then
-        args+=("${arg}")
-        continue
-      fi
-      case "${arg}" in
-        --base) BASE=true ;;
-        --dry-run) dry=true ;;
-        --force) FORCE=true ;;
-        --id=*)
-          ID="${arg/--id=/}"
-          echo "${ids}" | grep -q "${ID}" || die Invalid ID: "${ID}"
-          ;;
-        --no-cache) CACHE="${arg}" ;;
-        --output) OUTPUT=true ;;
-        --push) PUSH=true ;;
-        --show) SHOW=true ;;
-        --test) CACHE="--no-cache"; TEST="test-" ;;
-        --) finish=true ;;
-        build|clean|create|exec|id|image|pull|run|vars)
-          if ! $finish; then
-            [ ! "${func-}" ] || die Two commands provided: "${arg}" and "${1}"
-            command="${arg}"
-          fi
-          ;;
-        *)
-          [ "${arg:0:1}" = "-" ] || msg="command"
-          false || die Invalid "${msg}": "${arg}"
-          ;;
-      esac
-    done
+  fi
 
-    if [[ "${command}" =~ ^exec$|^run$ ]]; then
-      if ! $finish; then
-        false || die Arguments passed to "${command}" must be separated with: --, i.e.: build run -- ls
-      else
-        [ "${args-}" ] || die Not arguments provided to "${command}"
-      fi
+  TARGETS="$(awk '! /^#/ && / AS / || / as / { print $4 }' "${DOCKERFILE_PATH}")"
+
+  ! $HUB || build::build
+
+  ids="$(build::id)"
+  [ ! "${1-}" ] && build::usage && exit
+  for arg; do
+    if $finish; then
+      args+=("${arg}")
+      continue
     fi
+    case "${arg}" in
+      --base) BASE=true ;;
+      --dry-run) dry=true ;;
+      --entry=*) ENTRY="${arg/--entry=/}" ;;
+      --force) FORCE=true ;;
+      --image=*) IMAGE="${arg/--image=/}" ;;
+      --id=*)
+        ID="${arg/--id=/}"
+        echo "${ids}" | grep -q "${ID}" || die Invalid ID: "${ID}"
+        ;;
+      --no-cache) CACHE="${arg}" ;;
+      --output) OUTPUT=true ;;
+      --push) PUSH=true ;;
+      --repo=*) REPOSITORY="${arg/--repo=/}" ;;
+      --scan) SCAN=true ;;
+      --show) SHOW=true ;;
+      --start) START=true ;;
+      --target=*)
+        TARGET="${arg/--target=/}"
+        [ "${TARGET-}" ] || die Empty Target
+        [ "${TARGETS-}" ] || die Target Provided and no targets in Dockerfile: "${TARGET}"
+        echo "${TARGETS}" | grep -q "${TARGET}" || die Invalid Target: "${TARGET}"
+        ;;
+      --test) CACHE="--no-cache"; FORCE=true; TEST=true; ;;
+      --warn) WARN=true ;;
+      --) finish=true ;;
+      build|clean|create|exec|id|image|pull|run|vars)
+        if ! $finish; then
+          [ ! "${command-}" ] || die One Command Allowed: "${arg}" and "${1}"
+          command="${arg}"
+          [ "${command}" != "pull" ] || BASE=true
+        fi
+        ;;
+      *)
+        [ "${arg:0:1}" = "-" ] || msg="command"
+        false || die Invalid "${msg}": "${arg}"
+        ;;
+    esac
+  done
 
-    if $BASE; then
-      unset TEST
-      PUSH=false
-      [ "${command}" != "build" ] || command="pull"
-    fi
-
-    [ ! "${TEST-}" ] || PUSH=false
-
-    if [ "${command-}" ]; then
-      if $dry; then
-        inf BASE: "${BASE}"
-        inf CACHE: "${CACHE}"
-        inf DOCKERFILE_PATH: "${DOCKERFILE_PATH}"
-        inf EXCLUDE: "${EXCLUDE}"
-        inf FORCE: "${FORCE}"
-        inf HUB: "${HUB}"
-        inf ID: "${ID}"
-        inf OUTPUT: "${OUTPUT}"
-        inf PUSH: "${PUSH}"
-        inf REPOSITORY: "${REPOSITORY}"
-        inf SHOW: "${SHOW}"
-        inf TEST: "${TEST}"
-        die "${command}" "${args[@]}"
-      fi
-      build::${command} "${args[@]}"
+  if [[ "${command}" =~ ^exec$|^run$ ]]; then
+    if ! $finish; then
+      false || die Arguments passed to "${command}" must be separated with: --, i.e.: build run -- ls
+    else
+      [ "${args-}" ] || die No Arguments: "${command}"
     fi
   fi
+
+  if $BASE; then
+    unset REPOSITORY TARGET
+    SCAN=false
+    TEST=false
+    PUSH=false
+    [ "${command}" != "build" ] || command="pull"
+  fi
+
+  ! $TEST || PUSH=false
+
+  if [ "${command-}" ]; then
+    if $dry; then
+      inf BASE: "${BASE}"
+      inf CACHE: "${CACHE}"
+      inf DOCKERFILE_PATH: "${DOCKERFILE_PATH}"
+      inf EXCLUDE: "${EXCLUDE}"
+      inf FORCE: "${FORCE}"
+      inf HUB: "${HUB}"
+      inf ID: "${ID}"
+      inf OUTPUT: "${OUTPUT}"
+      inf PUSH: "${PUSH}"
+      inf REPOSITORY: "${REPOSITORY}"
+      inf SHOW: "${SHOW}"
+      inf TARGET: "${TARGET}"
+      inf targets: ${targets}
+      inf TEST: "${TEST}"
+      die "${command}" "${args[@]}"
+    fi
+    build::${command} "${args[@]}"
+  fi
 }
+
+cat(){ echo; command cat "${1}"; }
 
 build::main "${@}"

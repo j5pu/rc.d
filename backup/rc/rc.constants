@@ -13,6 +13,8 @@
 # --platform (for example, linux/amd64, linux/arm64, or darwin/amd64).
 #You can also download the latest buildx binary from the Docker buildx releases page on GitHub, copy it to ~/.docker/cli-plugins folder with name docker-buildx and change the permission to execute:
 export DOCKER_BUILDKIT="1"
+# https://docs.docker.com/engine/reference/commandline/cli/#experimental-features
+export DOCKER_CLI_EXPERIMENTAL="enabled"
 # DOCKER_CONFIG:         The location of your client configuration files.
 export DOCKER_CONFIG="${CONFIG}/docker"
 
