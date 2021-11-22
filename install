@@ -1,6 +1,12 @@
 #!/bin/sh
 set -e
-set -x
+trap 'rc=$?; [ $rc -ne 0 ] && echo "${err:-error not traced}"; exit $rc' EXIT
+
+[ "${SELFINSTALL-}" ] && git all && curl -fsSL "https://git.io/rc.d" | sh -s && unset SELFINSTALL && exit
+
+echo $0
+
+export err
 
 if ! command -v rc >/dev/null; then
   output="/tmp/rc.d"
@@ -8,8 +14,8 @@ if ! command -v rc >/dev/null; then
   url="https://github.com/j5pu/rc.d/tarball/main"
 
   rm -rf "${output}" "${tar}"
-  mkdir -p "${output}"
 
+  err="download error"
   if command -v wget > /dev/null; then
     wget --quiet -O "${tar}" "${url}"
   elif command -v curl > /dev/null; then
@@ -17,12 +23,13 @@ if ! command -v rc >/dev/null; then
   elif command -v git >/dev/null; then
     git clone "https://github.com/j5pu/rc.d" "${output}"
   else
-    echo "git, curl or wget: not found"
-    exit 1
+    err="git, curl or wget: not found"
+    false
   fi
+
   [ -f "${tar}" ] && [ ! -d "${output}" ] && mkdir "${output}" && tar -xf "${tar}" -C "${output}" --strip-components=1
   rc="${output}/bin/rc"
-  { [ -f "${rc}" ] && chmod +x "${rc}" && [ -x "${output}/bin/rc" ]; } || { echo "${rc}: command not found"; exit 1; }
+  err="${rc}: command not found"
+  [ -f "${rc}" ] && chmod +x "${rc}" && [ -x "${rc}" ]
 fi
-
 exec ${rc:-rc} --install "${@}"
