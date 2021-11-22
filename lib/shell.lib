@@ -1,0 +1,44 @@
+# shellcheck shell=sh
+
+####################################### ✓ shell: exported function
+# Which shell has sourced me?.
+# Global vars
+#   IS_BASH              true if has been sourced in BASH.
+#   IS_BSH               true if has been sourced in BASH or SH.
+#   IS_DASH              true if has been sourced in DASH.
+#   IS_FISH              true if has been sourced in FISH.
+#   IS_KSH               true if has been sourced in KSH.
+#   IS_SH                true if has been sourced in SH.
+#   IS_ZSH               true if has been sourced in ZSH.
+# Arguments:
+#   -h, --help            Show help message and exit.
+# Output:
+#   Help message to stdout.
+# Returns:
+#   1 if -h or --help and not not man page.
+#######################################
+shell() {
+  helpin "${@}" || exit 1
+  export IS_BASH=false IS_BSH=false IS_DASH=false IS_FISH=false IS_KSH=false IS_SH=false IS_XONSH=false IS_ZSH=false
+  export RC_COMPAT
+  sh="${0##*/}"
+  if [ "${sh}" = "sh" ]; then
+    export IS_SH=true IS_BSH=true
+  elif [ -n "${BASH_VERSION}" ]; then
+    export IS_BASH=true IS_BSH=true
+  elif [ -n "${ZSH_EVAL_CONTEXT}" ]; then
+    export IS_ZSH=true
+  elif [ -n "${KSH_VERSION}" ]; then
+    export IS_KSH=true
+  elif [ "${sh}" = "dash" ]; then
+    export IS_DASH=true
+  elif [ "${XONSH_VERSION-}" ]; then
+    export IS_XONSH=true
+  else
+    unset sh
+    exit
+  fi
+  unset sh
+}
+
+export -f shell

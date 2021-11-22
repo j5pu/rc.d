@@ -23,6 +23,7 @@
       <var name="YellowDim" />
       <var name="add" />
       <var name="git" />
+      <var name=".sh.file" />
     </globalVariables>
   </component>
 </project>

@@ -1,0 +1,13 @@
+#!/bin/sh
+
+####################################### ✓ issudo: exported function
+# Is sudo (SUDO_UID is set)?
+# Arguments:
+#   -h, --help            Show help message and exit.
+# Output:
+#   Help message to stdout.
+# Returns:
+#   1 if no 'SUDO_UID' and -h or --help and not man page.
+#######################################
+helpin "${@}" || exit 1
+[ "${SUDO_UID-}" ]

@@ -1,25 +1,28 @@
 #!/bin/sh
 set -e
+set -x
 
-# TODO: ver que hago si tengo python o si hago un rc install para los míos y upgrade.
+if ! command -v rc >/dev/null; then
+  output="/tmp/rc.d"
+  tar="/tmp/main"
+  url="https://github.com/j5pu/rc.d/tarball/main"
 
-setup() {
-  self=false
-  [ "${SELFINSTALL-}" ] && self=true && git all && curl -fsSL "https://git.io/rc.d" | sh -s "${SELFINSTALL_ARGS}"
+  rm -rf "${output}" "${tar}"
+  mkdir -p "${output}"
 
-  clear
-  printf '\n'
+  if command -v wget > /dev/null; then
+    wget --quiet -O "${tar}" "${url}"
+  elif command -v curl > /dev/null; then
+    curl -sL -o "${tar}" "${url}"
+  elif command -v git >/dev/null; then
+    git clone "https://github.com/j5pu/rc.d" "${output}"
+  else
+    echo "git, curl or wget: not found"
+    exit 1
+  fi
+  [ -f "${tar}" ] && [ ! -d "${output}" ] && mkdir "${output}" && tar -xf "${tar}" -C "${output}" --strip-components=1
+  rc="${output}/bin/rc"
+  { [ -f "${rc}" ] && chmod +x "${rc}" && [ -x "${output}/bin/rc" ]; } || { echo "${rc}: command not found"; exit 1; }
+fi
 
-  f="00.sh"
-  directory="$( cd "$(dirname "${0}")" || exit 1; pwd)"
-  p="${directory}/profile.d/${f}"
-  ok=false
-
-  { [ -r "${p}" ] || ! $self; } || { p="/tmp/${f}"; rm -f "${p}"; curl -fsSL "https://git.io/${f}" -o "${p}"; ok=true; }
-  . "${p}"
-
-  $ok && inf "${f}" downloaded
-  inf "${f}" sourced
-}
-
-setup
+exec ${rc:-rc} --install "${@}"

@@ -1,0 +1,14 @@
+#!/bin/sh
+
+
+####################################### ✓ isroot: exported function
+# Is root (id -u is 0)?
+# Arguments:
+#   -h, --help            Show help message and exit.
+# Output:
+#   Help message to stdout.
+# Returns:
+#   1 if no root and -h or --help and not man page.
+#######################################
+helpin "${@}" || exit 1
+[ "$(id -u)" -eq 0 ]

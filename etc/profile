@@ -1,0 +1,22 @@
+# shellcheck shell=sh
+
+#
+# System profile
+
+UNAME="$(uname -s | tr '[:upper:]' '[:lower:]')"; export UNAME
+
+if [ "${UNAME}" = "darwin" ]; then
+  export MACOS=true
+  eval "$(/usr/libexec/path_helper -s)"
+else
+    { [ "$(id -u)" -eq 0 ] && f="s"; } || s="s"
+    export MACOS=false PATH="/usr/local/${f}bin:/usr/local/${s}bin:/usr/${f}bin:/usr/${s}bin:/${f}bin:/${s}bin"
+    unset f s
+fi
+
+{ [ "${0##*/}" = "sh" ] && IS_BASH=false; } || { [ -n "${BASH_VERSION}" ] && IS_BASH=true; } || [ -n "${BASH}" ] \
+  || { true; exit; }; export IS_BASH
+export IS_BASH
+
+BASH_ENV="/etc/profile"
+ENV="${BASH_ENV}"

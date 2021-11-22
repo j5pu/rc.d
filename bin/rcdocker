@@ -72,30 +72,7 @@ build::build() {
   local base=$BASE image output param="${1:-${ID}}" target="${TARGET:+--target ${TARGET}}"
   local id build container repo tag
 
-  if $HUB; then
-    if command -v curl; then
-      curl --help || true
-    fi
-    if command -v wget; then
-      wget --help || true
-    fi
-    echo "\$0: ${0}"
-    echo "dirname \$0: $(dirname "${0}")"
-    echo "ls dirname: $(ls -la "$(dirname "${0}")")"
-    echo "ls dirname dirname: $(ls -la "$(dirname "$(dirname "${0}")")")"
-    echo "pwd: $(pwd)"
-    echo "uname: $(uname)"
-    if test -f /etc/os-release; then command cat /etc/os-release; fi
-    echo "DOCKERFILE_PATH: ${DOCKERFILE_PATH}"
-    if command -v git; then
-      echo "top: $(git rev-parse --show-toplevel)"
-      echo "ls top: $(ls -la "$(git rev-parse --show-toplevel)")"
-    fi
-    if command -v tar; then
-      tar --help
-    fi
-    exit
-  fi
+  # TODO: Add PATH en 00 cuando esta el bin y el lib en el mismo directorio que el padre de 00.sh
 
   [ ! "${TARGETS-}" ] || die Build Targets not Implemented  # if TARGETS create all targets?
   while read -r id build container repo tag; do
@@ -791,11 +768,20 @@ build::main() {
   export BASE=false CACHE DOCKERFILE_PATH ENTRY="/bin/sh" FORCE=false GIT=j5pu HUB=true ID IMAGE
   export FUNC="${FUNCNAME[0]%%:*}" OUTPUT=false PUSH=false REPOSITORY="rc" SCAN=false SHOW=false START=false TARGET
   export TARGETS TEST=false WARN=false
+
+  if ! command -v die >/dev/null; then
+    cd "$(git rev-parse --show-toplevel 2>/dev/null)" || exit 1
+    source ./profile.d/00.sh
+  fi
+
   if [ ! "${DOCKERFILE_PATH-}" ]; then
-    cd "$(dirname "${0}")/.." || exit 1
-    command -v ok >/dev/null || source ./profile.d/00.sh
     DOCKERFILE_PATH="./Dockerfile"
     HUB=false
+    if [ ! -r "${DOCKERFILE_PATH}" ]; then
+      DOCKERFILE_PATH="/tmp/rc.Dockerfile"
+      curl -sL -o "${DOCKERFILE_PATH-}" https://git.io/rc.Dockerfile || die Curl: https://git.io/rc.Dockerfile
+      [ -r "${DOCKERFILE_PATH}" ] || die Dockerfile: "${DOCKERFILE_PATH}"
+    fi
   fi
 
   TARGETS="$(awk '! /^#/ && / AS / || / as / { print $4 }' "${DOCKERFILE_PATH}")"
