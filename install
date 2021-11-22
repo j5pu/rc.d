@@ -2,7 +2,7 @@
 set -e
 trap 'rc=$?; [ $rc -ne 0 ] && echo "${err:-error not traced}"; exit $rc' EXIT
 
-[ "${SELFINSTALL-}" ] && unset SELFINSTALL && git all && curl -fsSL "https://git.io/rc.d" | sh && exit
+[ "${1}" = "--self" ] && git all && curl -fsSL "https://git.io/rc.d" | sh && exit
 
 echo $0
 
