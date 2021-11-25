@@ -3,20 +3,99 @@
 #
 # System profile
 
-UNAME="$(uname -s | tr '[:upper:]' '[:lower:]')"; export UNAME
+####################################### Globals: ROOT
+# ROOT                  Root for project installations.
+export ROOT="/opt"
+# BIN                   Executables and patched binaries directory to extend existing executables with the same name.
+export BIN="${ROOT}/bin"
+# LIB                   Library directory.
+export LIB="${ROOT}/lib"
+# ETC                   Etc directory, installed with command or package.
+export ETC="${ROOT}/etc"
+# SHARE                 Share installation dir 'XDG_DATA_HOME' for libs & deps ("/usr/local/share", ~/.local/share).
+export SHARE="${ROOT}/share"
+# VAR                   Var directory (/var).
+export VAR="${ROOT}/var"
 
+####################################### Globals: ETC
+# COMPLETION            Bash completion compat directory (/usr/local/etc/bash_completion.d, /etc/bash_completion).
+export COMPLETION="${ETC}/bash_completion.d"
+# PROFILE               Profile compat directory directory (/usr/local/etc/profile.d, /etc/profile.d).
+export PROFILE="${ETC}/profile.d"
+
+####################################### Globals: SHARE
+# INFO                  Info pages directory (/usr/share/info).
+export INFO="${SHARE}/info"
+# MAN                   Man pages directory (/usr/share/man).
+export MAN="${SHARE}/man"
+# MAN1                  Man1 pages directory (/usr/share/man/man1).
+export MAN1="${MAN}/man1"
+
+####################################### Globals: SYNC
+# CONFIG                (SYNC - can be edited) Config directory, 'XDG_CONFIG_HOME' (/etc, ~/.config),
+#                       can not be installed by command or change config directory via XDG:CONFIG_HOME.
+export CONFIG="${ROOT}/config/${USER}"
+# DOTFILES              Dotfiles repository to sync and to install when globals can not be used for ROOT directories.
+export DOTFILES="${ROOT}/dotfiles"
+
+####################################### Globals: VAR
+# CACHE:                (USER) Cache directory 'XDG_CACHE_HOME' (/var/cache).
+export CACHE="${VAR}/cache/${USER}"
+# LOG:                  (USER) Log directory (/var/log).
+export LOG="${VAR}/log/${USER}"
+# RUN:                  (USER) Run directory 'XDG_RUNTIME_DIR' (/var/run).
+export RUN="${VAR}/run/${USER}"
+
+####################################### Globals: XDG
+# https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
+# XDG_CACHE_HOME        Base directory relative to which user-specific non-essential data files should be stored.
+#                       If $XDG_CACHE_HOME is either not set or empty,
+#                       a default equal to $HOME/.cache should be used. Alias of 'CACHE'.
+export XDG_CACHE_HOME="${CACHE}"
+# XDG_CONFIG_HOME:      (USER) XDG_CONFIG_HOME (Base directory relative to which user-specific configuration files)
+#                       should be stored. It is an alias of 'CONFIG'.
+export XDG_CONFIG_HOME="${CONFIG}"
+# XDG_DATA_HOME         Base directory relative to which user-specific data files should be stored.
+#                       If $XDG_DATA_HOME is either not set or empty,
+#                       a default equal to ~/.local/share should be used (system "/usr/local/share"). Alias of 'SHARE'.
+export XDG_DATA_HOME="${SHARE}"
+# XDG_RUNTIME_DIR       (USER) Base directory relative to which user-specific non-essential runtime files and
+#                       other file objects (such as sockets, named pipes, ...) should be stored.
+#                       The directory MUST be owned by the user, and he MUST be the only one having read and
+#                       write access to it. Its Unix access mode MUST be 0700. Alias of 'RUN'.
+export XDG_RUNTIME_DIR="${RUN}"
+
+
+####################################### Globals: OS & PATH
+#
+UNAME="$(uname -s | tr '[:upper:]' '[:lower:]')"; export UNAME
 if [ "${UNAME}" = "darwin" ]; then
-  export MACOS=true
+  BREW="/usr/local"
+  MACOS=true
+  unset PATH
   eval "$(/usr/libexec/path_helper -s)"
 else
-    { [ "$(id -u)" -eq 0 ] && f="s"; } || s="s"
-    export MACOS=false PATH="/usr/local/${f}bin:/usr/local/${s}bin:/usr/${f}bin:/usr/${s}bin:/${f}bin:/${s}bin"
-    unset f s
+  BREW="/home/linuxbrew/.linuxbrew"
+  MACOS=false
+  { [ "$(id -u)" -eq 0 ] && f="s"; } || s="s"
+  PATH="${BREW}:/usr/local/${f}bin:/usr/local/${s}bin:/usr/${f}bin:/usr/${s}bin:/${f}bin:/${s}bin"
+  unset f s
+fi
+export BREW MACOS PATH="${BIN}:${PATH}"
+
+####################################### Globals: BASH & SH
+#
+[ -n "${BASH_VERSION}" ] || { [ "${0##*/}" = "sh" ] && SH="1"; } || exit
+export BASH_SH="1" SH
+
+
+#######################################
+#
+[ -d "${PROFILE}" ] && for i in "${PROFILE}"/*.sh; do if [ -r "${i}" ]; then . "${i}"; fi; done; unset i
+[ -z "${BASH_VERSION}" ] && for i in "${PROFILE}"/*.bash; do if [ -r "${i}" ]; then . "${i}"; fi; done; unset i
+[ -f "${HOME}/.rc" ] && "${HOME}/.rc"
+
+if [ -n "${PS1}" ]; then
+  true
 fi
 
-{ [ "${0##*/}" = "sh" ] && IS_BASH=false; } || { [ -n "${BASH_VERSION}" ] && IS_BASH=true; } || [ -n "${BASH}" ] \
-  || { true; exit; }; export IS_BASH
-export IS_BASH
-
-BASH_ENV="/etc/profile"
-ENV="${BASH_ENV}"

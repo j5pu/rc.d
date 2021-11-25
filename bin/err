@@ -6,13 +6,13 @@
 #   Red                 Red color for error message and x symbol.
 #   Reset               Reset color.
 # Arguments:
-#   -h, --help          Show help message and exit.
+#   --usage             Show help message and exit.
 #   Message             Message to show in red with x symbol.
 # Output:
 #   Message to stderr or help message to stdout.
 #######################################
 # shellcheck disable=SC3044
-helpin "${@}" || exit 1
+helpin "${@}" || exit
 if hasc caller; then
   c="$(caller 0)"
   if [ "$(echo "${c}" | awk '{ print $2 }')" = "die" ]; then c="$(caller 1)"; fi

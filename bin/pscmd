@@ -6,13 +6,13 @@
 # expands to the process ID of the shell. In a () subshell, it expands to the process ID of the current shell,
 # not the subshell.
 # Arguments:
-#   -h, --help            Show help message and exit.
+#   --usage             Show help message and exit.
 # Outputs:
 #   Process (ps) cmd.
 # Returns:
-#   1 if error during installation of procps or not know to install ps  or -h or --help and not man page.
+#   1 if error during installation of procps or not know to install ps or --usage and not man page.
 # ######################################
-#helpin "${@}" || exit 1
+usage "${@}" || exit 1
 if has ps; then
   if [ "${DARWIN-}" ]; then
     ps -p$$ -ocommand=

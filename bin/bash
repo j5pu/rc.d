@@ -1,0 +1,22 @@
+#!/bin/sh
+
+main () {
+  if brew="$(which brew 2>/dev/null)"; then
+    cmd="$(${brew} --prefix bash)/bin/bash"
+  fi
+  if [ ! -x "${cmd}" ]; then
+    cd "$(dirname "$0")" || exit 1
+    path="$(pwd)/bash"
+    for cmd in $(which -a bash 2>/dev/null); do
+      cmd="$(cd "$(dirname "${cmd}")" || exit 1; pwd)/bash"
+      [ "${cmd}" = "${path}" ] || break
+    done
+  fi
+  [ -x "${cmd}" ] || { echo "bash: bash: command not found"; exit 1; }
+  echo "exec ${cmd} --init-file /etc/profile --rcfile /etc/profile --login ${*}" 2>/tmp/bash
+  exec ${cmd} --init-file /etc/profile --rcfile /etc/profile --login "${@}";
+}
+
+main "${@}"
+
+

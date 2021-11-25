@@ -18,7 +18,7 @@
 #   1 if -h or --help and not not man page.
 #######################################
 shell() {
-  helpin "${@}" || exit 1
+  helpin "${@}" || exit
   export IS_BASH=false IS_BSH=false IS_DASH=false IS_FISH=false IS_KSH=false IS_SH=false IS_XONSH=false IS_ZSH=false
   export RC_COMPAT
   sh="${0##*/}"
@@ -41,4 +41,4 @@ shell() {
   unset sh
 }
 
-export -f shell
+[ -z "${BASH_VERSION}" ] || export -f shell

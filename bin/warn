@@ -6,15 +6,15 @@
 #   Yellow             Yellow color for warning message and ! symbol.
 #   Reset              Reset color.
 # Arguments:
-#   -h, --help         Show help message and exit.
+#   --usage             Show help message and exit.
 #   Message            Message to show in yellow with ! symbol.
 # Output:
 #   Message to stderr or help message to stdout.
 # Returns:
-#   1 if -h or --help and not not man page.
+#   1 if --usage and not not man page.
 #######################################
 # shellcheck disable=SC3044
-helpin "${@}" || exit 1
+usage "${@}" || exit
 if hasc caller; then
   c="$(caller 0)"
   if [ "$(echo "${c}" | awk '{ print $2 }')" = "die" ]; then c="$(caller 1)"; fi

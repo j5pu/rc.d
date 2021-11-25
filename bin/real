@@ -3,14 +3,14 @@
 ####################################### ✓ real: exported function
 # Absolute logical (symlink) or resolved (physical) path (if does not exists, accepts one level up to cd).
 # Arguments:
-#   -h, --help            Show help message and exit.
+#   --usage             Show help message and exit.
 #   path                  Path (default: cwd).
 # Output:
 #   Path or help message to stdout.
 # Returns:
-#   1 if parent directory does not exists or -h or --help and not man page.
+#   1 if parent directory does not exists or --usage and not man page.
 #######################################
-helpin "${@}" || exit 1
+usage "${@}" || exit
 logical=false
 
 for arg do

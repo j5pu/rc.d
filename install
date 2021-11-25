@@ -1,10 +1,11 @@
 #!/bin/sh
+#
+# rc.d install script: --self to push repo and use the latest version of install script and repository.
+
 set -e
 trap 'rc=$?; [ $rc -ne 0 ] && echo "${err:-error not traced}"; exit $rc' EXIT
 
 [ "${1}" = "--self" ] && git all && curl -fsSL "https://git.io/rc.d" | sh && exit
-
-echo $0
 
 export err
 
@@ -21,15 +22,15 @@ if ! command -v rc >/dev/null; then
   elif command -v curl > /dev/null; then
     curl -sL -o "${tar}" "${url}"
   elif command -v git >/dev/null; then
-    git clone "https://github.com/j5pu/rc.d" "${output}"
+    git clone --quiet "https://github.com/j5pu/rc.d" "${output}"
   else
     err="git, curl or wget: not found"
     false
   fi
 
   [ -f "${tar}" ] && [ ! -d "${output}" ] && mkdir "${output}" && tar -xf "${tar}" -C "${output}" --strip-components=1
-  rc="${output}/bin/rc"
-  err="${rc}: command not found"
-  [ -f "${rc}" ] && chmod +x "${rc}" && [ -x "${rc}" ]
+  cmd="${output}/bin/rc"
+  err="${cmd}: command not found"
+  [ -f "${cmd}" ] && chmod +x "${cmd}" && [ -x "${cmd}" ]
 fi
-exec ${rc:-rc} --install "${@}"
+exec ${cmd:-rc} --install "${@}"

@@ -6,10 +6,10 @@
 #   Green              Green color for ✓ symbol.
 #   Reset              Reset color.
 # Arguments:
-#   -h, --help         Show help message and exit.
+#   --usage            Show help message and exit.
 #   Message            Message to show in white with green ✓ symbol.
 # Output:
 #   Message or help message to stdout.
 #######################################
-helpin "${@}" || exit 1
+helpin "${@}" || exit
 printf '%b\n' "${Green}✓${Reset} $*"

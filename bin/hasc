@@ -3,13 +3,13 @@
 ####################################### ✓ hasc: exported function
 # Check if executable, function or alias exists (command -v)
 # Arguments:
-#   -h, --help          Show help message and exit.
+#   --usage             Show help message and exit.
 #   command             Command to check.
 # Returns:
 #   1 if does not exists.
 # Output:
 #   Help message to stdout.
 #######################################
-helpin "${@}" || exit 1
+usage "${@}" || exit
 command -v "${1}" 1>/dev/null 2>&1
 

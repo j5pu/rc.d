@@ -3,9 +3,9 @@
 #######################################
 # Show colors
 #######################################
+usage "${@}" || exit
 [ "${BASH_VERSION-}" ] || exit
 for i in ${COLORS}; do
-  # shellcheck disable=SC3053
   printf "%b\n" "${!i}${i}${Reset}"
 done
 inf Info message

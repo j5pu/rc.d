@@ -13,4 +13,4 @@ ENV ENV $ENV
 SHELL ["/bin/sh", "-l", "-c"]
 
 ADD https://github.com/j5pu/rc.d/tarball/main /tmp
-RUN tar -xf /tmp/main -C /tmp && /tmp/*rc.d*/install && rm /tmp/main
+RUN mkdir /tmp/rc.d && tar -xf /tmp/main -C /tmp/rc.d && /tmp/rc.d/install && rm -rf /tmp/main /tmp/rc.d

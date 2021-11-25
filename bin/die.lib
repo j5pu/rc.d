@@ -1,0 +1,29 @@
+# shellcheck shell=sh
+
+####################################### ✓ die: exported function
+# Show message (ok or error) with symbol (✓, x respectively) based on status code and exit
+# Globals:
+#   Green              Green color for ✓ symbol.
+#   Red                Red color for error message and x symbol.
+#   Reset              Reset color.
+# Arguments:
+#   -h, --help         Show help message and exit.
+#   message            Message to show.
+# Output:
+#   Message to stderr if error and stdout for ok.
+#   Help message to stdout.
+# Returns:
+#   1-255 for error, 0 for ok.
+#######################################
+die() {
+  rc=$?
+  set -x
+  helpin "${@}" || exit 1
+  case "${rc}" in
+    0) ok "${@}" ;;
+    *) err "${@}" ;;
+  esac
+  exit "${rc}"
+}
+
+[ -z "${BASH_VERSION}" ] || export -f die

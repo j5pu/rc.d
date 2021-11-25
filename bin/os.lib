@@ -125,4 +125,4 @@ os() {
   unset _i _install _nocache
 }
 
-export -f os
+[ -z "${BASH_VERSION}" ] || export -f os

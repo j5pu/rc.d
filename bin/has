@@ -4,13 +4,13 @@
 ####################################### ✓ has: exported function
 # Check if an executable exists (which)
 # Arguments:
-#   -h, --help          Show help message and exit.
+#   --usage             Show help message and exit.
 #   executable          Executable to check.
 # Returns:
 #   1 if does not exists.
 # Output:
 #   Help message to stdout.
 #######################################
-helpin "${@}" || exit 1
+usage "${@}" || exit
 which "${1}" 1>/dev/null 2>&1
 

@@ -1,8 +1,11 @@
 # rc.d
 
 ## Install 
+
 ````bash
-curl -fsSL https://git.io/rc.d | sh -s
+curl -fsSL https://git.io/rc.d | sh
+wget --quiet -O - "https://git.io/rc.d" | sh
+git clone --quiet https://github.com/j5pu/rc.d && ./rc.d/install
 ````
 
 ## pre-commit 

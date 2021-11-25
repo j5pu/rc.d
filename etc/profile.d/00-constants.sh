@@ -1,8 +1,5 @@
 #!/bin/sh
 
-###################################### MOST
-# man most to see the vars. Control+G stops and current line
-# MOST_INITFILE
 ###################################### DOCKER
 # https://docs.docker.com/develop/develop-images/build_enhancements/#to-enable-buildkit-builds
 # https://docs.docker.com/engine/reference/commandline/cli/
@@ -11,18 +8,19 @@
 # https://docs.docker.com/buildx/working-with-buildx/
 # Docker Buildx is included in Docker Desktop and Docker Linux packages when installed using the DEB or RPM packages.
 # --platform (for example, linux/amd64, linux/arm64, or darwin/amd64).
-#You can also download the latest buildx binary from the Docker buildx releases page on GitHub, copy it to ~/.docker/cli-plugins folder with name docker-buildx and change the permission to execute:
+# You can also download the latest buildx binary from the Docker buildx releases page on GitHub,
+# copy it to ~/.docker/cli-plugins folder with name docker-buildx and change the permission to execute:
 export DOCKER_BUILDKIT="1"
 # https://docs.docker.com/engine/reference/commandline/cli/#experimental-features
 export DOCKER_CLI_EXPERIMENTAL="enabled"
 # DOCKER_CONFIG:         The location of your client configuration files.
-export DOCKER_CONFIG="${CONFIG}/docker"
+export DOCKER_CONFIG="${ETC}/docker"
 
 ###################################### GH
 # https://cli.github.com/manual/gh_help_environment
 # GH_CONFIG_DIR:                               Directory where gh will store configuration files.
 #                                              Default: "$XDG_CONFIG_HOME/gh" or "$HOME/.config/gh".
-export GH_CONFIG_DIR="${CONFIG}/gh"
+export GH_CONFIG_DIR="${ETC}/gh"
 # GH_HOST:                                     GitHub hostname for commands that would otherwise assume the
 #                                              "github.com" host when not in a context of an existing repository.
 export GH_HOST="github.com"
@@ -34,7 +32,7 @@ export GLAMOUR_STYLE="dark"
 # https://cloud.google.com/sdk/gcloud/reference/config
 # CLOUDSDK_<SECTION>_<PROPERTY>:
 # CLOUDSDK_CONFIG.                             Google Cloud config directory.
-export CLOUDSDK_CONFIG="${CONFIG}/gcloud"
+export CLOUDSDK_CONFIG="${ETC}/gcloud"
 # CLOUDSDK_CORE_PROJECT:                       Google Cloud SDK core project.
 export CLOUDSDK_CORE_PROJECT="jose-lumenbiomics"
 # CLOUDSDK_COMPUTE_REGION:                     Google Cloud compute region.
@@ -48,8 +46,8 @@ export CLOUDSDK_COMPUTE_ZONE="EUROPE-WEST1-B"
 # GIT_COMPLETION_SHOW_ALL:                     Show --arguments in completions.
 export GIT_PAGER="less"
 export GIT_COMPLETION_SHOW_ALL
-export GIT_CONFIG_GLOBAL="${CONFIG}/git/gitconfig"
-export GIT_TEMPLATE_DIR="${CONFIG}/git/templates"
+export GIT_CONFIG_SYSTEM="${ETC}/git/gitconfig"
+export GIT_TEMPLATE_DIR="${ETC}/git/templates"
 
 # ###################################### GITHUB
 #
@@ -86,7 +84,7 @@ export HOMEBREW_UPDATE_REPORT_ONLY_INSTALLED="1"
 ###################################### PIP
 # https://pip.pypa.io/en/stable/topics/configuration/
 # PIP_<UPPER_LONG_COMMAND_LINE_OPTION_NAME>  Dashes (-) have to be replaced with underscores (_).
-export PIP_CONFIG_FILE="${CONFIG}/pip/pip.conf"
+export PIP_CONFIG_FILE="${ETC}/pip/pip.conf"
 # PIP_DISABLE_PIP_VERSION_CHECK:             If set, don’t periodically check PyPI to determine whether
 #                                            a new version of pip is available for download.
 export PIP_DISABLE_PIP_VERSION_CHECK="1"
@@ -113,14 +111,10 @@ export PYTHONUNBUFFERED="1"
 ###################################### JETBRAINS
 # https://www.jetbrains.com/help/pycharm/tuning-the-ide.html
 # PYCHARM_NAME:                                PyCharm application name.
-export PYCHARM_NAME="PyCharm"
-# PYCHARM_APP:                                 PyCharm application directory full path.
-export PYCHARM_APP="/Applications/${PYCHARM_NAME}.app"
-# PYCHARM_CONTENTS:                            PyCharm application contents directory full path (parent of bin,
 #                                              initial plugins, etc.).
 export PYCHARM_CONTENTS="${PYCHARM_APP}/Contents"
 # PYCHARM:                                     PyCharm repository, application executable and configuration full path.
-export PYCHARM="${PYCHARM_CONTENTS}/Contents/bin"
+export PYCHARM="/Applications/PyCharm.app/Contents/bin"
 
 ###################################### STDLIB
 #
@@ -145,7 +139,7 @@ export HISTSIZE="999999"
 export HISTFILESIZE="999999"
 # INPUTRC:                                     Inputrc file to use, $include /etc/inputrc can be added to the inputrc to
 #                                              include another file.
-export INPUTRC="/etc/inputrc"
+export INPUTRC="${ETC}/inputrc"
 export LANG="en_US.UTF-8"
 export LC_ALL="en_US.UTF-8"
 export LESS="-F -R -X ${LESS}"
@@ -154,5 +148,4 @@ export LSCOLORS="ExGxBxDxCxEgEdxbxgxcxd"
 export PAGER="most"
 export PROMPT_COMMAND="history -a;history -r"
 export TERM="xterm-256color"
-export TERM_PROGRAM="iTerm.app"
 export VISUAL="vi"
