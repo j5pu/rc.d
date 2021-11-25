@@ -2,7 +2,55 @@
 
 set -e
 
+#######################################
+# rc.d installer
+# Arguments:
+#   --usage             Show help message and exit.
+# Returns:
+#   1 if error during installation or --usage and not man page.
+# #####################################
 { cd "$(dirname "${0}")/.." && . etc/profile  && PATH="$(pwd -P)/bin:${PATH}" && export PATH; } || exit 1
 
-echo $PATH
+usage "${@}" || exit 1
+. os.lib
+for arg do
+  shift
+  [ "${arg}" = "3" ] && continue  # does not save "3"
+  set -- "$@" "${arg}"
+done
+
+export COMMANDS="config install setup uninstall"
+export OPTIONS="dry-run force upgrade"
+export ARGUMENTS_SETUP=""
+export ARGUMENTS_INSTALL=""
+
+for arg do
+  shift
+  case "${arg}" in
+    install) export INSTALL=true ;;
+    uninstall) export INSTALL=true ;;
+    setup)
+      export SETUP=true ;;
+    --*)
+      eval "export $(echo "${arg/--/}" | tr '[:lower:]' '[:upper:]')=1"
+    *)
+      if ! echo "${commands_all}" | grep -q -- "^${1}$"; then
+         echo "Invalid argument: ${1}"
+         exit 1
+      fi
+      commands+=("${1}")
+      if echo "${commands_with_value}" | grep -q -- "^${1}$"; then
+        variable="${1/--/__}"
+        if [[ ! "${2}" =~ ^-- ]] && [[ "${2}" != "-h" ]] ; then
+          shift
+          eval "export ${variable^^}=${1}"
+        fi
+        log-var "${variable^^}"
+      fi
+  esac
+  shift
+done
+[ -d bin/rc.d ] && for i in bin/rc.d/??-*.sh; do if [ -r "${i}" ]; then ./"${i}"; fi; done; unset i
+
+# TODO: add CONTAINER a profile, y después de instalar hacer el paquetes y el configs.
 real "$0"

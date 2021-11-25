@@ -1,5 +1,6 @@
 #!/bin/sh
 
+# TODO: Use has to check if it is the same.
 main () {
   if brew="$(which brew 2>/dev/null)"; then
     cmd="$(${brew} --prefix bash)/bin/bash"

@@ -1,8 +1,8 @@
 # shellcheck shell=sh
 
-####################################### ✓ shell: exported function
+#######################################
 # Which shell has sourced me?.
-# Global vars
+# Globals:
 #   IS_BASH              true if has been sourced in BASH.
 #   IS_BSH               true if has been sourced in BASH or SH.
 #   IS_DASH              true if has been sourced in DASH.
@@ -41,4 +41,4 @@ shell() {
   unset sh
 }
 
-[ -z "${BASH_VERSION}" ] || export -f shell
+shell ""

@@ -5,6 +5,7 @@
 set -e
 trap 'rc=$?; [ $rc -ne 0 ] && echo "${err:-error not traced}"; exit $rc' EXIT
 
+{
 [ "${1}" = "--self" ] && git all && curl -fsSL "https://git.io/rc.d" | sh && exit
 
 export err
@@ -34,3 +35,4 @@ if ! command -v rc >/dev/null; then
   [ -f "${cmd}" ] && chmod +x "${cmd}" && [ -x "${cmd}" ]
 fi
 exec ${cmd:-rc} --install "${@}"
+}

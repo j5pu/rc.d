@@ -1,0 +1,137 @@
+# shellcheck shell=sh
+
+#######################################
+# Sets OS globals (this function is unset)
+# Globals:
+#   ALPINE               "1" if 'DIST_ID' is "alpine".
+#   ALPINE_LIKE          "1" if 'DIST_ID' is "alpine".
+#   ARCHLINUX            "1" if 'DIST_ID' is "arch".
+#   BASE_PATH            Base image directory path if 'IS_CONTAINER'.
+#   BUSYBOX              "1" if not "/etc/os-release" and not "/sbin".
+#   CENTOS               "1" if 'DIST_ID' is "centos".
+#   CONTAINER           "1" if running in docker container.
+#   DARWIN               "1" if 'UNAME' is "darwin".
+#   DEBIAN               "1" if 'DIST_ID' is "debian".
+#   DEBIAN_LIKE          "1" if "DIST_ID_LIKE is "debian".
+#   DEBIAN_FRONTEND      "noninteractive" if 'IS_CONTAINER' and 'DEBIAN_LIKE' are set.
+#   DIST_CODENAME        "Catalina", "Big Sur", "kali-rolling", "focal", etc.
+#   DIST_ID              <alpine|centos|debian|kali|macOS|ubuntu>.
+#   DIST_ID_LIKE         <alpine|debian|rhel fedora>.
+#   DIST_VERSION         macOS <10.15.1|10.16|...>, kali <2021.2|...>, ubuntu <20.04|...>.
+#   ENV                  Shell profile/rc start file (for 'ALPINE_LIKE').
+#   FEDORA               "1" if 'DIST_ID' is "fedora".
+#   FEDORA_LIKE          "1" if 'DIST_ID' is "fedora" or "fedora" in "DIST_ID_LIKE".
+#   KALI                 "1" if 'DIST_ID' is "kali".
+#   MACOS                true if 'UNAME' is "darwin", else false.
+#   NIXOS                "1" if 'DIST_ID' is "alpine" and "/etc/nix".
+#   PM                   Package manager (apk, apt, brew, nix or yum) for 'DIST_ID'.
+#   PM_INSTALL           Package manager install command with options quiet.
+#   RHEL                 "1" if 'DIST_ID' is "rhel".
+#   RHEL_LIKE            "1" if 'DIST_ID' is "rhel" or "rhel" in "DIST_ID_LIKE".
+#   UBUNTU               "1" if 'DIST_ID' is "ubuntu".
+# Arguments:
+#   -h, --help            Show help message and exit.
+os() {
+  helpin "${@}" || exit
+  if $MACOS; then
+    DIST_ID="$(sw_vers -ProductName)"; readonly DIST_ID; export DIST_ID
+    DIST_VERSION="$(sw_vers -ProductVersion)"; readonly DIST_VERSION; export DIST_VERSION
+    case "$(echo "${DIST_VERSION}" | awk -F. '{ print $1 $2 }')" in
+      1013) readonly DIST_CODENAME="High Sierra"; export DIST_CODENAME ;;
+      1014) readonly DIST_CODENAME="Mojave"; export DIST_CODENAME ;;
+      1015) readonly DIST_CODENAME="Catalina"; export DIST_CODENAME ;;
+      11*) readonly DIST_CODENAME="Big Sur"; export DIST_CODENAME ;;
+      12*) readonly DIST_CODENAME="Monterey"; export DIST_CODENAME ;;
+      *) readonly DIST_CODENAME="Other"; export DIST_CODENAME ;;
+    esac
+    PM="brew"
+  else
+    f="/etc/os-release"
+    if test -f "${f}"; then
+      while IFS="=" read -r var value; do
+        case "${var}" in
+          ID)
+            readonly DIST_ID="${value}"
+            case "${DIST_ID}" in
+              alpine)
+                readonly ALPINE="1"; export ALPINE
+                readonly ALPINE_LIKE="1"; export ALPINE_LIKE
+                readonly DIST_ID_LIKE="${DIST_ID}"; export DIST_ID_LIKE
+                if [ -r "/etc/nix" ]; then
+                  readonly NIXOS="1"; export NIXOS
+                  readonly PM="nix-env"; export PM
+                else
+                  readonly PM="apk"; export PM
+                fi
+                ;;
+              arch)
+                readonly ARCHLINUX="1"; export ARCHLINUX
+                readonly PM="pacman"; export PM
+                ;;
+              centos)
+                readonly CENTOS="1"; export CENTOS
+                readonly PM="yum"; export PM
+                ;;
+              debian)
+                readonly DEBIAN="1"; export DEBIAN
+                readonly DEBIAN_LIKE="1"; export DEBIAN_LIKE
+                readonly DIST_ID_LIKE="${DIST_ID}"; export DIST_ID_LIKE
+                ;;
+              fedora)
+                readonly FEDORA="1"; export FEDORA
+                readonly FEDORA_LIKE="1"; export FEDORA_LIKE
+                readonly PM="dnf"; export FEDORA_LIKE
+                ;;
+              kali) readonly KALI="1"; export KALI ;;
+              rhel)
+                readonly RHEL="1"; export RHEL
+                readonly RHEL_LIKE="1"; export RHEL_LIKE
+                readonly PM="yum"; export PM
+                ;;
+              ubuntu) readonly UBUNTU="1"; export UBUNTU ;;
+              *) readonly DIST_UNKNOWN="1"; export DIST_UNKNOWN ;;
+            esac
+            ;;
+          ID_LIKE)
+            readonly DIST_ID_LIKE="${value}"; export DIST_ID_LIKE
+            case "${DIST_ID_LIKE}" in
+              debian)
+                readonly DEBIAN_LIKE="1"; export DEBIAN_LIKE
+                readonly PM="apt"; export PM
+                [ "${IS_CONTAINER-}" ] && export DEBIAN_FRONTEND="noninteractive"
+                ;;
+              *fedora*) readonly FEDORA_LIKE="1"; export FEDORA_LIKE ;;
+              *rhel*) readonly RHEL_LIKE="1"; export RHEL_LIKE ;;
+            esac
+            ;;
+          VERSION_ID) readonly DIST_VERSION="${value}"; export DIST_VERSION ;;
+          VERSION_CODENAME) readonly DIST_CODENAME="${value}"; export DIST_CODENAME ;;
+        esac
+      done < "${f}"
+      unset var value
+    else
+      [ -d "/sbin" ] && readonly BUSYBOX="1" && export BUSYBOX
+    fi
+    unset f
+  fi
+
+  case "${PM}" in
+    apk) i="add -q --no-progress" n="--no-cache" ;;
+    apt) i="install -y -qq" ;;
+    brew) i="install --quiet" ;;
+    dnf) i="install -y -q" ;;
+    nix) i="--install -A" ;; # nixos -> nixos.curl, no nixos --> nixpkgs.curl
+    pacman) i="-S --noconfirm" ;;
+    yum) i="install -y -q" ;;
+  esac
+
+  [ -z "${PM}" ] && export PM_INSTALL="${PM} ${i}"
+  if [ -f /proc/1/environ ] || [ -f /.dockerenv ]; then
+    readonly CONTAINER="1"; export CONTAINER
+    [ -z "${PM}" ] && PM_INSTALL="${PM_INSTALL} ${n}"
+  fi
+  unset i n
+  readonly PM_INSTALL
+}
+
+os ""

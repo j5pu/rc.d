@@ -1,6 +1,6 @@
 #!/bin/sh
 
-####################################### ✓ hasc: exported function
+#######################################
 # Check if executable, function or alias exists (command -v)
 # Arguments:
 #   --usage             Show help message and exit.
@@ -11,5 +11,5 @@
 #   Help message to stdout.
 #######################################
 usage "${@}" || exit
-command -v "${1}" 1>/dev/null 2>&1
+[ "$(command -v "${1}")" = "${SBIN}/${1}"  ] || exit 1
 
