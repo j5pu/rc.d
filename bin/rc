@@ -2,7 +2,7 @@
 
 set -e
 
-{ cd "$(dirname "${0}")" && . etc/profile  && PATH="$(pwd)/bin:${PATH}" && export PATH; } || exit 1
+{ cd "$(dirname "${0}")/.." && . etc/profile  && PATH="$(pwd)/bin:${PATH}" && export PATH; } || exit 1
 
 echo $PATH
 real "$0"
