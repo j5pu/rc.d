@@ -16,6 +16,10 @@
       <var name="RedDim" />
       <var name="YellowDim" />
       <var name="profile" />
+      <var name="DarkBlue" />
+      <var name="BlueDark" />
+      <var name="MagentaDark" />
+      <var name="MagentaDim" />
     </globalVariables>
   </component>
 </project>

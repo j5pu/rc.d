@@ -1,9 +1,9 @@
 #!/bin/sh
 
-
-####################################### ✓ has: exported function
-# Check if an executable exists (which)
+#######################################
+# Check if an executable exists (which) excluding 'SBIN'
 # Arguments:
+#   -v                  Show path.
 #   --usage             Show help message and exit.
 #   executable          Executable to check.
 # Returns:
@@ -11,6 +11,17 @@
 # Output:
 #   Help message to stdout.
 #######################################
-usage "${@}" || exit
-which "${1}" 1>/dev/null || exit 1
-[ "$(which "${1}")" = "${SBIN}/${1}"  ] || exit 1
+v=false
+for arg; do
+  case "${arg}" in
+    -v) v=true ;;
+    --usage) usage "${@}" || exit ;;
+    *) exe="${arg}";;
+  esac
+done
+PATH="$(echo "${PATH}" | sed "s/${SBIN}://g")"
+if $v; then
+  which "${exe}"
+else
+  which "${exe}" 1>/dev/null
+fi

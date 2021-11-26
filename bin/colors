@@ -3,7 +3,7 @@
 #######################################
 # Show colors
 #######################################
-usage "${@}" || exit
+#usage "${@}" || exit
 [ "${BASH_VERSION-}" ] || exit
 for i in ${COLORS}; do
   printf "%b\n" "${!i}${i}${Reset}"

@@ -3,16 +3,17 @@
 #
 # System profile
 
-# __ETC_PROFILE_SOURCED   Has been sourced already for login shell.
-# __PROFILE_SOURCE_IT     Force run when has not sourced yet or when "$1".
 compat="/etc/rc.d"
 profile="${HOME}/.profile"
-[ -z "${1}" ] || { rm -f "${profile}"; unset __ETC_PROFILE_SOURCED; }
-[ -n "${__ETC_PROFILE_SOURCED}" ] || { export __ETC_PROFILE_SOURCED=1; __PROFILE_SOURCE_IT=1; }
+
+# __ETC_PROFILE_SOURCED   Has been sourced already for login shell.
+# __PROFILE_SOURCE_IT     Force run when has not sourced yet or when "$1".
+[ "${1-}" ] && { rm -f "${profile}"; unset __ETC_PROFILE_SOURCED; }
+[ ! "${__ETC_PROFILE_SOURCED-}" ] && { export __ETC_PROFILE_SOURCED=1; __PROFILE_SOURCE_IT=1; }
 
 setprofile() {
   if [ -f "${profile}" ]; then
-    [ -z "${__PROFILE_SOURCE_IT}" ] || . "${profile}"
+    [ "${__PROFILE_SOURCE_IT-}" ] && . "${profile}"
   else
     echo > "${HOME}/.hushlogin"
     root="/opt"
@@ -26,7 +27,6 @@ setprofile() {
       brew="/home/linuxbrew/.linuxbrew"
       PATH="${brew}/${s}bin:${brew}/${f}bin:${PATH}"
     fi
-  set +x
     tee "${profile}" > /dev/null <<EOF
 # shellcheck shell=sh
 
@@ -260,11 +260,11 @@ EOF
       yum) pm_install="install -y -q" ;;
     esac
 
-    [ -n "${pm}" ] && [ -n "${pm_install}" ] && pm_install="${pm} ${pm_install}"
+    [ "${pm-}" ] && [ "${pm_install-}" ] && pm_install="${pm} ${pm_install}"
     if [ -f /proc/1/environ ] || [ -f /.dockerenv ]; then
       echo "export CONTAINER=1" >> "${profile}"
       [ "${DIST_ID}" = "debian" ] && echo "DEBIAN_FRONTEND=\"noninteractive\"" >> "${profile}"
-      [ -n "${pm_install}" ] && pm_install="${pm_install} ${n}"
+      [ "${pm_install-}" ] && pm_install="${pm_install} ${n}"
     fi
 
     tee -a "${profile}" > /dev/null <<EOF
@@ -275,7 +275,7 @@ export PM="${pm}"
 export PM_INSTALL="${pm_install}"
 EOF
 
-    [ -n "${pycharm_contents}" ] && tee -a "${profile}" > /dev/null <<EOF
+    [ "${pycharm_contents-}" ] && tee -a "${profile}" > /dev/null <<EOF
 
 ####################################### PYCHARM
 # PYCHARM_CONTENTS                            PyCharm contents (initial plugins, etc.).
@@ -296,7 +296,7 @@ EOF
 
 ####################################### Globals: BASH & SH
 #
-[ -n "${BASH_VERSION}" ] || { [ "${0##*/}" = "sh" ] && SH=1; } || exit
+[ "${BASH_VERSION-}" ] || { [ "${0##*/}" = "sh" ] && SH=1; } || exit
 export BASH_SH=1 SH
 
 #######################################
@@ -307,8 +307,8 @@ setprofile; unset setprofile
 [ -z "${BASH_VERSION}" ] && for i in "${compat}"/??-*.bash; do if [ -r "${i}" ]; then . "${i}"; fi; done; unset i
 [ -f "${HOME}/.rc" ] && "${HOME}/.rc"
 
-if [ -n "${PS1}" ]; then
+if [ "${PS1-}" ]; then
   true
 fi
 
-unset compat
+unset __PROFILE_SOURCE_IT compat

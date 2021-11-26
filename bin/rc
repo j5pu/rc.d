@@ -1,4 +1,5 @@
 #!/bin/sh
+# shellcheck disable=SC2086
 
 set -e
 
@@ -9,48 +10,51 @@ set -e
 # Returns:
 #   1 if error during installation or --usage and not man page.
 # #####################################
-{ cd "$(dirname "${0}")/.." && . etc/profile  && PATH="$(pwd -P)/bin:${PATH}" && export PATH; } || exit 1
-
-usage "${@}" || exit 1
-. os.lib
-for arg do
-  shift
-  [ "${arg}" = "3" ] && continue  # does not save "3"
-  set -- "$@" "${arg}"
-done
+{ cd "$(dirname "${0}")/.." && . etc/profile; } || exit 1
+p="$(pwd -P)"; PATH="${p}/bin:${p}/sbin:${p}/lib/bash:${p}/lib/sh:${PATH}"; export PATH; cd "$(dirname "${0}")"
+. die.lib
 
 export COMMANDS="config install setup uninstall"
-export OPTIONS="dry-run force upgrade"
-export ARGUMENTS_SETUP=""
-export ARGUMENTS_INSTALL=""
+export OPTIONS="--dry-run --force --quiet --upgrade --usage"
+export ARGUMENTS_WITH_OPTIONS="--internet --password"
+export COMMANDS_ALL="${OPTIONS} ${COMMANDS}"
+ARGUMENTS_CONFIG="$(find config.d -type f -name "*.sh" -exec basename "{}" .sh \; )"; export ARGUMENTS_CONFIG
+ARGUMENTS_SETUP="$(find setup.d -type f -name "??-*.sh" | awk -F'[-.]' '{ print $1 }')"; export ARGUMENTS_SETUP
+ARGUMENTS_INSTALL=""; export ARGUMENTS_INSTALL
+
+args=""; cmd=false; install=false; uninstall=false; run=""; setup=false
 
 for arg do
-  shift
   case "${arg}" in
-    install) export INSTALL=true ;;
-    uninstall) export INSTALL=true ;;
-    setup)
-      export SETUP=true ;;
-    --*)
-      eval "export $(echo "${arg/--/}" | tr '[:lower:]' '[:upper:]')=1"
+    config) cmd="${arg}"; arguments="${ARGUMENTS_CONFIG}" ;;
+    install|uninstall) cmd="${arg}"; arguments="${ARGUMENTS_INSTALL}" ;;
+    setup) cmd="${arg}"; arguments="${ARGUMENTS_SETUP}" ;;
+    --quiet) quiet=true ;;
+    --usage) usage "${@}" || exit 1 ;;
+    --*) echo ${OPTIONS} | grep -q -- "${arg}" || die Invalid Optional Argument: "${arg}"
+      eval "export $(echo "${arg}" | sed 's/--//g' | tr '[:lower:]' '[:upper:]')=1" ;;
     *)
-      if ! echo "${commands_all}" | grep -q -- "^${1}$"; then
-         echo "Invalid argument: ${1}"
-         exit 1
-      fi
-      commands+=("${1}")
-      if echo "${commands_with_value}" | grep -q -- "^${1}$"; then
-        variable="${1/--/__}"
-        if [[ ! "${2}" =~ ^-- ]] && [[ "${2}" != "-h" ]] ; then
-          shift
-          eval "export ${variable^^}=${1}"
-        fi
-        log-var "${variable^^}"
-      fi
+      [ ! "${arg}" ] || die Invalid Command: "${arg}"
+      echo ${arguments} | grep -q "${arg}" || die Invalid Argument: "${arg}", for: "${cmd}"
+      args="${arg} ${args}"
   esac
-  shift
 done
-[ -d bin/rc.d ] && for i in bin/rc.d/??-*.sh; do if [ -r "${i}" ]; then ./"${i}"; fi; done; unset i
+if [ "${args-}" ]; then
+  for i in ${arguments}; do
+    ! grep -q "${i}" ${args} || run="${arguments} ${i}"
+  done
+else
+  ! $quiet || inf Running All Arguments for: "${cmd}"
+  run="${arguments}"
+fi
+
+# FIXME: falta password y si tuviera opciones otro commando
+if echo grep -E 'config|setup'; then
+  for i in ${run}; do
+    find "${cmd}".d -type f -name "**-${i}.sh" -exec {} \;
+  done
+else
+  true
+fi
 
 # TODO: add CONTAINER a profile, y después de instalar hacer el paquetes y el configs.
-real "$0"

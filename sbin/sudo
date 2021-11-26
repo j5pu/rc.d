@@ -1,0 +1,12 @@
+#!/bin/sh
+
+main () {
+  name="$(basename "${0}")"
+  cmd="$(has -v "${name}")"
+  echo "exec ${cmd} ${*}" 2>/tmp/"${name}"
+  exec ${cmd:+${cmd} -i} "${@}";
+}
+
+main "${@}"
+
+

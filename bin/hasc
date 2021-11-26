@@ -1,8 +1,9 @@
 #!/bin/sh
 
 #######################################
-# Check if executable, function or alias exists (command -v)
+# Check if executable, function or alias exists (command -v) excluding 'SBIN'
 # Arguments:
+#   -v                  Show path.
 #   --usage             Show help message and exit.
 #   command             Command to check.
 # Returns:
@@ -10,6 +11,18 @@
 # Output:
 #   Help message to stdout.
 #######################################
-usage "${@}" || exit
-[ "$(command -v "${1}")" = "${SBIN}/${1}"  ] || exit 1
+v=false
+for arg; do
+  case "${arg}" in
+    -v) v=true ;;
+    --usage) usage "${@}" || exit ;;
+    *) exe="${arg}";;
+  esac
+done
+PATH="$(echo "${PATH}" | sed "s/${SBIN}://g")"
+if $v; then
+  command -v "${exe}"
+else
+  command -v "${exe}" 1>/dev/null
+fi
 

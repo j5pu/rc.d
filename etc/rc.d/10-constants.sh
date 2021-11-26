@@ -1,13 +1,11 @@
 # shellcheck shell=sh
 
-if [ -z "${__PROFILE_SOURCE_IT}" ]; then
-  return 2>/dev/null || exit 0
-fi
+[ "${__PROFILE_SOURCE_IT-}" ] || { return 0 2>/dev/null || exit 0; }
 
 ###################################### DOCKER
 # https://docs.docker.com/develop/develop-images/build_enhancements/#to-enable-buildkit-builds
 # https://docs.docker.com/engine/reference/commandline/cli/
-if i="$(which docker)" && echo "${i}" | grep -v "${SBIN}" >/dev/null; then
+if has docker >/dev/null 2>/dev/null; then
   # DOCKER_BUILDKIT:       If set, enables building images with BuildKit. performance, storage management,
   #                        feature functionality, and security.
   # https://docs.docker.com/buildx/working-with-buildx/
@@ -60,7 +58,7 @@ fi
 # https://git-scm.com/docs/git-config
 # https://git-scm.com/docs/git-init
 # GIT_COMPLETION_SHOW_ALL                     Show --arguments in completions.
-if i="$(which git)" && echo "${i}" | grep -v "${SBIN}" >/dev/null; then
+if has git >/dev/null 2>/dev/null; then
   export GIT_PAGER="less"
   export GIT_COMPLETION_SHOW_ALL
   export GIT_CONFIG_SYSTEM="${ETC}/git/gitconfig"
@@ -87,7 +85,7 @@ export GIT_RAW="https://raw.githubusercontent.com/${GIT}"
 
 ###################################### HOMEBREW
 # https://docs.brew.sh/Manpage#bundle-subcommand
-if i="$(which brew)" && echo "${i}" | grep -v "${SBIN}" >/dev/null; then
+if has brew >/dev/null 2>/dev/null; then
   # HOMEBREW_BAT                                If set, use bat for the brew cat command.
   export HOMEBREW_BAT=1
   # HOMEBREW_CLEANUP_PERIODIC_FULL_DAY          If set, brew install, brew upgrade and brew reinstall will cleanup all
@@ -103,7 +101,7 @@ fi
 
 ###################################### LESS
 #
-which less >/dev/null && export LESS="-F -R -X ${LESS}"
+which less >/dev/null && export LESS="-F -R -X"
 
 ###################################### PAGER
 #
@@ -116,7 +114,7 @@ fi
 ###################################### PIP
 # https://pip.pypa.io/en/stable/topics/configuration/
 # PIP_<UPPER_LONG_COMMAND_LINE_OPTION_NAME>  Dashes (-) have to be replaced with underscores (_).
-if i="$(which pip)" && echo "${i}" | grep -v "${SBIN}" >/dev/null; then
+if has pip >/dev/null 2>/dev/null; then
   export PIP_CONFIG_FILE="${ETC}/pip/pip.conf"
   # PIP_DISABLE_PIP_VERSION_CHECK             If set, don’t periodically check PyPI to determine whether
   #                                            a new version of pip is available for download.
@@ -125,7 +123,7 @@ fi
 
 ###################################### PYTHON
 # https://docs.python.org/3/using/cmdline.html
-if i="$(which python)" && echo "${i}" | grep -v "${SBIN}" >/dev/null; then
+if has python >/dev/null 2>/dev/null; then
   # PYTHON_REQUIRES                             Projects global setting for minimum python version,
   #                                             unless specified in project setup.cfg.
   export PYTHON_VERSION="3.9"
@@ -170,11 +168,10 @@ export INPUTRC="${ETC}/inputrc"
 export LANG="en_US.UTF-8"
 export LC_ALL="en_US.UTF-8"
 export PROMPT_COMMAND="history -a;history -r"
-# FIXME: en terminal sale mal y no lo entiendo. mirarlo bien para entenderlo
-export PS4="${Magenta}+\$(echo \${BASH_SOURCE[0]}:\${LINENO})${Reset}\
-${Yellow}\$(echo \${LINENO} | sed 's/\$/@/g')\$(echo \${BASH_LINENO[*]} | \
-  awk '{\$NF=\"\"; print \$0}' | sed 's/ \$//g'| sed 's/ /@/g')${Reset}:\
-${Blue}\$(echo \${FUNCNAME[*]} | sed 's/ /\//g')${Reset}$ "
+export PS2="${BlueDark}> "
+export PS4="+ [${Magenta}\$(basename \"\${BASH_SOURCE[0]}\")${Reset}][${Magenta}\${LINENO}${Reset}]\
+[${Yellow}\$(echo \${BASH_LINENO[*]} | awk '{\$NF=\"\"; print \$0}' | sed 's/ \$//g'| sed 's/ /@/g')${Reset}]\
+${Green}$ ${Reset}"
 export TERM="xterm-256color"
 
 if $MACOS; then
@@ -191,6 +188,7 @@ if $MACOS; then
     # CDPATH                                      Once the CDPATH is set, the cd command will search only
     #                                             in the directories present in the CDPATH variable only.
     #                                             It SHOULD always be the first component of the CDPATH.
+    unset CDPATH
     export CDPATH="${CDPATH}:${HOME}/GitHub"
     # LIBRARY
     export LIBRARY="${HOME}/Library"
