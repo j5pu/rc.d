@@ -15,11 +15,10 @@
       <var name="CyanDim" />
       <var name="RedDim" />
       <var name="YellowDim" />
-      <var name="profile" />
-      <var name="DarkBlue" />
-      <var name="BlueDark" />
-      <var name="MagentaDark" />
       <var name="MagentaDim" />
+      <var name="arg" />
+      <var name="profile" />
+      <var name="BlueDim" />
     </globalVariables>
   </component>
 </project>

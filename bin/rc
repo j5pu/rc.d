@@ -2,6 +2,7 @@
 # shellcheck disable=SC2086
 
 set -e
+# TODO: volver al puto install rc.
 
 #######################################
 # rc.d installer
@@ -15,40 +16,40 @@ p="$(pwd -P)"; PATH="${p}/bin:${p}/sbin:${p}/lib/bash:${p}/lib/sh:${PATH}"; expo
 . die.lib
 
 export COMMANDS="config install setup uninstall"
-export OPTIONS="--dry-run --force --quiet --upgrade --usage"
+export OPTIONS="--dry-run --force --password= --quiet --upgrade --usage"
 export ARGUMENTS_WITH_OPTIONS="--internet --password"
 export COMMANDS_ALL="${OPTIONS} ${COMMANDS}"
 ARGUMENTS_CONFIG="$(find config.d -type f -name "*.sh" -exec basename "{}" .sh \; )"; export ARGUMENTS_CONFIG
 ARGUMENTS_SETUP="$(find setup.d -type f -name "??-*.sh" | awk -F'[-.]' '{ print $1 }')"; export ARGUMENTS_SETUP
 ARGUMENTS_INSTALL=""; export ARGUMENTS_INSTALL
 
-args=""; cmd=false; install=false; uninstall=false; run=""; setup=false
+args=""; cmd=""; run=""
 
 for arg do
   case "${arg}" in
     config) cmd="${arg}"; arguments="${ARGUMENTS_CONFIG}" ;;
     install|uninstall) cmd="${arg}"; arguments="${ARGUMENTS_INSTALL}" ;;
     setup) cmd="${arg}"; arguments="${ARGUMENTS_SETUP}" ;;
-    --quiet) quiet=true ;;
     --usage) usage "${@}" || exit 1 ;;
+    --password=*) export PASSWORD="${arg}" ;;
     --*) echo ${OPTIONS} | grep -q -- "${arg}" || die Invalid Optional Argument: "${arg}"
-      eval "export $(echo "${arg}" | sed 's/--//g' | tr '[:lower:]' '[:upper:]')=1" ;;
+      eval "export $(echo "${arg}" | sed 's/--//g; s/-/_/g')=1" ;;
     *)
       [ ! "${arg}" ] || die Invalid Command: "${arg}"
       echo ${arguments} | grep -q "${arg}" || die Invalid Argument: "${arg}", for: "${cmd}"
       args="${arg} ${args}"
   esac
 done
+
 if [ "${args-}" ]; then
   for i in ${arguments}; do
     ! grep -q "${i}" ${args} || run="${arguments} ${i}"
   done
 else
-  ! $quiet || inf Running All Arguments for: "${cmd}"
+  [ ! "${QUIET-}" ] || inf Running All Arguments for: "${cmd}"
   run="${arguments}"
 fi
 
-# FIXME: falta password y si tuviera opciones otro commando
 if echo grep -E 'config|setup'; then
   for i in ${run}; do
     find "${cmd}".d -type f -name "**-${i}.sh" -exec {} \;

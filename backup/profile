@@ -13,26 +13,6 @@ RC_PS1=false
 RC_ROOT=true
 RC_STARSHIP=true
 
-################################x#######
-# Bootstrap installation, configuration directories and repositories.
-export USERNAME="jose"
-export USERHOME="/Users/${USERNAME}"
-export MACDEV="${USERHOME}/macdev"
-export ROOT="/opt"
-
-if test -d "${BASH_SOURCE[0]%/*}/.git"; then
-  export ROOT="${USERHOME}"
-
-else
-  export ROOT
-  export XDG_CONFIG_DIR
-fi
-
-export CACHE="${HOME}/.cache"; mkdir -p "${CACHE}"
-export LOGS="${HOME}/.logs"; mkdir -p "${LOGS}"
-
-
-
 ###################################### SHOPT
 # https://www.gnu.org/software/bash/manual/html_node/The-Shopt-Builtin.html
 if [ "${BASH_VERSINFO-}" ]; then
@@ -52,13 +32,6 @@ shopt -qs checkwinsize histappend
 PATH="\
 ${PYCHARM}:\
 ${PYCHARM_CONTENTS}/MacOS:\
-$(brew --prefix ruby)/bin:\
-$(brew --prefix ruby)/lib/ruby/gems/3.0.0/bin:\
-${BREW_PREFIX}:\
-${BREW_PREFIX}/sbin${PATH+:${PATH}}"
-export PATH
-export MANPATH="${BREW_MAN}${MANPATH+:$MANPATH}:";
-export INFOPATH="${BREW_INFO}:${INFOPATH:-}";
 
 ###################################### COMPLETIONS
 # BASH_COMPLETION_COMPAT_DIR
@@ -87,80 +60,6 @@ if [ "${BASH_VERSINFO-}" ]; then
     . "${file}"
     unset file
   fi
-
-  RC_PS1=false
-
-  ####################################### GIT PROMPT
-# Commands: git_prompt_help, git_prompt_examples, git_prompt_list_themes
-# GIT_PROMPT_DISABLE="1":                  to disable 'GIT_PROMPT'.
-# GIT_PROMPT_END=...                       for custom prompt end sequence.
-# GIT_PROMPT_FETCH_REMOTE_STATUS="0"       to avoid fetching remote status.
-# GIT_PROMPT_FETCH_TIMEOUT="10"            fetch remote revisions every other minutes (default 5).
-# GIT_PROMPT_IGNORE_STASH="1"
-# GIT_PROMPT_IGNORE_SUBMODULES="1"         to avoid searching for changed files in submodules.
-# GIT_PROMPT_LEADING_SPACE="0"             to to have no leading space in front of the GIT prompt.
-# GIT_PROMPT_MASTER_BRANCHES="main"        branch name(s) that will use $GIT_PROMPT_MASTER_BRANCH color.
-# GIT_PROMPT_ONLY_IN_REPO=1
-# GIT_PROMPT_SHOW_CHANGED_FILES_COUNT="0"  to avoid printing the number of changed files.
-# GIT_PROMPT_SHOW_UNTRACKED_FILES="no"     can be no, normal or all; determines counting of untracked files.
-# GIT_PROMPT_SHOW_UPSTREAM=1               to show upstream tracking branch.
-# GIT_PROMPT_START=...                     for custom prompt start sequence.
-# GIT_PROMPT_THEME=Default                 use custom theme specified in file GIT_PROMPT_THEME_FILE (default ~/.git-prompt-colors.sh).
-# GIT_PROMPT_THEME_FILE=                   "${__GIT_PROMPT_DIR}/themes/Custom.bgptheme".
-# GIT_PROMPT_WITH_VIRTUAL_ENV="0"          to avoid setting virtual environment infos for node/python/conda environments.
-  if $RC_GIT_PROMPT && [ -f "${BREW_OPT}/bash-git-prompt/share/gitprompt.sh" ]; then
-    __GIT_PROMPT_DIR="${BREW_OPT}/bash-git-prompt/share"
-    . "${__GIT_PROMPT_DIR}/prompt-colors.sh"
-    . "${__GIT_PROMPT_DIR}/gitprompt.sh"
-    PathShort="\w";
-    Time12a="\$(date +%H:%M)"
-
-    GIT_PROMPT_IGNORE_SUBMODULES="1"
-    GIT_PROMPT_MASTER_BRANCHES="main"
-    GIT_PROMPT_SHOW_CHANGED_FILES_COUNT="0"
-    GIT_PROMPT_SHOW_UNTRACKED_FILES="no"
-    GIT_PROMPT_THEME="Default"
-
-    # shellcheck disable=SC3028
-    GIT_PROMPT_START_ROOT="_LAST_COMMAND_INDICATOR_ ${DimWhite}${Time12a}${ResetColor} \
-${BoldRed}${HOSTNAME%%.*}${ResetColor}"
-    # shellcheck disable=SC3028
-    GIT_PROMPT_START_USER="_LAST_COMMAND_INDICATOR_ ${DimWhite}${Time12a}${ResetColor} \
-${Green}${HOSTNAME%%.*}${ResetColor}"
-    GIT_PROMPT_END_ROOT=" ${DimWhite}${PathShort}${ResetColor} ${BoldRed}# ${ResetColor}"
-    GIT_PROMPT_END_USER=" ${DimWhite}${PathShort}${ResetColor} ${Green}$ ${ResetColor}"
-
-  ###################################### STARSHIP
-  # https://starship.rs/config/#prompt
-  # STARSHIP_CONFIG
-  elif $RC_STARSHIP && which starship 1>/dev/null; then
-    export STARSHIP_CONFIG="$XDG_CONFIG_HOME/starship/config.toml"
-    eval "$(starship init bash)"
-  else
-    RC_PS1=true
-  fi
-fi
-
-###################################### PS1
-# xterm title set to host@user:dir with: \[\e]0;\h@\u: \w\a\]
-# PROMPT_SSH_THE_SAME       1 to have the same PS1 in SSH as local.
-if $RC_PS1; then
-  _blue="$(tput setaf 4)"
-  _cyan="$(tput setaf 6)"
-  _green="$(tput setaf 2)"
-  _r="$(tput sgr0)"
-  _red="$(tput setaf 1)"
-  if [ "$(id -u)" = "0" ] || [ "${SUDO_UID-}" ]; then
-    PS1="\[\e]0;\h@\u: \w\a\]${_red}\h${_r} ${_blue}\w${_r} ${_red}#${_r} "
-  else
-    if [ "$(uname -s)" = "Darwin" ] || [ "${PROMPT_SSH_THE_SAME-}" ]; then
-      PS1="\[\e]0;\h@\u: \w\a\]${_green}\h${_r} ${_blue}\w${_r} ${_green}\$${_r} "
-    else
-      PS1="\[\e]0;\h@\u: \w\a\]${_green}\h${_r} ${_cyan}\u${_r} ${_blue}\w${_r} ${_green}\$${_r} "
-    fi
-  fi
-fi
-
 ###################################### LS_COLORS
 # https://github.com/trapd00r/LS_COLORS
 if $RC_LS; then

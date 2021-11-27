@@ -1,1 +1,5 @@
-#!/usr/bin/env bash
+#!/bin/sh
+
+[ ! "${DRY_RUN-}" ] || inf
+
+. die.lib

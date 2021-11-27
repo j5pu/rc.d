@@ -2,10 +2,12 @@
 
 [ "${__PROFILE_SOURCE_IT-}" ] || { return 0 2>/dev/null || exit 0; }
 
+# TODO: mover fichero y que cuando se hace un install hay que hacer rebash a
+
 ###################################### DOCKER
 # https://docs.docker.com/develop/develop-images/build_enhancements/#to-enable-buildkit-builds
 # https://docs.docker.com/engine/reference/commandline/cli/
-if has docker >/dev/null 2>/dev/null; then
+if has docker; then
   # DOCKER_BUILDKIT:       If set, enables building images with BuildKit. performance, storage management,
   #                        feature functionality, and security.
   # https://docs.docker.com/buildx/working-with-buildx/
@@ -22,13 +24,13 @@ fi
 
 ###################################### GCC
 #
-if which gcc >/dev/null; then
+if has gcc >/dev/null; then
   export GCC_COLORS="error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quote=01"
 fi
 
 ###################################### GH
 # https://cli.github.com/manual/gh_help_environment
-if which gh >/dev/null; then
+if has gh; then
   # GH_CONFIG_DIR:                               Directory where gh will store configuration files.
   #                                              Default: "$XDG_CONFIG_HOME/gh" or "$HOME/.config/gh".
   export GH_CONFIG_DIR="${ETC}/gh"
@@ -43,7 +45,7 @@ fi
 # https://cloud.google.com/compute/docs/gcloud-compute
 # https://cloud.google.com/sdk/gcloud/reference/config
 # CLOUDSDK_<SECTION>_<PROPERTY>:
-if which gcloud >/dev/null; then
+if has gcloud; then
   # CLOUDSDK_CONFIG.                             Google Cloud config directory.
   export CLOUDSDK_CONFIG="${ETC}/gcloud"
   # CLOUDSDK_CORE_PROJECT                       Google Cloud SDK core project.
@@ -58,7 +60,7 @@ fi
 # https://git-scm.com/docs/git-config
 # https://git-scm.com/docs/git-init
 # GIT_COMPLETION_SHOW_ALL                     Show --arguments in completions.
-if has git >/dev/null 2>/dev/null; then
+if has git; then
   export GIT_PAGER="less"
   export GIT_COMPLETION_SHOW_ALL
   export GIT_CONFIG_SYSTEM="${ETC}/git/gitconfig"
@@ -85,7 +87,7 @@ export GIT_RAW="https://raw.githubusercontent.com/${GIT}"
 
 ###################################### HOMEBREW
 # https://docs.brew.sh/Manpage#bundle-subcommand
-if has brew >/dev/null 2>/dev/null; then
+if has brew; then
   # HOMEBREW_BAT                                If set, use bat for the brew cat command.
   export HOMEBREW_BAT=1
   # HOMEBREW_CLEANUP_PERIODIC_FULL_DAY          If set, brew install, brew upgrade and brew reinstall will cleanup all
@@ -101,11 +103,11 @@ fi
 
 ###################################### LESS
 #
-which less >/dev/null && export LESS="-F -R -X"
+has less && export LESS="-F -R -X"
 
 ###################################### PAGER
 #
-if which most >/dev/null; then
+if has most >/dev/null; then
   export PAGER="most"
 elif which less >/dev/null; then
   export PAGER="less"
@@ -142,9 +144,18 @@ if has python >/dev/null 2>/dev/null; then
   export PYTHONUNBUFFERED=1
 fi
 
+###################################### STARSHIP
+# https://starship.rs/config/#prompt
+# Test in /opt/etc but always update with 'rc config starship'
+if has -c starship; then
+  # TODO: aqui no porque no se hace con comando de setup
+  #   Can be tested in /opt/etc like starship but always backup
+  #  to the repo and run `rc config --upgrade`
+  export STARSHIP_CONFIG="${ETC}/starship/config.toml"
+fi
 ###################################### VI
 #
-if which vi >/dev/null; then
+if has vi; then
   export EDITOR="vi"
   export VISUAL="${EDITOR}"
 fi
@@ -167,11 +178,6 @@ export HISTFILESIZE="999999"
 export INPUTRC="${ETC}/inputrc"
 export LANG="en_US.UTF-8"
 export LC_ALL="en_US.UTF-8"
-export PROMPT_COMMAND="history -a;history -r"
-export PS2="${BlueDark}> "
-export PS4="+ [${Magenta}\$(basename \"\${BASH_SOURCE[0]}\")${Reset}][${Magenta}\${LINENO}${Reset}]\
-[${Yellow}\$(echo \${BASH_LINENO[*]} | awk '{\$NF=\"\"; print \$0}' | sed 's/ \$//g'| sed 's/ /@/g')${Reset}]\
-${Green}$ ${Reset}"
 export TERM="xterm-256color"
 
 if $MACOS; then
@@ -184,7 +190,7 @@ if $MACOS; then
 
   ###################################### USER
   #
-  if [ "$(id -u)" -ne 0 ]; then
+  if is root; then
     # CDPATH                                      Once the CDPATH is set, the cd command will search only
     #                                             in the directories present in the CDPATH variable only.
     #                                             It SHOULD always be the first component of the CDPATH.
