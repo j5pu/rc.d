@@ -7,8 +7,6 @@
 - Ver si bats tiene en doker las librerias. 
 - https://github.com/sharkdp/vivid
 - Ver la estrategia de pruebas
-- Meter los colores en el profile.
-- Usar el macbook probar o un vagrant.
 - Ver si puedo usar el ENV tambien en mac que ya probe. y el launchd 
 - Ver como se instala el nginx que lio tiene en el mac si no es nixosx 
 - Ver cuanto pesa el PS1 

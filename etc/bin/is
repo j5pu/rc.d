@@ -1,0 +1,18 @@
+#!/bin/sh
+
+####################################### is
+# Is root, sudo or user
+# Arguments:
+#   root             id is 0.
+#   sudo             SUDO_UID set.
+#   user             not root and not user.
+# Output:
+#   Help message to stdout.
+# Returns:
+#   1 if no root, sudo or user.
+#######################################
+case "${1}" in
+  root) [ "$(id -u)" -eq 0 ] ;;
+  sudo) [ "${SUDO_UID-}" ] ;;
+  user) ! is root && ! is sudo ;;
+esac

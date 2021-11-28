@@ -1,40 +1,83 @@
 # shellcheck shell=sh
 
+# FIXME: Not clear how to fix the usage of "$(home)"/"$(user)" instead of "${HOME}"/"${USER}" because of
+#   sudoers !env_reset. if ENV and BASH_ENV would probably be fixed if they are placed outside __PROFILE_SOURCED
+
 #
-# System profile
+# System profile.
 
-# TODO: Tengo que comprobar la version remota de alguna forma, o sea que se suba un release y se descargue el latest
-#   y se compruebe la version. de lo contrario es imposible controlar las configs, etc.
-# TODO: hacer una variable con los directorios a crear cuando se instalar para el rc hacer los ficheros y las configuraciones que se van a guardar.
-#   este no se convierte en el instalador porque pesaría mucho y porque no.
-# TODO: guardar el repositorio en /opt/opt o /opt/share y asi ..no se que iba a decir ahora,
-# TODO: lo de hacer que en sshd con sudoers sea el lugar de tan abierto el sistema con el bash login y el sudo root login y todo.
-#     lo he mandado a reading list, mejor que con usuario y solo actualizar el sudoers con el ssh ....y asi login siempreen root.
-export VERSION="0.0.0"
-
-for arg do
-  case "${arg}" in
-    --version) __ETC_PROFILE_VERSION=1 echo "${VERSION}" ;;
-    --force) rm -f "${profile}"; unset __ETC_PROFILE_SOURCED ;;
-    *) return 1 2>/dev/null || exit 1
-  esac
-done; unset arg
-
-####################################### Globals: BASH & SH
+export VERSION='0.0.0'
+set -x
+####################################### Globals: BASH_ENV, ENV, ETC_BIN, ETC_SBIN & ROOT
 #
-[ "${BASH_VERSION-}" ] || { [ "${0##*/}" = "sh" ] && SH=1 && ENV=/etc/profile; } || { . /etc/profile.orig; exit; }
-export BASH_SH=1 SH
+# ROOT                  Root for project installations.
+# ETC_BIN               Executables used by /etc/profile and sourced files.
+# ETC_SBIN              Same name binaries directory that complement behavior of:
+#                       /etc/profile (BASH_ENV/ENV) and sudoers (!env_reset, shell_noargs)
+#                       sudo -i, bash --login and sh -l (i.e: bash -l
+ROOT='/opt'; BASH_ENV='/etc/profile'; ETC_BIN='/etc/bin'; ETC_SBIN='/etc/sbin'; __profile_compat='/etc/rc.d'
+if [ "${RC_TEST-}" ]; then
+  ROOT="/tmp${ROOT}"; BASH_ENV="${ROOT}${BASH_ENV}"; ETC_BIN="${ROOT}${ETC_BIN}"; ETC_SBIN="${ROOT}${ETC_SBIN}"
+  __profile_compat="${ROOT}${__profile_compat}"
+fi
+export BASH_ENV ENV="${BASH_ENV}" ETC_BIN ETC_SBIN ROOT
 
-####################################### source: rc.d & ~/.rc
+####################################### Globals: shell
+# TODO: not clear __SHELL_CURRENT and __SHELL_PREVIOUS when shell is changed from bash to sh so functions are set.
+__SHELL_PREVIOUS="${__SHELL_CURRENT}"
+if [ "${0##*/}" = 'sh' ]; then
+  export BASH_SH=1 SH=1; __SHELL_CURRENT='sh'
+elif [ "${BASH_VERSION-}" ]; then
+  export BASH_SH=1; __SHELL_CURRENT='bash'
+elif [ -n "${ZSH_EVAL_CONTEXT}" ]; then
+  export ZSH=1; __SHELL_CURRENT='zsh'
+elif [ "${0##*/}" = 'dash' ]; then
+  export DASH=1; __SHELL_CURRENT='dash'
+elif [ -n "${KSH_VERSION}" ]; then
+  export KSH=1; __SHELL_CURRENT='ksh'
+else
+  unset BASH_ENV ENV; . '/etc/profile.orig'; exit
+fi
+export __SHELL_CURRENT __SHELL_PREVIOUS
+
+####################################### generate
+# . "${ETC_BIN}/profile" instead of "${ETC_BIN}/profile" to avoid recursion because of BASH_ENV/ENV.
+# Avoid recursion also for executables (has, etc.) in sourced files from compat directory.
+# __PROFILE_GENERATED  Cached profile, generated so BASH_ENV/ENV will be fast.
+export __PROFILE_GENERATED='/tmp/.profile'
+if [ "${1}" = '--force' ] || [ ! -f "${__PROFILE_GENERATED}" ]; then
+  __PROFILE_SOURCED=1; . "${ETC_BIN}/profile"; __profile_source_it=1
+fi
+[ "${__PROFILE_SOURCED-}" ] || { __PROFILE_SOURCED=1; __profile_source_it=1; }
+
+####################################### source
 #
-compat="/etc/rc.d"
-[ -d "${compat}" ] && for i in "${compat}"/??-*.sh; do if [ -r "${i}" ]; then . "${i}" "${@}"; fi; done; unset i
-[ -z "${BASH_VERSION}" ] && for i in "${compat}"/??-*.bash; do if [ -r "${i}" ]; then . "${i}" "${@}"; fi; done; unset i
-[ -f "${HOME}/.rc" ] && "${HOME}/.rc"
-unset compat
+if { [ ! "${__profile_source_it-}" ] || [ "${__SHELL_CURRENT}" != "${__SHELL_PREVIOUS}" ]; } \
+  && [ -d "${__profile_compat}" ]; then
+  . "${__PROFILE_GENERATED}"
+  for i in "${__profile_compat}"/??-*.sh; do if [ -r "${i}" ]; then . "${i}"; fi; done; unset i
+  [ ! "${SH-}" ] && for i in "${__profile_compat}"/??-*.bash; do if [ -r "${i}" ]; then . "${i}"; fi; done; unset i
+  [ -f "${HOME}/.bashrc" ] && "${HOME}/.bashrc"
+  [ -f "${HOME}/.rc" ] && "${HOME}/.rc"
+fi;
+unset __profile_compat __profile_source_it
 
-####################################### unset
-#
-unset __PROFILE_SOURCE_IT
+####################################### dependant on: HOME/USER
+# Globals depending on HOME/USER.
+# Moved here because !env_reset in sudoers.
+# BASH_ENV/ENV will trigger the assignment.
+# LOG_USER              (USER) User 'LOG' directory.
+export LOG_USER="${LOG}/${USER}"
+# XDG_CACHE_HOME        User 'CACHE' directory.
+export XDG_CACHE_HOME="${CACHE}/${USER}"
+# XDG_CONFIG_HOME       User 'CONFIG' directory.
+export XDG_CONFIG_HOME="${CONFIG}/${USER}"
+# XDG_RUNTIME_DIR       User 'RUN' directory (Its Unix access mode MUST be 0700).
+export XDG_RUNTIME_DIR="${RUN}/${USER}"
 
-[ ! "${__version-}" ] || { echo "${__ETC_PROFILE_VERSION}"; unset __ETC_PROFILE_VERSION; }
+####################################### PS1
+# Moved here since needed by sudo because it's not exported and needed by sudoers shell_noargs ('sudo -S').
+# BASH_ENV/ENV will trigger the assignment.
+if [ "${PS1-}" ]; then
+    PS1="\[\e]0;\h@\u: \w\a\]${Reset}"
+fi

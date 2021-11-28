@@ -2,23 +2,24 @@
 <project version="4">
   <component name="bashsupport-pro.project">
     <globalVariables>
+      <var name="arg" />
+      <var name="Blue" />
+      <var name="BlueDim" />
+      <var name="Cyan" />
+      <var name="CyanDim" />
+      <var name="Green" />
+      <var name="Grey" />
+      <var name="GreyBold" />
+      <var name="GreyDim" />
+      <var name="Magenta" />
+      <var name="MagentaDim" />
+      <var name="profile" />
       <var name="Red" />
+      <var name="RedBold" />
+      <var name="RedDim" />
       <var name="Reset" />
       <var name="Yellow" />
-      <var name="Green" />
-      <var name="RedBold" />
-      <var name="GreyBold" />
-      <var name="Grey" />
-      <var name="Blue" />
-      <var name="Magenta" />
-      <var name="GreyDim" />
-      <var name="CyanDim" />
-      <var name="RedDim" />
       <var name="YellowDim" />
-      <var name="MagentaDim" />
-      <var name="arg" />
-      <var name="profile" />
-      <var name="BlueDim" />
     </globalVariables>
   </component>
 </project>

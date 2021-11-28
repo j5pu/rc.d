@@ -1,0 +1,20 @@
+#!/bin/sh
+
+rc=$?
+
+if [ "${rc}" -eq 0 ]; then
+  printf '%b' "${Green}✓${Reset} "
+else
+  printf '%b' "${Red}x ${rc}${Reset} "
+fi
+
+[ ! "${HOST_PROMPT-}" ] || printf '%b' "${Cyan}${HOST_PROMPT}${Reset} "
+
+dir="$(echo "${PWD}" | sed "s|${HOME}|~|; s|/private${HOME}|~|")"
+printf '%b' "${Grey}${dir}${Reset} "
+
+if is root; then
+  printf '%b' "${Magenta}# ${Reset}"
+else
+  printf '%b' "${Green}$ ${Reset}"
+fi

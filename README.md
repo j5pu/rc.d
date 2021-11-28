@@ -5,13 +5,12 @@
 ````bash
 curl -fsSL https://git.io/rc.d | sh
 wget --quiet -O - "https://git.io/rc.d" | sh
-git clone --quiet https://github.com/j5pu/rc.d && ./rc.d/install
+git clone --recurse-submodules --quiet https://github.com/j5pu/rc.d && ./rc.d/install
 ````
 
 ## Config /opt/etc
 Can be tested in /opt/etc like starship but always backup to the repo and run `rc config --upgrade` 
-TODO: esto no funciona.. el config deberia hacer un upgrade, install del repo... 
-
+TODO: esto no funciona.. el config deberia hacer un upgrade, install del repo...
 
 ## pre-commit 
 After clone 

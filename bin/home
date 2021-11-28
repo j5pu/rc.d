@@ -1,0 +1,5 @@
+#!/bin/sh
+#
+# User HOME (because of sudoers !env_reset)
+
+eval echo ~"${1:-$(user)}"

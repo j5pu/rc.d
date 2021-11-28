@@ -1,0 +1,5 @@
+#!/bin/sh
+#
+# User (because of sudoers !env_reset)
+
+echo "${USER}"
