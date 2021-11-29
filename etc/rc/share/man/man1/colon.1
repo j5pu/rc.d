@@ -28,9 +28,18 @@
 .  LINKSTYLE blue R < >
 .\}
 .SH "NAME"
-colon \- Command Line Tools path, and installation if needed j k == Synopsis
+colon \- prepend (beginning), append (end) or remove to colon variables (PATH, INFOPATH, MANPATH etc.)
+.SH "SYNOPSIS"
 .sp
-\fBcolon\fP
+\fBcolon\fP [\fIOPTION\fP] [\fIDIRECTORY\fP]
+.SH "DESCRIPTION"
+.sp
+The \fBcolon\fP command will find man pages in a valid repository \fIDIRECTORY\fP,
+will replace existing man page if generated man page has changed, will test and commit changes.
+.br
+.sp
+Man pages will be installed in \f(CR../../share/man/man1\fP with respect to the directory
+where the source \f(CR*.adoc\fP has been found, i.e.: \f(CR./src/man/name.adoc\fP will be generated to \f(CR./share/man/man1/name.1\fP.
 .SH "OPTIONS"
 .sp
 \fB\-\-help\fP
@@ -38,13 +47,9 @@ colon \- Command Line Tools path, and installation if needed j k == Synopsis
 Show man page and exit.
 .RE
 .sp
-\fB\-\-bla\fP
+\fBDIRECTORY\fP
 .RS 4
-blablabla bla
-hahhhaa
-.sp
-\fIpunto y aparte\fP dsdsd.
-Punto seguido.
+Directory in a git repository (default: current working directory).
 .RE
 .SH "EXIT STATUS"
 .sp
@@ -52,6 +57,19 @@ Punto seguido.
 .RS 4
 Success.
 .RE
+.sp
+\fB1\fP
+.RS 4
+Invalid git repository.
+.br
+Error converting from AsciiDoc to man page.
+.br
+Testing error.
+.RE
+.SH "GLOBALS"
+
+.SH "EXAMPLES"
+
 .SH "COPYING"
 .sp
 Copyright \(co 2021\-present j5pu.
