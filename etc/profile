@@ -6,7 +6,8 @@
 #
 # System profile.
 
-export VERSION='0.0.0'
+export VERSION='0.0.1'
+[ "${1}" = '--version' ] && echo "${VERSION}" && { return 2>/dev/null || exit 0; }
 set -x
 ####################################### Globals: BASH_ENV, ENV, ETC_BIN, ETC_SBIN & ROOT
 #
