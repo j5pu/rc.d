@@ -4,8 +4,8 @@ set -eo pipefail
 shopt -s inherit_errexit
 
 changed() {
-  git add "${dest_file}"
-  git commit --quiet -a -m "${script} ${dest_file}"
+  git add "${1}"
+  git commit --quiet -a -m "${script} ${1}"
 }
 
 doctor() {
@@ -20,7 +20,7 @@ doctor() {
 }
 
 main() {
-  local arg tmp_file dest_dir dir src tmp_file
+  local arg tmp_file dest_dir dest_file dir src tmp_file
   for arg do
     case "${arg}" in
       -h|--help) man -p cat "${0##*/}" 2>/dev/null || exit 1 ;;
@@ -40,17 +40,17 @@ main() {
     name="${src##*/}"
     dest_dir="$(dirname "$(dirname "$(dirname "${src}")")")/share/man/man1"
     dest_file="${dest_dir}/${name}.1"
-    [ -d "${dest}" ] || mkdir -p "${dest_dir}"
+    [ -d "${dest}" ] || { mkdir -p "${dest_dir}"; touch "${dest_dir}/.gitkeep"; changed "${dest_dir}/.gitkeep"; }
     if [ -f "${dest_file}" ]; then
       tmp_file="/tmp/${name}.1"
       doctor "${tmp_file}"
       if ! cmp -s "${dest_file}" "${tmp_file}"; then
         mv "${tmp_file}" "${dest_file}"
-        changed
+        changed "${dest_file}"
       fi
     else
       doctor "${dest_file}"
-      changed
+      changed "${dest_file}"
     fi
   done < <(find . -type f -name "*.adoc")
 }
