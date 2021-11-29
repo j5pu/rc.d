@@ -28,7 +28,7 @@
 .  LINKSTYLE blue R < >
 .\}
 .SH "NAME"
-colon \- prepend (beginning), append (end) or remove to colon variables (PATH, INFOPATH, MANPATH etc.)
+colon \- prepend (beginning, the default), append (end) or remove to colon variables (PATH, INFOPATH, MANPATH etc.)
 .SH "SYNOPSIS"
 .sp
 \fBcolon\fP \fIDIRECTORY\fP [\fIPATH\fP] [\fIOPTION\fP]
@@ -36,7 +36,7 @@ colon \- prepend (beginning), append (end) or remove to colon variables (PATH, I
 .sp
 The \fBcolon\fP command will:
 .br
-\- \fBprepend\fP (beginning),
+\- \fBprepend\fP (beginning, the \fIdefault\fP),
 .br
 \- \fBappend\fP (end)
 .br
@@ -44,16 +44,37 @@ The \fBcolon\fP command will:
 .br
 a \fIDIRECTORY\fP to a \fIPATH\fP colon type variable.
 .SH "OPTIONS"
+.SS "Arguments"
+.sp
+\fBDIRECTORY\fP
+.RS 4
+Absolute \fIdirectory\fP (start with \f(CR/\fP) or \f(CR.\fP, to be prepended, appended or removed.
+.RE
 .SS "Optional Arguments"
 .sp
-\fB\-\-help\fP
+\fBPATH\fP
 .RS 4
-Show man page and exit.
+\fIPath\fP colon type variable to manipulate, i.e.: \f(CR/foo:/bar\fP (default: \*(Aq\*(Aq).
 .RE
 .sp
-\fB\-B, \-\-base\-dir\fP=\fIDIR\fP, \fBDIRECTORY\fP
+\fB\-\-append\fP
 .RS 4
-Directory in a git repository (default: current working directory).
+Add at the end.
+.RE
+.sp
+\fB\-\-remove\fP
+.RS 4
+Remove for the path value.
+.RE
+.sp
+\fB\-\-desc\fP
+.RS 4
+Show one line description and exit.
+.RE
+.sp
+\fB\-h, \-\-help\fP
+.RS 4
+Show man page and exit.
 .RE
 .SH "EXIT STATUS"
 .sp
@@ -64,17 +85,39 @@ Success.
 .sp
 \fB1\fP
 .RS 4
-Invalid git repository.
+\fIDirectory\fP must be absolute / or .
 .br
-Error converting from AsciiDoc to man page.
-.br
-Testing error.
 .RE
 .SH "EXAMPLES"
 .sp
-\fI$\fP \fBcolon\fP
+\fI$\fP \fBcolon\fP \fI/foo\fP
+.br
+foo
+.br
 .sp
-\fI$\fP \fBcolon\fP src/man
+\fI$\fP \fBcolon\fP \fI/foo\fP /bar
+.br
+/foo:/bar
+.br
+.sp
+\fI$\fP \fBcolon\fP \fI/foo\fP /bar \-\-append
+.br
+/bar:/foo
+.br
+.sp
+\fI$\fP \fBcolon\fP \-\-append /foo /bar
+.br
+/bar:/foo
+.br
+.sp
+\fI$\fP \fBcolon\fP \fI/foo\fP /bar:/foo
+.br
+/bar
+.br
+.sp
+\fI$\fP \fBcolon\fP \fI/foo\fP \-\-remove /bar:/foo
+.br
+/bar
 .SH "COPYING"
 .sp
 Copyright \(co 2021\-present j5pu.
