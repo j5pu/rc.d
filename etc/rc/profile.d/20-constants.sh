@@ -99,17 +99,13 @@ if has brew; then
   export HOMEBREW_UPDATE_REPORT_ONLY_INSTALLED=1
 fi
 
-###################################### LESS
+###################################### LESS & PAGER
 #
-has less && export LESS='-F -R -X'
+has less && export LESS='-F -R -X' PAGER='less'
 
-###################################### PAGER
+###################################### MANPAGER
 #
-if has most >/dev/null; then
-  export PAGER='most'
-elif which less >/dev/null; then
-  export PAGER='less'
-fi
+has most && export MANPAGER='most'
 
 ###################################### PIP
 # https://pip.pypa.io/en/stable/topics/configuration/

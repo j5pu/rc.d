@@ -44,6 +44,9 @@ main() {
     if [ -f "${dest_file}" ]; then
       tmp_file="/tmp/${name}.1"
       doctor "${tmp_file}"
+      man -P cat "${tmp_file}" | grep -qE \
+        "^${name^^}|${name}| ${name^} Manual |^${name^} ${version:-0.0.0}| ${author} " \
+        || die Test Failed: man -P cat "${tmp_file}"
       if ! cmp -s "${dest_file}" "${tmp_file}"; then
         mv "${tmp_file}" "${dest_file}"
         changed "${dest_file}"
