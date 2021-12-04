@@ -1,0 +1,83 @@
+// suppress inspection "AsciiDocAttributeShouldBeDefined" for whole file
+= doctitle(1)
+author
+revision
+:doctype: manpage
+:man-linkstyle: pass:[blue R < >]
+:page-layout: base
+
+== Name
+
+{name} - prepend (beginning, the default), append (end) or remove to colon variables (PATH, INFOPATH, MANPATH etc.)
+
+== Synopsis
+
+*{name}* _DIRECTORY_ [_PATH_] [_OPTION_]
+
+== Description
+
+The *{name}* command will: +
+  - *prepend* (beginning, the _default_), +
+  - *append* (end) +
+  - or *remove* +
+a _DIRECTORY_ to a _PATH_ colon type variable.
+
+== Options
+
+// tag::options[]
+=== Arguments
+
+*DIRECTORY*::
+  Absolute _directory_ (start with `/`) or `.`, to be prepended, appended or removed.
+
+=== Optional Arguments
+
+*PATH*::
+  _Path_ colon type variable to manipulate, i.e.: `/foo:/bar` (default: '').
+
+*--append*::
+  Add at the end.
+
+*--remove*::
+  Remove for the path value.
+
+*--desc*::
+  Show one line description and exit.
+
+*-h, --help*::
+  Show man page and exit.
+
+// end::options[]
+
+== Exit status
+
+*0*::
+  Success.
+
+*1*::
+  _Directory_ must be absolute / or . +
+
+== Examples
+
+_$_ *{name}* _/foo_ +
+foo +
+
+_$_ *{name}* _/foo_ /bar +
+/foo:/bar +
+
+_$_ *{name}* _/foo_ /bar --append +
+/bar:/foo +
+
+_$_ *{name}* --append /foo /bar +
+/bar:/foo +
+
+_$_ *{name}* _/foo_ /bar:/foo +
+/bar +
+
+_$_ *{name}* _/foo_ --remove /bar:/foo +
+/bar
+
+== Copying
+
+Copyright (C) 2021-present {author}. +
+Free use of this software is granted under the terms of the MIT License.

@@ -31,26 +31,26 @@ asciidoctor -b manpage -a doctitle="$${name^^}\(1)" -a author="$(AUTHOR)" -a rel
 $(MAN_DST)/$${name}.1 "$${i}"; \
 done
 
-#	@cd $(MAN_SRC); for i in *.md; do \
-#name=$$(basename $${i} .md); \
-#pandoc $${i} -s -t man \
-#--metadata title="$${name^^}"  \
-#--metadata header="$${name^} Manual"  \
-#--metadata footer="$${name} $(VERSION)" \
-#--metadata date="$(DATE)" \
-#--metadata subtitle="$${name}"  \
-#--metadata author="$(AUTHOR)" \
-#-o $(MAN_DST)/$${name}.1 \
-#; done
-#	@cd $(MAN_SRC); for i in *.md; do \
-#name=$$(basename $${i} .md); \
-#pandoc $${i} -s -t texinfo \
-#--metadata title="$${name^^}"  \
-#--metadata header="$${name^} Manual"  \
-#--metadata footer="$${name} $(VERSION)" \
-#--metadata date="$(DATE)" \
-#--metadata subtitle="$${name}"  \
-#--metadata author="$(AUTHOR)" \
-#-o $(INFO_DST)/$${name}.info \
-#; done
+	@cd $(MAN_SRC); for i in *.md; do \
+name=$$(basename $${i} .md); \
+pandoc $${i} -s -t man \
+--metadata title="$${name^^}"  \
+--metadata header="$${name^} Manual"  \
+--metadata footer="$${name} $(VERSION)" \
+--metadata date="$(DATE)" \
+--metadata subtitle="$${name}"  \
+--metadata author="$(AUTHOR)" \
+-o $(MAN_DST)/$${name}.1 \
+; done
+	@cd $(MAN_SRC); for i in *.md; do \
+name=$$(basename $${i} .md); \
+pandoc $${i} -s -t texinfo \
+--metadata title="$${name^^}"  \
+--metadata header="$${name^} Manual"  \
+--metadata footer="$${name} $(VERSION)" \
+--metadata date="$(DATE)" \
+--metadata subtitle="$${name}"  \
+--metadata author="$(AUTHOR)" \
+-o $(INFO_DST)/$${name}.info \
+; done
 

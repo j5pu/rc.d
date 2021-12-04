@@ -11,49 +11,6 @@ export COLORS=""
 # Globals:
 #   COLORS
 #######################################
-color() {
-  sep=''
-  [ "${COLORS-}" ] && sep=' '
-  COLORS="${COLORS}${sep}${1}"
-  echo "export ${1}='\033[${2}${3}'" >> "${__PROFILE_GENERATED}"
-  unset sep
-}
-
-####################################### color
-# Generate colors
-# Globals:
-#   COLORS
-#######################################
-colors() {
-  tee -a "${__PROFILE_GENERATED}" > /dev/null <<EOF
-
-
-####################################### Globals: COLORS
-# https://www.lihaoyi.com/post/BuildyourownCommandLinewithANSIescapecodes.html
-# Contain the unicode Ansi escapes (\u001b) to be used in any language, e.g. Java, Python and Javascript).
-# <Name>                 Color foreground.
-# <Name>Bg               Color background.
-# <Name>Bold             Color bold/bright.
-# <Name>Dim              Color dimmed.
-# <Name>Under            Color underscored.
-# COLORS                 All color (Black Red Green Yellow Blue Magenta Cyan White) combinations.
-# Reset                  Reset color.
-# ######################################
-EOF
-  color 'Reset' 0 'm'
- index=0
- for color in Black Red Green Yellow Blue Magenta Cyan Grey; do
-    color "${color}" "3${index:-0}" 'm'
-    color "${color}Bold" "3${index}" ';1m'
-    color "${color}Dim" "3${index}" ';2m'
-    color "${color}Under" "3${index}" ';4m'
-    color "${color}Invert" "3${index}" ';7m'
-    color "${color}Bg" "4${index}" 'm'
-    export index="$((index+1))"
-  done
-  echo "export COLORS='${COLORS}'" >> "${__PROFILE_GENERATED}"
-  unset color COLORS index
-}
 
 ####################################### header
 #
