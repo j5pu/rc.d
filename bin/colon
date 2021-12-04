@@ -1,0 +1,188 @@
+#!/bin/sh
+
+# Prepend (beginning, the default), append (end) or remove to colon variables (PATH, INFOPATH, MANPATH etc.)
+#
+set -eu
+
+/usr/bin/env -i HOME="${HOME}" LC_CTYPE="${LC_ALL:-${LC_CTYPE:-$LANG}}" PATH="${PATH}" TERM="${TERM}" USER="${USER}" \
+  /bin/sh --noprofile --norc
+
+unset BASH_ENV ENV
+cd "$(dirname "${0}")"
+. ./color.lib
+. ./die.lib
+. ./os.lib
+
+#######################################
+# Prepend script directory and script directory parent with sbin to 'PATH'
+# Globals:
+#   DIRECTORY         Directory to prepend, append or remove.
+#   SCRIPT_BIN        Script directory.
+#   VALUE             Path value to manipulate.
+# Outputs:
+#   Updated path value.
+#######################################
+
+bins() {
+  _export="${EXPORT}"; EXPORT=''
+  DIRECTORY="${PWD}"
+  VALUE="$(run)"
+  cd ../sbin
+  DIRECTORY="$(pwd)"
+  EXPORT="${_export}"
+  run
+}
+
+# TODO: estaba cn el profile y guarde una branch del rc.d para cambiar este al rc.d y me lie con los submodules del GitHub
+#   para asi quitar de aqui el de semver y los de bats.
+#   Asi que guardar el rc.d large en backups. y meter este en main de rc.d.
+#   poner lo de submodules en comando de git-modules y limpiar el archive.
+init() {
+  _export="${EXPORT}"; EXPORT=''
+
+  case "${_export}" in
+    PATH)
+    INFOPATH)
+    MANPATH)
+  esac
+  if [ "${EXPORT}" = 'PATH' ]; then
+    :
+  elif [ "${EXPORT}" = 'INFOPATH' ]; then
+    :
+  elif [ "${EXPORT}" = 'MANPATH' ]; then
+    :
+  else
+    die Init not Supported: "${EXPORT}"
+  fi
+}
+
+#######################################
+# Show plain output or with export command
+# Globals:
+#   EXPORT              Variable name to add export command.
+# Arguments:
+#   value               Path value to show or add export command.
+# Output:
+#   value or variable and value with export command.
+#######################################
+output() {
+  if [ "${EXPORT-}" ]; then
+    echo "${EXPORT}=${1}; export ${EXPORT}"
+  else
+    echo "${1}"
+  fi
+}
+
+#######################################
+# Prepend (beginning, the default), append (end) or remove
+# Globals:
+#   APPEND              Add at the end.
+#   DIRECTORY           Directory to prepend, append or remove.
+#   EXPORT              Variable name to add export command.
+#   NAME                Variable name (default: PATH).
+#   REMOVE              Remove for the path value.
+#   VALUE               Path value to manipulate.
+# Outputs:
+#   Updated path value.
+#######################################
+run() {
+  case ":${VALUE}:" in
+    *:"${DIRECTORY}":*)
+      if $REMOVE; then
+        output "$(echo "${VALUE}" | sed "s|${DIRECTORY}:||; s|:${DIRECTORY}||; s|${DIRECTORY}||")"
+      elif [ "${VALUE-}" ]; then
+        output "${VALUE}"
+      fi
+      ;;
+    *)
+      if $APPEND; then
+        output "${VALUE:+${VALUE}:}${DIRECTORY}"
+      else
+        output "${DIRECTORY}${VALUE:+:${VALUE}}"
+      fi
+    ;;
+  esac
+}
+
+#######################################
+# Prepend (beginning, the default), append (end) or remove to colon variables (PATH, INFOPATH, MANPATH etc.)
+# Globals:
+#   APPEND              Add at the end.
+#   DIRECTORY           Directory to prepend, append or remove.
+#   EXPORT              Variable name to add export command.
+#   REMOVE              Remove for the path value.
+#   VALUE               Path value to manipulate.
+# Optional Arguments:
+#   --append            Add at the end.
+#   --export=<var name> Show variable name with value and export command for eval (default: 'PATH).
+#   --init              A clean new 'PATH', 'INFOPATH', or 'MANPATH' with export command is initialized.
+#   --remove            Remove for the path value.
+#   DIRECTORY           Directory to prepend (default), append (--append) or remove (--remove).
+#                       (default: script directory and script directory parent with sbin).
+#   VALUE               Path value to manipulate (default: "" if 'DIRECTORY' provided, 'PATH' if no 'DIRECTORY').
+# Note:
+#   Only --init will add export command by default.
+# Outputs:
+#   Updated path value or variable and value with export command.
+# Examples:
+#   $ colon
+#   .../sbin:.../bin:$PATH
+#   $ colon --export
+#   PATH='.../sbin:.../bin:$PATH'; export PATH
+#   $ color --init
+#   PATH='...'; export PATH
+#   $ colon /foo
+#   foo
+#   $ colon /foo --export=PATH
+#   PATH='foo'; export PATH
+#   $ colon /foo /bar
+#   /foo:/bar
+#   $ colon /foo /bar --export=MANPATH
+#   MANPATH='/foo:/bar'; export MANPATH
+#   $ colon /foo /bar --append
+#   /bar:/foo
+#   $ colon /foo /bar --append --export=INFOPATH
+#   INFOPATH='/bar:/foo'; export INFOPATH
+#   $ colon --append /foo /bar
+#   /bar:/foo
+#   $ colon --append /foo /bar --export
+#   PATH='/bar:/foo'; export PATH
+#   $ colon /foo --remove /bar:/foo
+#   /bar
+#   $ colon /foo --remove /bar:/foo --export=
+#   PATH='/bar'; export PATH
+#######################################
+main() {
+  unset DIRECTORY VALUE
+  APPEND=false
+  init=false
+  REMOVE=false
+  for arg do
+    case "${arg}" in
+      -h|--help) "${PWD}/usage" "${0}"; exit ;;
+      --desc) "${PWD}/desc" "${0}"; exit ;;
+      --append) APPEND=true ;;
+      --export|--export=) EXPORT='PATH' ;;
+      --export=*) EXPORT="$(echo "${arg}" | sed 's/--export=//')" ;;
+      --init) init=true ;;
+      --remove) REMOVE=true ;;
+      --version) "${PWD}/sudoers" --version; exit ;;
+      *) if [ "${DIRECTORY-}" ]; then VALUE="${arg}"; else DIRECTORY="${arg}"; fi
+    esac
+  done
+  echo si
+  if $init; then
+    APPEND=false; EXPORT="${EXPORT:-PATH}"; REMOVE=false;
+    init
+  else
+    if [ "${DIRECTORY-}" ]; then
+      VALUE="${VALUE:-}"
+      run
+    else
+      APPEND=false; REMOVE=false; VALUE="${PATH}"
+      bins
+    fi
+  fi
+}
+
+main "${@:-}"

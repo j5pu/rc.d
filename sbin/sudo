@@ -1,0 +1,64 @@
+#!/bin/sh
+# shellcheck disable=SC2086
+
+#
+# sudo -i (if not sudo -s)
+# sudo -u USER if 'sudo -u' or 'sudo --user' with no user provided
+
+# sudo -i cambia y siempre da el home como cwd
+# sudo ls
+
+main () {
+  if [ -x /usr/bin/sudo ]; then
+    _i="-i"
+    chdir=false
+    expected=false
+    index=0
+    skip=false
+    user=false
+    user_set=false
+    for arg do
+      shift
+      case "${arg}" in
+        -i|-s|--shell|--login) $skip || unset _i ;;
+        -h) [ "${index}" -eq 0 ] || $skip || expected=true ;;
+        -D|--chdir ) $skip || { expected=true; chdir=true; unset _i; } ;;
+        -u|--user ) $skip || { expected=true; user=true; } ;;
+        -C|--close-from |-g|--group |--host |-p|--prompt |-R|--chroot  |\
+-T|--command-timeout |-U|--other-user ) $skip || expected=true ;;
+        --) skip=true ;;
+        -*|[a-z,A-Z]*=*) true ;;
+        *)
+          if $expected; then
+            if $user; then
+              if id "${arg}" >/dev/null 2>&1; then
+                set -- "$@" "${USER}"
+                user_set=true
+              fi
+              skip=true
+            fi
+          else
+            skip=true
+          fi
+         expected=false
+         ;;
+      esac
+      index="$((index+1))"
+      set -- "$@" "${arg}"
+    done
+
+    $user && ! $user_set && set -- "$@" "${USER}"  # if -u or --user is the latest argument.
+    $chdir || chdir_arg="--chdir $(pwd)"  # sudo -i cambia el cwd a HOME del user o de root.
+    echo "exec /usr/bin/sudo ${_i} ${chdir_arg} ${*:-}" >/tmp/"${USER}-$(basename "${0}")"
+
+    if [ "${1-}" ]; then
+      exec /usr/bin/sudo ${_i} ${chdir_arg} "${@}"
+    else
+      exec /usr/bin/sudo ${_i} ${chdir_arg}
+    fi
+  else
+    [ ! "${1-}" ] || "${@}"
+  fi
+}
+
+if [ "${1-}" ]; then main "${@}"; else main; fi

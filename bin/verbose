@@ -1,0 +1,32 @@
+#!/bin/sh
+
+# Show verbose/dry-run message with > symbol in grey dim if VERBOSE or DRY_RUN are set, unless QUIET is set
+#
+. strict.lib 2>/dev/null || { set -eu; PATH="$("$(dirname "${0}")/colon")" && export PATH && . strict.lib; }
+. color.lib
+
+####################################### > verbose: VERBOSE (default: unset), QUIET (default: unset)
+# Show verbose/dry-run message with > symbol in grey dim if VERBOSE or DRY_RUN are set, unless QUIET is set
+# Globals:
+#   VERBOSE            Shows message if set, unless QUIET is set (default: unset).
+#   GreyDim            Grey dimmed color for info message and > symbol.
+#   QUIET              Do not show message if set, takes precedence over VERBOSE/DRY_RUN (default: unset).
+#   Reset              Reset color.
+# Arguments:
+#   Message            Message to show in grey bold with > symbol.
+# Output:
+#   Message to stdout.
+#######################################
+for arg do
+  case "${arg}" in
+    -h|--help) usage "${0}"; exit ;;
+    --desc) desc "${0}"; exit ;;
+    --version) sudoers --version; exit ;;
+  esac
+done
+
+if [ ! "${QUIET-}" ]; then
+  [ ! "${VERBOSE-}" ] || printf '%b\n' "${CyanBold}>${Reset}${CyanDim} ${*:-}${Reset}"
+fi
+
+

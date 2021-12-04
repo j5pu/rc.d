@@ -1,0 +1,55 @@
+// suppress inspection "AsciiDocAttributeShouldBeDefined" for whole file
+= doctitle(1)
+author
+revision
+:doctype: manpage
+:man-linkstyle: pass:[blue R < >]
+:page-layout: base
+
+== Name
+
+{name} - converts, tests and commit changes for AsciiDoc man pages in a repository
+
+== Synopsis
+
+*{name}* [_OPTION_] [_DIRECTORY_]
+
+== Description
+
+The *{name}* command will find man pages in a valid repository _DIRECTORY_,
+will replace existing man page if generated man page has changed, will test and commit changes. +
+
+Man pages will be installed in `../../share/man/man1` with respect to the directory
+where the source `*.adoc` has been found, i.e.: `./src/man/name.adoc` will be generated to `./share/man/man1/name.1`.
+
+== Options
+
+*DIRECTORY*::
+  _Directory_ in a git repository (default: current working directory).
+
+*--desc*::
+  Show one line description and exit.
+
+*-h, --help*::
+  Show man page and exit.
+
+== Exit status
+
+*0*::
+  Success.
+
+*1*::
+  Invalid git repository. +
+  Error converting from AsciiDoc to man page. +
+  Testing error.
+
+== Examples
+
+_$_ *{name}*
+
+_$_ *{name}* src/man
+
+== Copying
+
+Copyright (C) 2021-present {author}. +
+Free use of this software is granted under the terms of the MIT License.

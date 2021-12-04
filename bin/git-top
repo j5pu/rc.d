@@ -1,0 +1,32 @@
+#!/bin/sh
+
+# Git top path
+#
+. strict.lib 2>/dev/null || { set -eu; PATH="$("$(dirname "${0}")/colon")" && export PATH && . strict.lib; }
+
+#
+#  # Rev-parse: top level path.
+#  top-help = ! echo 'Rev-parse: top level path. \
+#    \nArgs: \
+#    \n  $1: file or directory, file parent if file will be used (default: cwd). \
+#    \nReturns: \
+#    \n  1:   $1 is not file/dir. \
+#    \n  128: no git repository.'
+#  top = "!f() { if test -f \"${1}\"; then path=\"${1%/*}\"; elif test -d \"${1}\"; then path=\"${1}\"; \
+#    elif [[ ! \"${1:-}\" ]]; then path=\"$( pwd )\"; else return 1; fi; \
+#    test -f \"${path}\" && path=\"$( pwd )\"; git -C \"${path}\" rev-parse --show-toplevel 2>/dev/null; }; f"
+#
+top() {
+  echo top
+  path="${1:-.}"
+  echo "${path}"
+}
+
+for arg do
+  case "${arg}" in
+    -h|--help) usage "${0}" ;;
+    --desc) desc "${0}" ;;
+    --version) sudoers --version ;;
+  esac
+  exit
+done

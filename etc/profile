@@ -1,0 +1,24 @@
+# shellcheck shell=sh
+
+#
+# System profile.
+
+unset BASH_ENV ENV
+# <html><h2>Path to Profile File</h2>
+# <p><strong><code>$PROFILE</code></strong>.</p>
+# <p><strong><code>Default: /etc/profile</code></strong></p>
+# </html>
+PROFILE="${PROFILE:-/etc/profile}"; export PROFILE
+
+[ "${OPTION:-}" = 'version' ] && head -1 "${PROFILE%/*}/version" && unset OPTION && { return 2>/dev/null || exit 0; }
+
+BASH_ENV="${PROFILE}"
+ENV="${PROFILE}"
+
+####################################### PS1
+# Moved here since needed by sudo because it's not exported and needed by sudoers shell_noargs ('sudo -S').
+# BASH_ENV/ENV will trigger the assignment.
+if [ "${PS1-}" ]; then
+    export Reset='\033[0m'
+    PS1="\[\e]0;\h@\u: \w\a\]${Reset}"
+fi

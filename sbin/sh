@@ -1,0 +1,97 @@
+#!/bin/sh
+# shellcheck disable=SC2086
+
+# dash: A login shell first reads commands
+#     from the files /etc/profile and .profile if they exist.  If the
+#     environment variable ENV is set on entry to an interactive shell,
+#     or is set in the .profile of a login shell, the shell next reads
+#     commands from the file named in ENV.  Therefore, a user should
+#     place commands that are to be executed only at login time in the
+#     .profile file, and commands that are executed for every interactive
+#     shell inside the ENV file.
+
+main () {
+  expected=false
+  file='/etc/profile'
+  init_file="--init-file ${file}"
+  login="-l"
+  rcfile="--rcfile ${file}"
+  skip=false
+  for arg do
+    case "${arg}" in
+      --init-file|--noprofile) $skip || unset init_file ;;
+      -l|--login) $skip || unset login ;;
+      --rcfile|--norc) $skip || unset rcfile ;;
+      -O|+O|-o|+o) expected=true ;;
+      --|-c|-s) skip=true ;;
+      -*|+*) true ;;
+      *) ! $expected || { skip=true; expected=false; } ;;
+    esac
+  done
+  [ ! -f /etc/debian_version ] || unset init_file rcfile
+  echo "exec /bin/sh ${init_file} ${rcfile} ${login} ${*:-}" >/tmp/"${USER}-sh"
+
+  if [ "${1-}" ]; then
+    exec /bin/sh ${init_file} ${rcfile} ${login} "${@}"
+  else
+    exec /bin/sh ${init_file} ${rcfile} ${login}
+  fi
+}
+
+if [ "${1-}" ]; then main "${@}"; else main; fi
+
+## SAME OUTPUT
+# sh --rcfile /etc/profile --init-file /etc/profile --login -o errexit echo hola
+# /bin/sh --rcfile /etc/profile --init-file /etc/profile --login -o errexit echo hola
+
+# echo 'echo "${@}"' > /tmp/login; chmod +x /tmp/login
+# sh --rcfile /etc/profile --init-file /etc/profile --login -o errexit /tmp/login --login --init-file hola --rcfile -l
+# /bin/sh --rcfile /etc/profile --init-file /etc/profile --login -o errexit /tmp/login --login --init-file hola --rcfile -l
+
+# sh --rcfile /etc/profile --init-file /etc/profile --login -O execfail /tmp/login --login --init-file hola --rcfile -l
+# /bin/sh --rcfile /etc/profile --init-file /etc/profile --login -O execfail /tmp/login --login --init-file hola --rcfile -l
+
+# sh --rcfile /etc/profile --init-file /etc/profile --login +o errexit /tmp/login --login --init-file hola --rcfile -l
+# /bin/sh --rcfile /etc/profile --init-file /etc/profile --login +o errexit /tmp/login --login --init-file hola --rcfile -l
+
+# sh --rcfile /etc/profile --init-file /etc/profile --login +O execfail /tmp/login --login --init-file hola --rcfile -l
+# /bin/sh --rcfile /etc/profile --init-file /etc/profile --login +O execfail /tmp/login --login --init-file hola --rcfile -l
+
+
+# sh --init-file /etc/profile --login -o errexit ; echo $?; cat /tmp/jose-sh
+# sh
+# sh -l
+# sh --login
+# sh --init-file /etc/profile
+# sh --init-file /etc/profile -l
+# sh --init-file /etc/profile --login
+# sh --rcfile /etc/profile
+# sh --rcfile /etc/profile -l
+# sh --rcfile /etc/profile --login
+# sh --init-file /etc/profile --rcfile /etc/profile
+# sh --init-file /etc/profile --rcfile /etc/profile -l
+# sh --init-file /etc/profile --rcfile /etc/profile --login
+
+# sh -c ls
+# sh -l -c ls
+# sh --login -c ls
+# sh --init-file /etc/profile -c ls
+# sh --init-file /etc/profile -l -c ls
+# sh --init-file /etc/profile --login -c ls
+# sh --rcfile /etc/profile -c ls
+# sh --rcfile /etc/profile -l -c ls
+# sh --rcfile /etc/profile --login -c ls
+# sh --init-file /etc/profile --rcfile /etc/profile -c ls
+# sh --init-file /etc/profile --rcfile /etc/profile -l -c ls
+# sh --init-file /etc/profile --rcfile /etc/profile --login -c ls
+
+# sh --noprofile
+# sh --norc
+# sh --noprofile --norc
+
+# type -P b  # rc=1 (which b, command -pv b)
+# type -aP b  # rc=1 (which -a b)
+# type b  # rc=1 (command -v b)
+
+# type -p b  # rc=0
+# type -ap b  # rc=0

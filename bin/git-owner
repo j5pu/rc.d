@@ -1,0 +1,14 @@
+#!/bin/sh
+
+# Git repo owner
+#
+. strict.lib 2>/dev/null || { set -eu; PATH="$("$(dirname "${0}")/colon")" && export PATH && . strict.lib; }
+
+for arg do
+  case "${arg}" in
+    -h|--help) usage "${0}" ;;
+    --desc) desc "${0}" ;;
+    --version) sudoers --version ;;
+  esac
+  exit
+done

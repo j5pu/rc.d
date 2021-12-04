@@ -1,0 +1,21 @@
+# shellcheck shell=sh disable=SC3040,SC3028,SC3054,SC3003
+
+#
+# Strict mode library
+# http://redsymbol.net/articles/unofficial-bash-strict-mode/
+set -eu
+[ ! "${BASH_VERSION-}" ] || { IFS=$'\n\t'; set -o pipefail; [ ! "${BASH_VERSINFO[0]}" -gt 4 ] || \
+  shopt -s inherit_errexit; }
+
+if [ "${0##*/}" != 'sh' ] && ! (return 0 2>/dev/null); then
+  # not sourced
+  PATH="$(dirname "${0}"):${PATH}"
+  for arg do
+    case "${arg}" in
+      -h|--help) usage "${0}" ;;
+      --desc) desc "${0}" ;;
+      --version) sudoers --version ;;
+    esac
+    exit
+  done
+fi

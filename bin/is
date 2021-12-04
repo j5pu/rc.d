@@ -1,0 +1,31 @@
+#!/bin/sh
+
+#
+# Boolean functions.
+. strict.lib 2>/dev/null || { set -eu; PATH="$("$(dirname "${0}")/colon")" && export PATH && . strict.lib; }
+
+admin() { [ -w /etc ] || command -v sudo [ -w /etc ]; }
+adminpass() { [ "${ADMINPASS-}" ] || { die Provide a password in: ADMINPASS variable; exit 1; }; /usr/bin/sudo true; }
+bash4() { command -v bash >/dev/null && [ "$(bash --version | head -1 | awk -F'[ .]' '{print $4}')" -ge 4 ]; }
+container() { [ -f '/proc/1/environ' ] || [ -f '/.dockerenv' ]; }
+linux() { [ "$(uname -s)" = "Linux" ]; }
+macos() { [ "$(uname -s)" = "Darwin" ]; }
+root() { [ "$(id -u)" -eq 0 ]; }
+sudo() { [ "${SUDO_UID-}" ]; }
+ssh() { [ "${SSH_CLIENT-}" ] || [ "${SSH_CONNECTION-}" ] || [ "${SSH_TTY-}" ]; }
+user() { ! is root && ! is sudo; }
+
+main() {
+  for arg do
+    case "${arg}" in
+      -h|--help) usage "${0}" ;;
+      --desc) desc "${0}" ;;
+      --version) sudoers --version ;;
+      --funcs) awk -F '\(' '/^[a-z].*\() {/ && !/^main/ { print $1 }' "${0}" ;;
+      *) "${arg}" ;;
+    esac
+    exit
+  done
+}
+
+main "${@:-}"

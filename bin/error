@@ -1,0 +1,38 @@
+#!/bin/sh
+
+# Show error message with x symbol in red, unless QUIET is set
+#
+. strict.lib 2>/dev/null || { set -eu; PATH="$("$(dirname "${0}")/colon")" && export PATH && . strict.lib; }
+. color.lib
+
+####################################### x error: QUIET (default: unset)
+# Show error message with x symbol in red, unless QUIET is set
+# Globals:
+#   QUIET              Do not show message if set (default: unset).
+#   Red                Red color for error message and x symbol.
+#   Reset              Reset color.
+# Arguments:
+#   Message            Message to show in red with x symbol.
+# Output:
+#   Message to stderr.
+#######################################
+for arg do
+  case "${arg}" in
+    -h|--help) usage "${0}"; exit ;;
+    --desc) desc "${0}"; exit ;;
+    --version) sudoers --version; exit ;;
+  esac
+done
+
+if [ ! "${QUIET-}" ]; then
+  if command -v caller >/dev/null; then
+    add=""
+    c="$(caller 0)"
+    if [ "$(echo "${c}" | awk '{ print $2 }')" = 'die' ]; then c="$(caller 1)"; fi
+    add="${RedBg}$(basename "$(echo "${c}" | awk '{ print $3 }')")[$(echo "${c}" | awk '{ print $1 }')]${Reset}: "
+  fi
+  [ "${*-}" ] || { [ ! "${add-}" ] || add="${add%??}"; }  # if no args, remove trailing ": "
+  printf '%b\n' "${RedBold}x${Reset} ${add:-}${RedBold}${*:-}${Reset}" >&2
+  unset add c
+fi
+

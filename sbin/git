@@ -1,0 +1,25 @@
+#!/bin/sh
+# shellcheck disable=SC2086,SC3045
+
+main () {
+  name="$(basename "${0}")"
+  path="$(cd "$(dirname "${0}")" || exit 1; pwd)/${name}"
+  scripts="$(type -aP "${name}" || which -a "${name}")" || { echo "${name}: ${name}: command not found"; exit 1; }
+
+  for i in ${scripts}; do
+    cmd="$(cd "$(dirname "${i}")" || exit 1; pwd)/${name}"
+    if [ "${cmd}" = "${path}" ] || head -1 "${cmd}" | grep -q '^#\!'; then continue; else break; fi
+  done
+  [ -x "${cmd}" ] || { echo "${name}: ${cmd}: command not found"; exit 1; }
+
+  echo "exec ${cmd} ${*:-}" >/tmp/"${USER}-${name}"
+
+  if [ "${1-}" ]; then
+    exec ${cmd} "${@}"
+  else
+    exec ${cmd}
+  fi
+}
+
+if [ "${1-}" ]; then main "${@}"; else main; fi
+

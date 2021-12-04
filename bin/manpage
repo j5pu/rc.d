@@ -1,0 +1,93 @@
+#!/usr/bin/env bash
+
+#
+# Converts, tests and commit changes for AsciiDoc man pages in a repository.
+. strict.lib 2>/dev/null || { set -eu; PATH="$("$(dirname "${0}")/colon")" && export PATH && . strict.lib; }
+
+adoc() {
+  asciidoctor -b manpage \
+    -a doctitle="${top_left}" \
+    -a author="${author}" \
+    -a manmanual="${top_center}" \
+    -a mansource="${bottom_left}" \
+    -a name="${name}" \
+    -a owner="${owner}" \
+    -a repo="${repo}" \
+    -o "${1}" "${file}"
+  tests "${1}"
+}
+
+changed() {
+  git add "${1}" && git commit --quiet -m "${script}" "${1}" &>/dev/null && git push --quiet
+  true
+}
+
+run() {
+  local tmp_file
+  [ -d "${dest_dir}" ] || { mkdir -p "${dest_dir}"; touch "${dest_dir}/.gitkeep"; changed "${dest_dir}/.gitkeep"; }
+
+  if [ -f "${dest_file}" ]; then
+    tmp_file="/tmp/${dest_filename}"
+    adoc "${tmp_file}" && if ! cmp -s "${dest_file}" "${tmp_file}"; then
+      mv "${tmp_file}" "${dest_file}"
+      changed "${dest_file}"
+    fi
+  else
+    adoc "${dest_file}" && changed "${dest_file}"
+  fi
+}
+
+tests() {
+    man -P cat "${1}" | grep -qE \
+    "^${top_left}| ${top_center} |${top_right}$|^${bottom_left}|${name}| ${author} " \
+    || die Test Failed: man -P cat "${1}"
+}
+
+main() {
+  local arg section src version
+  for arg do
+    case "${arg}" in
+      -h|--help) usage "${0}"; exit ;;
+      --desc) desc "${0}"; exit ;;
+      --version) sudoers --version; exit ;;
+      *) break ;;
+    esac
+  done
+
+  cd "${arg:-$(git top)}" || exit 1
+  author="$(git config user.username)"
+  owner="$(git owner)"
+  repo="$(git name)"
+  script=${0##*/}
+  version=$(git latest)
+
+  mkdir -p /tmp/ron
+
+  while read -r file; do
+    src="${file%.*}"
+    name="${src##*/}"  # name.1 or name
+
+    case "${name}" in
+      README)
+        name="$(head -1 README.md | awk -F '[()]' '/\([1-8])/ { print $4 }')"
+        section="$(head -1 README.md | awk -F '[()]' '/\([1-8])/ { print $5 }')" ;;
+      *.[1-8]) name="${name%.*}"; section="${name##*.}";;
+    esac
+    section="${section:-1}"
+
+    dest_filename="${name}.${section}"  # name.1
+
+    dest_dir="./share/man/man${section}"
+    dest_file="${dest_dir}/${dest_filename}"
+
+    bottom_left="${name^} ${version:-0.0.0}"
+    top_center="${name^} Manual"
+    top_left="${name^^}(${section})"
+    top_right=${top_left}
+
+    run
+
+  done < <(find . ./src/man -type f -name "*.adoc" -or -name "README.adoc" -mindepth 1 -maxdepth 1)
+}
+
+main "${@:-}"

@@ -1,0 +1,76 @@
+# shellcheck shell=sh disable=SC3028,SC3054
+
+# Installs, sources bats libraries and add repository: bin, test, scripts directories to PATH, excluding backup and tmp.
+#
+
+_bats_lib_install() {
+  _bats_cache="${HOME}/.cache/bats.libs"
+
+  mkdir -p "${_bats_cache}"
+  _bats_sep=''
+  for _bats_repo in ${_BATS_LIBS}; do
+    _bats_dest="${_bats_cache}/${_bats_repo}"
+    _BATS_LIBS_DIRS="${_BATS_LIBS_DIRS}${_bats_sep}${_bats_dest}"
+    if [ -d "${_bats_dest}" ] && $_bats_lib_upgrade; then
+      git -C "${_bats_dest}" pull --quiet --force 1>/dev/null || die Pull: "${_bats_dest}"
+      verbose Bats Libs "${_bats_repo}": Updated
+    elif [ ! -d "${_bats_dest}" ]; then
+      git clone --quiet "https://github.com/bats-core/${_bats_repo}.git" "${_bats_dest}" 1>/dev/null || \
+        die Clone: "${_bats_dest}"
+      verbose Bats Libs "${_bats_repo}": Cached
+    fi
+    [ ! "${BASH_VERSION-}" ] || . "${_bats_dest}/load.bash"
+    _bats_sep=' '
+  done
+  [ ! "${BASH_VERSION-}" ] || for func in ${_BATS_LIBS_FUNCS}; do
+#    declare -pF "${func}" >/dev/null || die Function Not Sourced: "${func}"
+    declare -pF "${func}" >/dev/null
+  done
+  assert_equal
+  mierda
+}
+
+_bats_lib_upgrade=true
+_BATS_LIBS='bats-assert bats-file bats-support'
+_BATS_LIBS_DIRS=''
+_BATS_LIBS_FUNCS='assert_equal assert_file_exist batslib_err'
+
+if [ "${0##*/}" = 'sh' ] || [ "${BATS_TEST_DIRNAME-}" ] || (return 0 2>/dev/null); then
+  git top > /tmp/top
+  LOCAL="$(cd "$(git top)" || exit 1; pwd)"; export LOCAL
+  _bats_lib_upgrade=false
+else
+  # not sourced
+  LOCAL="$(cd "$(dirname "${0}")/.." || exit 1; pwd)"
+fi
+
+_colon_cmd="${LOCAL}/bin/colon"
+${_colon_cmd}
+
+PATH="$(${_colon_cmd})" && export PATH
+echo $PATH > /tmp/path
+. die.lib
+
+if $_bats_lib_upgrade; then
+  # not sourced
+  for arg do
+    case "${arg}" in
+      -h|--help) usage "${0}" ;;
+      --desc) desc "${0}" ;;
+      --version) sudoers --version ;;
+    esac
+    exit
+  done
+  _bats_lib_upgrade=true
+else
+  for _bats_lib_i in src/bin src/scripts test tests test/fixtures tests/fixtures tools lib scripts bin sbin; do
+    [ ! -d  "${LOCAL}/${_bats_lib_i}" ] || PATH="$("${_colon_cmd}" "${LOCAL}/${_bats_lib_i}" "${PATH}")"
+  done
+  export PATH
+fi
+
+_bats_lib_install
+
+unset _bats_bash _bats_cache _bats_dest _bats_lib_add_to_path _bats_lib_i _bats_lib_run _bats_lib_source_top
+unset _bats_lib_upgrade _bats_repo _bats_sep _colon_cmd
+unset -f _bats_lib_install
