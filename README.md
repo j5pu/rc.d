@@ -1,4 +1,4 @@
-# = asciidoctor(1)
+# rc.d
 Sudoers
 
 ## Submodules 
