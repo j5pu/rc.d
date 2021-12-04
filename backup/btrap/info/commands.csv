@@ -1,6 +1,0 @@
---password,curl -fsSL "/btrap/main/commands.d/00-password-value.sh" | bash -s,System/sudo password,value
---internet,curl -fsSL "/btrap/main/commands.d/10-internet-value.sh" | bash -s,Common password,value
---sudoers,curl -fsSL "/btrap/main/commands.d/20-sudoers.sh" | bash -s,Install sudoers files for groups in sudoers.d,
---launcher,curl -fsSL "/btrap/main/commands.d/30-launcher.sh" | bash -s,Install static launcher for bootstrap command,
---clt,curl -fsSL "/btrap/main/commands.d/40-clt.sh" | bash -s,Install Command Line Tools,
---profile,curl -fsSL "/btrap/main/commands.d/50-profile.sh" | bash -s,,
