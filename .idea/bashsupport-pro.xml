@@ -27,6 +27,16 @@
       <var name="Reset" />
       <var name="GreyBold" />
       <var name="BlueBold" />
+      <var name="GreenBold" />
+      <var name="RedBg" />
+      <var name="RedBold" />
+      <var name="GreyInvert" />
+      <var name="arg" />
+      <var name="GreyDim" />
+      <var name="CyanBold" />
+      <var name="CyanDim" />
+      <var name="YellowInvert" />
+      <var name="YellowBold" />
     </globalVariables>
   </component>
 </project>
