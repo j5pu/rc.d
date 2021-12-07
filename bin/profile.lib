@@ -3,7 +3,6 @@
 #
 # System profile.
 
-
 unset BASH_ENV ENV
 
 [ "${RCSHARE-}" ] || . root.lib
