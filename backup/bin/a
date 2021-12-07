@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+PATH="$(dirname "${0}"):${PATH}"
+
+#. ./error
+. ./die.lib
+
+# TODO:  y sin son funciones exportadas entonces si que vale o es lo mismo que ejecutable.
+#   Voy a ponerlo en libreria, si importo el die que mas da importar todos. base.lib
+#   porque lo de $$ ...
+main(){
+#  ./error hola
+  false || die Mierda
+}
+
+main

@@ -1,0 +1,63 @@
+# shellcheck shell=sh disable=SC3028,SC3054
+
+# Installs, sources bats libraries and add repository: bin, test, scripts directories to PATH, excluding backup and tmp.
+#
+
+_user_data_home_rc_d="${HOME}/.local/share/rc.d"
+_rc_d_lib_sourced=false
+
+
+_bats_lib_install() {
+  mkdir -p "${_user_data_home_rc_d}"
+  _bats_sep=''
+  for _bats_repo in ${BATS_LIBS}; do
+    _user_data_home_rc_d_dir="${_user_data_home_rc_d}/${_bats_repo}"
+    BATS_LIBS_DIRS="${BATS_LIBS_DIRS}${_bats_sep}${_user_data_home_rc_d_dir}"
+    if [ -d "${_user_data_home_rc_d_dir}" ] && ! $_rc_d_lib_sourced; then
+      git -C "${_user_data_home_rc_d_dir}" pull --quiet --force || \
+        { echo bats.lib: Pull: "${_user_data_home_rc_d_dir}"; exit 1; }
+    elif [ ! -d "${_user_data_home_rc_d_dir}" ]; then
+      git clone --quiet "https://github.com/bats-core/${_bats_repo}.git" "${_user_data_home_rc_d_dir}" || \
+        { echo bats.lib: Clone: "${_user_data_home_rc_d_dir}"; exit 1; }
+    fi
+    [ ! "${BASH_VERSION-}" ] || . "${_user_data_home_rc_d_dir}/load.bash"
+    _bats_sep=' '
+  done
+  [ ! "${BASH_VERSION-}" ] || for func in ${BATS_LIBS_FUNCS}; do
+#    declare -pF "${func}" >/dev/null || die Function Not Sourced: "${func}"
+    declare -pF "${func}" >/dev/null
+  done
+  assert_equal
+  mierda
+}
+
+git top > /tmp/top
+_bats_caller_top="$(cd "$(git top)" || { echo bats.lib: "$(git top)": No such directory; exit 1; }; pwd)"; export LOCAL
+for _bats_lib_i in src/bin src/scripts test tests test/fixtures tests/fixtures tools lib scripts bin sbin; do
+  _bats_add="${_bats_caller_top}/${_bats_lib_i}"
+  [ ! -d "${_bats_add}" ] || PATH="${_bats_add}:${PATH}"
+done
+export PATH
+
+if [ "${0##*/}" = 'sh' ] || [ "${BATS_TEST_DIRNAME-}" ] || (return 0 2>/dev/null); then
+  _rc_d_lib_sourced=true
+else
+  # not sourced
+  for arg do
+    case "${arg}" in
+      -h|--help) usage "${0}" ;;
+      --desc) desc "${0}" ;;
+      --version) rc.d.version ;;
+    esac
+    exit
+  done
+fi
+
+_bats_lib_install
+
+unset _bats_add _bats_lib_i _bats_lib_source_top
+unset _bats_repo _bats_sep
+unset _colon_cmd
+unset _rc_d_lib_sourced
+unset _user_data_home_rc_d
+unset -f _bats_lib_install

@@ -1,0 +1,135 @@
+#!/bin/sh
+
+# Git submodules
+#
+set -eu; PATH="$(dirname "${0}"):${PATH}" && . strict.lib && . die.lib
+
+add() {
+  tmp_add="$(mktemp)"
+  list > "${tmp_add}"
+  while IFS=";" read -r owner repo folder host; do
+    owner="${owner:+${owner}/}"
+    folder="${folder:-${repo}}"
+    git submodule --quiet sync --recursive "${folder}" 2>/dev/null || \
+      git submodule --quiet add "https://${host:-github.com}/${owner}${repo}" "${folder}"
+    git submodule --quiet sync
+    git all
+  done < "${tmp_add}"
+  unset folder host owner repo tmp_add
+}
+
+full() {
+  pull
+  rm
+}
+
+list() { grep -vE '^#|^$' "${file}"; }
+
+names() {
+  if [ "${MODULE:-}" ]; then
+    echo "${MODULE}"
+  else
+    if names="$(git submodule 2>&1)"; then
+      [ "${names-}" ] || die No Git Modules
+      echo "${names}" | awk '{ print $2 }'
+    else
+      if missing="$(echo "${names}" | grep "fatal: no submodule" | awk '{ print $NF }')" && [ "${missing-}" ]; then
+        MODULE="$(echo "${missing}" | sed "s/'//g")"
+        rm || exit 1
+      else
+        echo "${names}"
+        exit 1
+      fi
+    fi
+  fi
+  unset missing names
+}
+
+pull() {
+  add
+  if [ "$(list)" != '' ] || [ "$(git submodule)" != '' ]; then
+    git submodule --quiet update --init --recursive --remote
+    git submodule --quiet foreach "git checkout --quiet; git pull --quiet"
+    git all
+  fi
+}
+
+rm() {
+  tmp_rm="$(mktemp)"
+  names > "${tmp_rm}"
+  while read -r name; do
+    [ "${name-}" ] || exit
+    rm=true
+    tmp_list="$(mktemp)"
+    list > "${tmp_list}"
+    while IFS=";" read -r owner repo folder host; do
+      [ "${name}" != "${repo}" ] || { rm=false; break; }
+    done < "${tmp_list}"
+    if $rm; then
+      path="$(git config --file .gitmodules "submodule.${name}.path")" || true
+      git config --file .gitmodules --unset "submodule.${name}.path"|| true
+      git config --file .gitmodules --unset "submodule.${name}.url" || true
+      git config --unset "submodule.${name}.url" || true
+      git config --unset "submodule.${name}.active" || true
+      if [ ! "${path-}" ] && [ -d "${name}" ] && [ -e "${name}/.git" ]; then
+        printf "Do you want to remove %s" "${name} [Y/n/<path>]: "
+        read -r confirm
+        case "${confirm:-Y}" in
+          Y) path="${name}" ;;
+          n) continue ;;
+          *) [ -d "${confirm}" ] || { echo Invalid Directory: "${confirm}"; exit 1; }; path="${confirm}" ;;
+        esac
+      fi
+      [ "${path-}" ] || { echo Path not Found: "${name}"; exit 1; }
+      git all
+      git rm --cached -r "${path}" >/dev/null 2>&1 || true
+      git rm -rf "${path}" >/dev/null 2>&1 || true
+      command rm -rf "${path}" >/dev/null 2>&1 || true
+      command rm -rf ".git/modules/${name}" >/dev/null 2>&1 || true
+      git all
+    fi
+  done < "${tmp_rm}"
+  git submodule --quiet sync
+  git all
+  unset confirm folder host name owner path repo rm tmp_rm tmp_list
+}
+
+#######################################
+# Git submodules
+# Arguments:
+#   function
+#   file        Directory in a git repository or file with submodules.text format (owner;repo;folder;host).
+#               Default directory: current work dir, default filename: .gitmodules.text
+#   module      Optional for rm.
+#######################################
+main() {
+  export MODULE
+  for arg do
+    case "${arg}" in
+      -h|--help) usage "${0}" ;;
+      --desc) desc "${0}" ;;
+      --version) rc.d.version ;;
+      --debug) DEBUG=1 ;;
+      --quiet) QUIET=1 ;;
+      --warning) WARNING=1 ;;
+      --verbose) VERBOSE=1 ;;
+      --name=*) MODULE="$(echo "${arg}" | sed 's/--name=//')" ;;
+      add|full|list|names|pull|rm) func="${arg}" ;;
+      *) file="${arg}" ;;
+    esac
+  done; unset arg
+  func="${func:-pull}"
+  file="${file:-.}"
+  if [ -f "${file}" ]; then
+    cd "$(dirname "${file}")"
+  elif [ -d "${file}"  ]; then
+    cd "$(git top)" || die Invalid Git Dir: "'$(git top)'", for: "'${file}'"
+    file="$(pwd)/.gitmodules.text"
+  else
+    die Invalid File: "${file}"
+  fi
+  "${func}"
+  unset func
+}
+
+if [ "${1-}" ]; then main "${@}"; else main; fi

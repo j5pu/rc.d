@@ -1,0 +1,27 @@
+# shellcheck shell=sh
+
+# <html><h2>Force Updating Shared Libraries</h2>
+# <p><strong><code>$FORCE</code></strong> (Default: unset).</p>
+# <h3>Examples</h3>
+# <dl>
+# <dt>For all shared libraries:</dt>
+# <dd>
+# <pre><code class="language-bash">FORCE=1 . profile.lib
+# </code></pre>
+# </dd>
+# </dl>
+# <dl>
+# <dt>From a shared library:</dt>
+# <dd>
+# <pre><code class="language-bash">FORCE=1 . os.lib
+# FORCE=1 . color.lib
+# </code></pre>
+# </dd>
+# </dl>
+# </html>
+export FORCE
+
+# <html><h2>Generated rc.d Shell Libraries</h2>
+# <p><strong><code>$RCSHARE</code></strong> contains the directory to store auto generated libraries.</p>
+# </html>
+export RCSHARE="/usr/local/bin/share/rc.d"

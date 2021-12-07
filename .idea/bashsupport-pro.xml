@@ -10,11 +10,23 @@
           <source path="bin/strict.lib" />
           <source path="bin/os.lib" />
           <source path="bin/rebash.lib" />
+          <source path="bin/sh.lib" />
         </sources>
         <targets>
           <target recursive="true" />
         </targets>
       </library>
     </scriptLibraries>
+    <globalVariables>
+      <var name="_user_data_home_rc_d" />
+      <var name="_bats_repo" />
+      <var name="_bats_sep" />
+      <var name="_rc_d_lib_sourced" />
+      <var name="file" />
+      <var name="Green" />
+      <var name="Reset" />
+      <var name="GreyBold" />
+      <var name="BlueBold" />
+    </globalVariables>
   </component>
 </project>

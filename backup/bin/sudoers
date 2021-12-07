@@ -1,0 +1,17 @@
+#!/bin/sh
+
+# Patches sudo with -i option and manages sudoers
+#
+set -eu; PATH="$(dirname "${0}"):${PATH}" && . strict.lib
+
+main() {
+  for arg do
+    case "${arg}" in
+      -h|--help) usage "${0}" ;;
+      --desc) desc "${0}" ;;
+      --version) rc.d.version ;;
+    esac
+  done
+}
+
+main "${@:-}"

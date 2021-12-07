@@ -1,0 +1,22 @@
+#!/bin/sh
+
+# Show help for script (absolute path) or executable (in PATH).
+#
+set -eu; PATH="$(dirname "${0}"):${PATH}" && . strict.lib && . die.lib
+
+main() {
+  cmd="${1##*/}"
+  command -v man >/dev/null || die Command Not Found: man
+  man -P cat "${cmd}" 2>/dev/null || die Man Page Not Found: "${cmd}"
+  exit
+}
+
+for arg do
+  case "${arg}" in
+    -h|--help) main "${0}" ;;
+    --desc) desc "${0}" ;;
+    --version) rc.d.version ;;
+  esac
+done
+
+main "${1:-}"

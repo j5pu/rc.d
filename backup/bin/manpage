@@ -1,0 +1,96 @@
+#!/bin/sh
+
+#
+# Converts, tests and commit changes for AsciiDoc man pages in a repository.
+set -eu; PATH="$(dirname "${0}"):${PATH}" && . strict.lib && . die.lib
+
+adoc() {
+  asciidoctor -b manpage \
+    -a doctitle="${top_left}" \
+    -a author="${author}" \
+    -a manmanual="${top_center}" \
+    -a mansource="${bottom_left}" \
+    -a name="${name}" \
+    -a owner="${owner}" \
+    -a repo="${repo}" \
+    -o "${1}" "${file}"
+  tests "${1}"
+}
+
+changed() {
+  git add "${1}" && git commit --quiet -m "${script}" "${1}" >/dev/null 2>&1 && git push --quiet
+  true
+}
+
+run() {
+  tmp_run="$(mktemp)"
+  [ -d "${dest_dir}" ] || { mkdir -p "${dest_dir}"; touch "${dest_dir}/.gitkeep"; changed "${dest_dir}/.gitkeep"; }
+
+  if [ -f "${dest_file}" ]; then
+    tmp_file="/tmp/${dest_filename}"
+    adoc "${tmp_file}" && if ! cmp -s "${dest_file}" "${tmp_run}"; then
+      mv "${tmp_run}" "${dest_file}"
+      changed "${dest_file}"
+    fi
+  else
+    adoc "${dest_file}" && changed "${dest_file}"
+  fi
+  unset tmp_run
+}
+
+tests() {
+    man -P cat "${1}" | grep -qE \
+    "^${top_left}| ${top_center} |${top_right}$|^${bottom_left}|${name}| ${author} " \
+    || die Test Failed: man -P cat "${1}"
+}
+
+main() {
+  for arg do
+    case "${arg}" in
+      -h|--help) usage "${0}" ;;
+      --desc) desc "${0}" ;;
+      --version) rc.d.version ;;
+      *) break ;;
+    esac
+  done
+
+  cd "${arg:-$(git top)}" || die Invalid Directory: "${arg}", or Git Top "$(git top)"
+  author="$(git config user.username)"
+  owner="$(git owner)"
+  repo="$(git name)"
+  script=${0##*/}
+  version=$(git latest)
+
+  mkdir -p /tmp/ron
+
+  tmp_main="$(mktemp)"
+  find . ./src/man -type f -name "*.adoc" -or -name "README.adoc" -mindepth 1 -maxdepth 1 > "${tmp_main}"
+  while read -r file; do
+    src="${file%.*}"
+    name="${src##*/}"  # name.1 or name
+
+    case "${name}" in
+      README)
+        name="$(head -1 README.md | awk -F '[()]' '/\([1-8])/ { print $4 }')"
+        section="$(head -1 README.md | awk -F '[()]' '/\([1-8])/ { print $5 }')" ;;
+      *.[1-8]) name="${name%.*}"; section="${name##*.}";;
+    esac
+    section="${section:-1}"
+
+    dest_filename="${name}.${section}"  # name.1
+
+    dest_dir="./share/man/man${section}"
+    dest_file="${dest_dir}/${dest_filename}"
+
+    capitilize="$(echo "${name}" | awk '{ print toupper( substr( $0, 1, 1 ) ) substr( $0, 2); }')"
+    bottom_left="${capitilize} ${version:-0.0.0}"
+    top_center="${capitilize} Manual"
+    top_left="$(echo "${name}" | tr '[:lower:]' '[:upper:]')(${section})"
+    top_right=${top_left}
+
+    run
+  done < "${tmp_main}"
+  unset capitilize
+}
+
+main "${@:-}"

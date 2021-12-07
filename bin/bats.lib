@@ -1,76 +1,62 @@
-# shellcheck shell=sh disable=SC3028,SC3054
+# shellcheck shell=sh disable=SC3028
 
 # Installs, sources bats libraries and add repository: bin, test, scripts directories to PATH, excluding backup and tmp.
 #
 
-_bats_lib_install() {
-  _bats_cache="${HOME}/.cache/bats.libs"
+# <html><h2>Bats Libraries Repository Names</h2>
+# <p><strong><code>$BATS_LIBS</code></strong>.</p>
+# </html>
+BATS_LIBS='bats-assert bats-file bats-support'
 
-  mkdir -p "${_bats_cache}"
-  _bats_sep=''
-  for _bats_repo in ${_BATS_LIBS}; do
-    _bats_dest="${_bats_cache}/${_bats_repo}"
-    _BATS_LIBS_DIRS="${_BATS_LIBS_DIRS}${_bats_sep}${_bats_dest}"
-    if [ -d "${_bats_dest}" ] && $_bats_lib_upgrade; then
-      git -C "${_bats_dest}" pull --quiet --force 1>/dev/null || die Pull: "${_bats_dest}"
-      verbose Bats Libs "${_bats_repo}": Updated
-    elif [ ! -d "${_bats_dest}" ]; then
-      git clone --quiet "https://github.com/bats-core/${_bats_repo}.git" "${_bats_dest}" 1>/dev/null || \
-        die Clone: "${_bats_dest}"
-      verbose Bats Libs "${_bats_repo}": Cached
+# <html><h2>Bats Libraries Installation Paths</h2>
+# <p><strong><code>$BATS_LIBS_DIRS</code></strong>.</p>
+# </html>
+BATS_LIBS_DIRS=''
+
+# <html><h2>Bats Libraries Sample Functions to test Bats Libraries</h2>
+# <p><strong><code>$BATS_LIBS_FUNCS</code></strong>.</p>
+# </html>
+BATS_LIBS_FUNCS='assert_equal assert_file_exist batslib_err'
+
+# <html><h2>Git Top Path</h2>
+# <p><strong><code>$BATS_TOP</code></strong> contains the git top directory when sourced from a git dir.</p>
+# </html>
+BATS_TOP=''
+
+
+if ! command -v assert_equal > /dev/null; then
+  BATS_TOP="$(git top || true)"
+  [ ! "${BATS_TOP-}" ] || for i in src/bin src/scripts test tests test/fixtures tests/fixtures tools lib scripts \
+    bin sbin; do
+    d="${BATS_TOP}/${i}"
+    [ ! -d "${d}" ] || PATH="${d}:${PATH}"
+  done
+
+  [ "${Red-}" ] || . color.lib
+
+  dir="${RCSHARE:-/tmp}/bats"
+  [ -d "${dir}" ] || mkdir "${dir}"
+
+  for i in ${BATS_LIBS}; do
+    d="${dir}/${i}"; BATS_LIBS_DIRS="${d} ${BATS_LIBS_DIRS}"
+    if [ ! -d "${d}" ]; then
+      git clone --quiet "https://github.com/bats-core/${i}.git" "${d}" || { return >/dev/null || exit; }
+    elif [ "${FORCE-}" ]; then
+      git -C "${d}" pull --quiet --force || { return >/dev/null || exit; }
     fi
-    [ ! "${BASH_VERSION-}" ] || . "${_bats_dest}/load.bash"
-    _bats_sep=' '
+    [ ! "${BASH_VERSION-}" ] || . "${d}/load.bash"
   done
-  [ ! "${BASH_VERSION-}" ] || for func in ${_BATS_LIBS_FUNCS}; do
-#    declare -pF "${func}" >/dev/null || die Function Not Sourced: "${func}"
-    declare -pF "${func}" >/dev/null
+  [ ! "${BASH_VERSION-}" ] || for i in ${BATS_LIBS_FUNCS}; do
+    command -v "${i}" >/dev/null || { return >/dev/null || exit; }
   done
-  assert_equal
-  mierda
-}
 
-_bats_lib_upgrade=true
-_BATS_LIBS='bats-assert bats-file bats-support'
-_BATS_LIBS_DIRS=''
-_BATS_LIBS_FUNCS='assert_equal assert_file_exist batslib_err'
-
-if [ "${0##*/}" = 'sh' ] || [ "${BATS_TEST_DIRNAME-}" ] || (return 0 2>/dev/null); then
-  git top > /tmp/top
-  LOCAL="$(cd "$(git top)" || exit 1; pwd)"; export LOCAL
-  _bats_lib_upgrade=false
-else
-  # not sourced
-  LOCAL="$(cd "$(dirname "${0}")/.." || exit 1; pwd)"
+  unset d dir i
 fi
 
-_colon_cmd="${LOCAL}/bin/colon"
-${_colon_cmd}
-
-PATH="$(${_colon_cmd})" && export PATH
-echo $PATH > /tmp/path
-. die.lib
-
-if $_bats_lib_upgrade; then
-  # not sourced
-  for arg do
-    case "${arg}" in
-      -h|--help) usage "${0}" ;;
-      --desc) desc "${0}" ;;
-      --version) sudoers --version ;;
-    esac
-    exit
-  done
-  _bats_lib_upgrade=true
-else
-  for _bats_lib_i in src/bin src/scripts test tests test/fixtures tests/fixtures tools lib scripts bin sbin; do
-    [ ! -d  "${LOCAL}/${_bats_lib_i}" ] || PATH="$("${_colon_cmd}" "${LOCAL}/${_bats_lib_i}" "${PATH}")"
-  done
-  export PATH
+# <html><h2>Header for Test Names</h2>
+# <p><strong><code>$BATS_HEADER</code></strong> contains the basename prefix of the file running tests.</p>
+# </html>
+export BATS_HEADER
+if [ "${BATS_TEST_FILENAME}" ]; then
+  BATS_HEADER="$(printf '%b' "[${BlueBold}$(basename "${BATS_TEST_FILENAME##*/}" .bats)${Reset}]")"
 fi
-
-_bats_lib_install
-
-unset _bats_bash _bats_cache _bats_dest _bats_lib_add_to_path _bats_lib_i _bats_lib_run _bats_lib_source_top
-unset _bats_lib_upgrade _bats_repo _bats_sep _colon_cmd
-unset -f _bats_lib_install

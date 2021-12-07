@@ -1,0 +1,20 @@
+# shellcheck shell=sh
+
+#
+# System profile.
+
+
+unset BASH_ENV ENV
+
+[ "${RCSHARE-}" ] || . root.lib
+
+BASH_ENV="$(command -pv profile.lib || echo /etc/profile)"
+ENV="${BASH_ENV}"
+
+####################################### PS1
+# Moved here since needed by sudo because it's not exported and needed by sudoers shell_noargs ('sudo -S').
+# BASH_ENV/ENV will trigger the assignment.
+if [ "${PS1-}" ]; then
+    export Reset='\033[0m'
+    PS1="\[\e]0;\h@\u: \w\a\]${Reset}"
+fi

@@ -1,0 +1,31 @@
+#!/bin/sh
+
+####################################### ✓ pscmd: exported function
+# Parent process cmd (cmd/command part of ps) if in a subshell or cmd of the current shell if running in a subshell.
+# $$ is defined to return the process ID of the parent in a subshell; from the man page under "Special Parameters":
+# expands to the process ID of the shell. In a () subshell, it expands to the process ID of the current shell,
+# not the subshell.
+# Arguments:
+#   --usage             Show help message and exit.
+# Outputs:
+#   Process (ps) cmd.
+# Returns:
+#   1 if error during installation of procps or not know to install ps or --usage and not man page.
+# ######################################
+usage "${@}" || exit 1
+if has ps; then
+  if [ "${DARWIN-}" ]; then
+    ps -p$$ -ocommand=
+  elif [ "${ALPINE-}" ] && [ "${BUSYBOX-}" ]; then
+    ps -o pid= -o comm= | awk '/$$/ { $1=$1 };1' | grep "^$$ " | awk '{ print $2 }'
+  else
+    ps -p$$ -ocmd=
+  fi
+else
+  if [ "${DEBIAN-}" ] || [ "${FEDORA-}" ] ; then
+    ${PM_INSTALL} procps || die 1 "procps: could not be installed"
+    ps -p$$ -ocmd=
+  else
+    die 1 "ps: do not know how to install"
+  fi
+fi

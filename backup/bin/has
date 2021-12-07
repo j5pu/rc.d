@@ -1,0 +1,44 @@
+#!/bin/sh
+
+# Check if an executable exists (which) excluding rc SBIN
+#
+set -eu; PATH="$(dirname "${0}"):${PATH}" && . strict.lib
+
+#######################################
+# Check if an executable exists (which) excluding rc SBIN
+# Arguments:
+#   -c                  Use command instead of which.
+#   -v                  Show path.
+#   --usage             Show help message and exit.
+#   executable          Executable to check.
+# Returns:
+#   1 if does not exists.
+# Output:
+#   Help message to stdout.
+#######################################
+c="which"
+v=false
+for arg; do
+  case "${arg}" in
+    -h|--help) usage "${0}";;
+    --desc) desc "${0}" ;;
+    --version) rc.d.version ;;
+    -c) c="command -v" ;;
+    -v) v=true ;;
+    *) exe="${arg}";;
+  esac
+done
+
+#  p="${PATH}"
+rv="$(PATH="$(echo "${PATH}" | sed "s|${SBIN}:||g; s|${ETC_SBIN:-@}:||g")" ${c} "${exe}")" && { ! $v || echo "${rv}"; }
+#  rc=$?
+#  $v && [ "${rv}" ]
+#    $v && echo "${rv}"
+#  rc=$?
+#  if $v; then
+#    rv="$(${cmd} ${c} "${exe}")"
+#  else
+#    ${cmd} ${c} "${exe}" 1>/dev/null
+#  fi
+#  rc=$?; PATH="${p}"; [ ! "${rv-}" ] || echo "${rv}"; { return "${rc}" 2>/dev/null || exit "${rc}"; }
+

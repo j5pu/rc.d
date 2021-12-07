@@ -1,8 +1,0 @@
-<component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="colon /foo /bar:/foo --remove" type="BashProRunConfiguration" folderName="colon" singleton="false">
-    <option name="scriptParameters" value="/foo /bar:/foo --remove" />
-    <option name="scriptPath" value="$PROJECT_DIR$/etc/bin/colon" />
-    <RunnerSettings bashdbVersion="Automatic" bashPathMapper="Automatic" RunnerId="pro.bashsupport.shDebugRunner" />
-    <method v="2" />
-  </configuration>
-</component>

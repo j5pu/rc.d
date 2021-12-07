@@ -2,267 +2,70 @@
 
 # Color library
 #
-_color_cache_dir="${HOME}/.cache/color.lib"
-_color_cache_file="${_color_cache_dir}/colors"
-_color_sourced=false
-if [ "${0##*/}" = 'sh' ] || (return 0 2>/dev/null); then
-  _color_sourced=true
-  # already sourced and colors exported
-  { [ ! "${Red-}" ] || [ ! -r "${_color_cache_file}" ]; } || { return 0 2>/dev/null || exit 0; }
+dir="${RCSHARE:-/tmp}/color"
+file="${dir}/color.sh"
+
+if [ ! "${Red-}" ] || [ ! -r "${file}" ]; then
+  if [ ! -r "${file}" ] || [ "${FORCE-}" ]; then
+    [ -d "${dir}" ] || mkdir "${dir}"
+    rm -f "${file-}"
+
+    color() {
+      co=${1}${4:-}; COLORS="${COLORS:-}${5:-}${co}"
+      f="$(echo "${co}" | tr '[:upper:]' '[:lower:]')"; COLOR_FUNCS="${COLOR_FUNCS:-}${5:-}${f}"
+
+      eval "${co}"='\033[${2}${3}'
+      tee -a "${file}" > /dev/null <<EOF
+# <html><h2>${1} ${4:-}</h2>
+# <p><strong><code>\$${co}</code></strong> Color ${1} ${4:-}.</p>
+# </html>
+export ${co}='\033[${2}${3}'
+
+# <html><h2>${f} - Show arguments in ${co}</h2>
+# <h3>Examples</h3>
+# <dl>
+# <dt>Show arguments in ${co}:</dt>
+# <dd>
+# <pre><code class="language-bash">${f} Show Text
+# </code></pre>
+# </dd>
+# </dl>
+# </html>
+${f}() { printf '%b' "\${${co}}\${@:-}\${Reset}"; }
+
+EOF
+    unset co f
+    }
+
+    i=0; COLORS=""
+    color 'Reset' "${i}" 'm' '' ''
+    for c in Black Red Green Yellow Blue Magenta Cyan Grey; do
+      color "${c}" "3${i}" 'm'    ''        ' '
+      color "${c}" "3${i}" ';1m'  'Bold'    ' '
+      color "${c}" "3${i}" ';2m'  'Dim'     ' '
+      color "${c}" "3${i}" ';4m'  'Under'   ' '
+      color "${c}" "3${i}" ';7m'  'Invert'  ' '
+      color "${c}" "4${i}" 'm'    'Bg'      ' '
+      i="$((i+1))"
+    done
+
+          tee -a "${file}" > /dev/null <<EOF
+# <html><h2>All Colors</h2>
+# <p><strong><code>\$COLORS</code></strong> All colors for 'color' script and testing.</p>
+# </html>
+COLORS='${COLORS}'
+
+# <html><h2>Color Functions</h2>
+# <p><strong><code>\$COLOR_FUNCS</code></strong> All color functions for 'color' script and testing.</p>
+# </html>
+COLOR_FUNCS='${COLOR_FUNCS}'
+
+EOF
+
+    unset -f color
+    unset c i
+  fi
+  . "${file}"
 fi
 
-# <html><h2>Show Debug Messages</h2>
-# <p><strong><code>$DEBUG</code></strong>.</p>
-# <p><strong><code>Default: unset</code></strong> (debug messages are not shown).</p>
-# <p>Activate with either of:</p>
-# <ul>
-# <li><code>DEBUG=1</code></li>
-# <li><code>--debug</code></li>
-# </ul>
-# </html>
-export DEBUG
-# <html><h2>Silent Output</h2>
-# <p><strong><code>$QUIET</code></strong>.</p>
-# <p><strong><code>Default: unset</code></strong>. The following messages are shown:.</p>
-# <ul>
-# <li><code>error</code></li>
-# <li><code>ok</code></li>
-# </ul>
-# <p><strong><code>Other messages are shown base on the variable value:</code></strong>, the following messages are shown: (ok and error messages shown).</p>
-# <ul>
-# <li><code>debug</code>: $DEBUG</li>
-# <li><code>verbose</code>: $VERBOSE</li>
-# <li><code>warning</code>: $WARNING</li>
-# </ul>
-# <p>Activate with either of:</p>
-# <ul>
-# <li><code>QUIET=1</code></li>
-# <li><code>--quiet</code></li>
-# </ul>
-# <p><strong><code>Note:</code></strong></p>
-# <p>Takes precedence over $DEBUG, $VERBOSE and $WARNING.</p>
-# </html>
-export QUIET
-# <html><h2>Show Verbose Messages</h2>
-# <p><strong><code>$VERBOSE</code></strong>.</p>
-# <p><strong><code>Default: unset</code></strong> (verbose messages are not shown).</p>
-# <p>Activate with either of:</p>
-# <ul>
-# <li><code>VERBOSE=1</code></li>
-# <li><code>--verbose</code></li>
-# </ul>
-# </html>
-export VERBOSE
-# <html><h2>Show Warning Messages</h2>
-# <p><strong><code>$WARNING</code></strong>.</p>
-# <p><strong><code>Default: unset</code></strong> (warning messages are not shown).</p>
-# <p>Activate with either of:</p>
-# <ul>
-# <li><code>WARNING=1</code></li>
-# <li><code>--warning</code></li>
-# </ul>
-# </html>
-export WARNING
-
-####################################### _color_main
-# Show colors and functions examples when not sourced
-# ######################################
-# shellcheck disable=SC3053,SC3057,SC3040
-_color_main() {
-  set -eu
-  . "$(dirname "${0}")/rebash.lib" && rebash "${0}"
-  for arg do
-    case "${arg}" in
-      -h|--help) usage "${0}" ;;
-      --desc) desc "${0}" ;;
-      --test) _color_test ;;
-      --version) sudoers --version ;;
-    esac
-    exit
-  done
-  _color_show
-}
-
-####################################### _color_set
-# Set color
-# ######################################
-_color_set() {
-  _colors="${_colors}${_color_sep}${1}"
-  echo "export ${1}='\033[${2}${3}'" >> "${_color_cache_file}"
-}
-
-####################################### _color_show
-# Show colors and helper functions output
-# ######################################
-_color_show(){
-  if [ "${BASH_VERSION-}" ]; then
-    for i in ${_colors}; do
-      # shellcheck disable=SC3053
-      printf "%b\n" "${!i}${i}${Reset}"
-    done
-  fi
-
-  echo
-
-  export VAR1=1 VAR2=2
-  debug Debug Message: not shown "DEBUG unset"
-  DEBUG=1 debug VAR1
-  DEBUG=1 debug VAR1 VAR2
-  DEBUG=1 debug
-  DEBUG=1
-  QUIET=1 debug Not Shown: "QUIET=1"
-
-  echo
-
-  error Error Message
-  error
-  QUIET=1 error Not Shown: "QUIET=1"
-
-  echo
-
-  ok Ok Message
-  ok
-  QUIET=1 ok Not Shown: "QUIET=1"
-
-  echo
-
-  VERBOSE=1 verbose Verbose Message: "VERBOSE=1"
-  VERBOSE=1 verbose
-  VERBOSE=1
-  QUIET=1 verbose Not Shown: "QUIET=1"
-
-  echo
-
-  WARNING=1 warning Warning Message: "WARNING=1"
-  WARNING=1 warning
-  WARNING=1
-  QUIET=1 warning Not shown: "QUIET=1"
-
-  echo
-
-  die Die Message
-
-}
-
-####################################### _color_test
-# Test colors and helper functions output
-# ######################################
-_color_test() {
-  rm -f "${_color_cache_file}"
-  output="$(. "${0}" 2>&1)"
-  # > Colors: Cached
-  echo "${output}" | grep -q "Colors: Cached"
-  # > Colors: Sourced
-  echo "${output}" | grep -q "Colors: Sourced"
-
-  [ -r "${_color_cache_file}" ]
-
-  unset Red
-  output="$(. "${0}" 2>&1)"
-  # No: > Colors: Cached
-  echo "${output}" | grep -q "Colors: Cached" && false
-  # > Colors: Sourced
-  echo "${output}" | grep -q "Colors: Sourced" && false
-
-  output="$(. "${0}" 2>&1)"
-  # No: > Colors: Cached
-  echo "${output}" | grep -q "Colors: Cached" && false
-  # No: > Colors: Sourced
-  echo "${output}" | grep -q "Colors: Sourced" && false
-
-  output="$("${0}" 2>&1)"
-
-  # + color.lib[80]: VAR1=1, VAR2=2
-  echo "${output}" | grep -qE '\+.*color.lib\[.*].*: .*VAR1=1,.*$'
-  # + color.lib[81]: VAR1=1
-  echo "${output}" | grep -E '\+.*color.lib\[.*].*: .*VAR1=1.*$' | grep -qv ','
-  # + color.lib[82]
-  echo "${output}" | grep -E '\+.*color.lib\[.*].*$' | grep -qv ':'
-
-  # x color.lib[88]: Error Message
-  echo "${output}" | grep -qE 'x.*color.lib\[.*].*: .*Error Message.*$'
-  # x color.lib[89]
-  echo "${output}" | grep -E 'x.*color.lib\[.*].*$' | grep -qv ':'
-
-  # ✓ Ok Message
-  echo "${output}" | grep -qE '✓*Ok Message.*$'
-  # ✓
-  echo "${output}" | grep -E '✓*$' | grep -qv ' '
-
-  # > Verbose Message: VERBOSE=1
-  echo "${output}" | grep -qE '>*Verbose Message: VERBOSE=1.*$'
-  # >
-  echo "${output}" | grep -E '>*$' | grep -qv ' '
-
-
-  # ! color.lib[107]: Warning Message: WARNING=1
-  echo "${output}" | grep -qE '!.*color.lib\[.*].*: .*Warning Message: WARNING=1.*$'
-  # ! color.lib[108]
-  echo "${output}" | grep -E '!.*color.lib\[.*].*$' | grep -qv ':'
-
-  # ✓ Die Message
-  echo "${output}" | grep -qE '✓*Die Message.*$'
-
-  set +e; echo "${output}" | grep -q 'Not Shown' && false
-}
-
-####################################### _colors_set
-# Set Colors
-# https://www.lihaoyi.com/post/BuildyourownCommandLinewithANSIescapecodes.html
-# Contain the unicode Ansi escapes (\u001b) to be used in any language, e.g. Java, Python and Javascript).
-# Globals:
-#   _colors                All color names.
-#   <Name>                 Color foreground.
-#   <Name>Bg               Color background.
-#   <Name>Bold             Color bold/bright.
-#   <Name>Dim              Color dimmed.
-#   <Name>Under            Color underscored.
-#   Reset                  Reset color.
-# ######################################
-_colors_set() {
-  if [ ! -r "${_color_cache_file}" ]; then
-    [ -d "${_color_cache_dir}" ] || mkdir "${_color_cache_dir}"
-    _color_index=0; _color_sep=''; _colors=""
-    _color_set 'Reset' "${_color_index}" 'm'
-    _color_sep=' '
-    for _color_name in Black Red Green Yellow Blue Magenta Cyan Grey; do
-      _color_set "${_color_name}" "3${_color_index}" 'm'
-      _color_set "${_color_name}Bold" "3${_color_index}" ';1m'
-      _color_set "${_color_name}Dim" "3${_color_index}" ';2m'
-      _color_set "${_color_name}Under" "3${_color_index}" ';4m'
-      _color_set "${_color_name}Invert" "3${_color_index}" ';7m'
-      _color_set "${_color_name}Bg" "4${_color_index}" 'm'
-      export _color_index="$((_color_index+1))"
-    done
-    echo "_colors='${_colors}'" >> "${_color_cache_file}"
-    unset -f _color_set
-    unset _color_name _color_index _color_sep
-    verbose Colors: Cached
-  fi
-  . "${_color_cache_file}"
-}
-
-_colors_set
-$_color_sourced || _color_main "${@}"
-verbose Colors: Sourced
-
-unset _color_cache_file _color_cache_dir _color_sourced _colors
-unset -f _color_main _color_show _color_test _colors_set
-
-cat >/tmp/z <<EOF
-. /Users/jose/sudoers/bin/color.lib
-warning Warning: 1
-warning Warning: 2
-VAR1=1
-debug VAR1
-VAR2=2
-debug VAR1 VAR2
-debug
-echo "\${Red}"
-EOF
-chmod +x /tmp/z
-
-# VERBOSE=1 . /Users/jose/sudoers/bin/color.lib
-# VERBOSE=1 /tmp/z
-# WARNING=1 /tmp/z
-# DEBUG=1 /tmp/z
+unset dir file

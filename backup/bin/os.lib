@@ -1,0 +1,215 @@
+# shellcheck shell=sh
+
+# OS library
+#
+_user_data_home_rc_d="${HOME}/.local/share/rc.d"
+_user_data_home_rc_d_file="${_user_data_home_rc_d}/os"
+_rc_d_lib_sourced=false
+if [ "${0##*/}" = 'sh' ] || (return 0 2>/dev/null); then
+  _rc_d_lib_sourced=true
+  # already sourced and os exported
+  { [ ! "${UNAME-}" ] || [ ! -r "${_user_data_home_rc_d_file}" ]; } || { return 0 2>/dev/null || exit 0; }
+fi
+
+# <html><h2>Distribution Codename</h2>
+# <p><strong><code>$DIST_CODENAME</code></strong> (always exported).</p>
+# <ul>
+# <li><code>Catalina</code></li>
+# <li><code>Big Sur</code></li>
+# <li><code>kali-rolling</code></li>
+# <li><code>focal</code></li>
+# <li><code>etc.</code></li>
+# </ul>
+# </html>
+DIST_CODENAME=''; export DIST_CODENAME
+# <html><h2>Distribution ID</h2>
+# <p><strong><code>$DIST_ID</code></strong> (always exported).</p>
+# <ul>
+# <li><code>alpine</code></li>
+# <li><code>centos</code></li>
+# <li><code>debian</code></li>
+# <li><code>kali</code></li>
+# <li><code>macOS</code></li>
+# <li><code>ubuntu</code></li>
+# </ul>
+# </html>
+DIST_ID=''; export DIST_ID
+# <html><h2>Distribution Version</h2>
+# <p><strong><code>$DIST_ID</code></strong> (always exported).</p>
+# <ul>
+# <li><code>macOS</code>: 10.15.1, 10.16 ...</li>
+# <li><code>kali</code>: 2021.2, ...</li>
+# <li><code>ubuntu</code> 20.04, ...</li>
+# </ul>
+# </html>
+DIST_VERSION=''; export DIST_VERSION
+# <html><h2>First part of hostname</h2>
+# <p><strong><code>$HOST</code></strong> (always exported).</p>
+# <ul>
+# <li><code>foo.com</code>: foo</li>
+# <li><code>example.foo.com</code>: example</li>
+# </ul>
+# </html>
+HOST="$(hostname | cut -d. -f1)"; export HOST
+# <html><h2>Is MACOS?</h2>
+# <p><strong><code>$MACOS</code></strong> (always exported).</p>
+# <p><strong><code>Boolean</code></strong></p>
+# <ul>
+# <li><code>true</code>: $UNAME is darwin</li>
+# <li><code>false</code>: $UNAME is linux</li>
+# </ul>
+# </html>
+MACOS='true'; export MACOS
+# <html><h2>Default Package Manager</h2>
+# <p><strong><code>$PM</code></strong> (always exported).</p>
+# <ul>
+# <li><code>apk</code></li>
+# <li><code>apt</code></li>
+# <li><code>brew</code></li>
+# <li><code>nix</code></li>
+# <li><code>yum</code></li>
+# </ul>
+# </html>
+PM='brew'; export PM
+# <html><h2>Default Package Manager with Install Options</h2>
+# <p><strong><code>$PM_INSTALL</code></strong> (always exported).</p>
+# <p><strong><code>Quiet and no cache (for containers)</code></strong>.</p>
+# <ul>
+# <li><code>apk</code></li>
+# <li><code>apt</code></li>
+# <li><code>brew</code></li>
+# <li><code>nix</code></li>
+# <li><code>yum</code></li>
+# </ul>
+# </html>
+PM_INSTALL=''; export PM_INSTALL
+# <html><h2>Operating System System Name</h2>
+# <p><strong><code>$UNAME</code></strong> (always exported).</p>
+# <ul>
+# <li><code>darwin</code></li>
+# <li><code>linux</code></li>
+# </ul>
+# </html>
+UNAME="$(uname -s | tr '[:upper:]' '[:lower:]')"; export UNAME
+
+####################################### _os_main
+# Show oss and functions examples when not sourced
+# ######################################
+# shellcheck disable=SC3053,SC3057,SC3040
+_os_main() {
+  set -eu; PATH="$(dirname "${0}"):${PATH}" && . strict.lib
+  for arg do
+    case "${arg}" in
+      -h|--help) usage "${0}" ;;
+      --desc) desc "${0}" ;;
+      --version) rc.d.version ;;
+    esac
+  done
+  _os_show
+}
+
+####################################### _os_set
+# Set OS variables
+# ######################################
+_os_set() {
+  if [ ! -r "${_os_cache_file}" ]; then
+    [ -d "${_os_cache_dir}" ] || mkdir "${_os_cache_dir}"
+    _os_save_common
+    verbose OS: Cached
+  fi
+  . "${_os_cache_file}"
+}
+
+####################################### _os_save_common
+# Set OS common variables
+# ######################################
+_os_save_common() {
+  if [ ! -r "${_os_cache_file}" ]; then
+    [ -d "${_os_cache_dir}" ] || mkdir "${_os_cache_dir}"
+      tee "${__PROFILE_GENERATED}" > /dev/null <<EOF
+
+export DIST_CODENAME='${DIST_CODENAME}'
+export DIST_ID='${DIST_ID}'
+export DIST_VERSION='${DIST_VERSION}'
+export HOST='${HOST}'
+export MACOS=${MACOS}
+export PM='${PM}'
+export PM_INSTALL='${PM_INSTALL}'
+export UNAME='${UNAME}'
+EOF
+  fi
+}
+
+####################################### _os_show
+# Show oss and helper functions output
+# ######################################
+_os_show(){ grep 'export' "${_os_cache_file}" | sed 's/export //g' | sort; }
+
+####################################### _os_test
+# Test oss and helper functions output
+# ######################################
+_os_test() {
+  rm -f "${_os_cache_file}"
+  output="$(. "${0}" 2>&1)"
+  # > OS: Cached
+  echo "${output}" | grep -q "OS: Cached"
+  # > OS: Sourced
+  echo "${output}" | grep -q "OS: Sourced"
+
+  [ -r "${_os_cache_file}" ]
+
+  unset Red
+  output="$(. "${0}" 2>&1)"
+  # No: > OS: Cached
+  echo "${output}" | grep -q "OS: Cached" && false
+  # > OS: Sourced
+  echo "${output}" | grep -q "OS: Sourced" && false
+
+  output="$(. "${0}" 2>&1)"
+  # No: > OS: Cached
+  echo "${output}" | grep -q "OS: Cached" && false
+  # No: > OS: Sourced
+  echo "${output}" | grep -q "OS: Sourced" && false
+
+  output="$("${0}" 2>&1)"
+
+  # + os.lib[80]: VAR1=1, VAR2=2
+  echo "${output}" | grep -qE '\+.*os.lib\[.*].*: .*VAR1=1,.*$'
+  # + os.lib[81]: VAR1=1
+  echo "${output}" | grep -E '\+.*os.lib\[.*].*: .*VAR1=1.*$' | grep -qv ','
+  # + os.lib[82]
+  echo "${output}" | grep -E '\+.*os.lib\[.*].*$' | grep -qv ':'
+
+  # x os.lib[88]: Error Message
+  echo "${output}" | grep -qE 'x.*os.lib\[.*].*: .*Error Message.*$'
+  # x os.lib[89]
+  echo "${output}" | grep -E 'x.*os.lib\[.*].*$' | grep -qv ':'
+
+  # ✓ Ok Message
+  echo "${output}" | grep -qE '✓*Ok Message.*$'
+  # ✓
+  echo "${output}" | grep -E '✓*$' | grep -qv ' '
+
+  # > Verbose Message: VERBOSE=1
+  echo "${output}" | grep -qE '>*Verbose Message: VERBOSE=1.*$'
+  # >
+  echo "${output}" | grep -E '>*$' | grep -qv ' '
+
+
+  # ! os.lib[107]: Warning Message: WARNING=1
+  echo "${output}" | grep -qE '!.*os.lib\[.*].*: .*Warning Message: WARNING=1.*$'
+  # ! os.lib[108]
+  echo "${output}" | grep -E '!.*os.lib\[.*].*$' | grep -qv ':'
+
+  # ✓ Die Message
+  echo "${output}" | grep -qE '✓*Die Message.*$'
+
+  set +e; echo "${output}" | grep -q 'Not Shown' && false
+}
+
+_os_set
+$_rc_d_lib_sourced || _os_main "${@}"
+verbose OS: Sourced
+
+unset _user_data_home_rc_d_file _user_data_home_rc_d _rc_d_lib_sourced _oss
+unset -f _os_main _os_show _os_test _os_set

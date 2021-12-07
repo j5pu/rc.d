@@ -1,0 +1,13 @@
+#!/bin/sh
+
+#
+# Git repository name
+set -eu; PATH="$(dirname "${0}"):${PATH}" && . ../../bin/color.lib
+
+for arg do
+  case "${arg}" in
+    -h|--help) usage "${0}" ;;
+    --desc) desc "${0}" ;;
+    --version) rc.d.version ;;
+  esac
+done

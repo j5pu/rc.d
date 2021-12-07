@@ -1,7 +1,3 @@
 #!/bin/bash
 
-if [ "${BATS_TEST_DIRNAME-}" ]; then
-. "${BATS_TEST_DIRNAME}/../bin/bats.lib"
-else
-.  "$(git top)/bin/bats.lib"
-fi
+. bats.lib 2>/dev/null || . "${BATS_TEST_DIRNAME}/../bin/bats.lib"

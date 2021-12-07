@@ -1,0 +1,47 @@
+#!/bin/sh
+
+# Show info message with > symbol in grey bold if DEBUG is set, unless QUIET is set
+#
+set -eu; PATH="$(dirname "${0}"):${PATH}" && . strict.lib && . ../../bin/color.lib
+
+# ###################################### + debug: DEBUG (default: unset), QUIET (default: unset)
+# Show info message with > symbol in grey bold if DEBUG is set, unless QUIET is set
+# Globals:
+#   DEBUG              Show if DEBUG set, unless QUIET is set (default: unset).
+#   GreyDim            Grey dimmed color for info message and > symbol.
+#   QUIET              Do not show message if set, takes precedence over DEBUG (default: unset).
+#   Reset              Reset color.
+# Arguments:
+#   Message            Message to show in grey bold with > symbol.
+# Output:
+#   Message to stdout.
+#######################################
+for arg do
+  case "${arg}" in
+    -h|--help) usage "${0}"; exit ;;
+    --desc) desc "${0}"; exit ;;
+    --version) rc.d.version; exit ;;
+  esac
+done
+
+if [ ! "${QUIET-}" ]; then
+  if [ "${DEBUG-}" ]; then
+    sets="$(set +o | tr '\n' ';')"
+    set +o nounset  # set +u
+    add=""; content=""; suffix=""
+    if command -v caller >/dev/null; then
+      c="$(caller 0)"
+      add="${GreyInvert}$(basename "$(echo "${c}" | awk '{ print $3 }')")[$(echo "${c}" | awk '{ print $1 }')]\
+${Reset}: "
+    fi
+    for arg do
+      content="${content}${suffix}${arg}=$(eval echo "\$${arg}")"
+      suffix=", "
+    done
+    [ "${content-}" ] || { [ ! "${add-}" ] || add="${add%??}"; }  # if no content, remove trailing ": "
+    printf '%b\n' "${GreyBold}+${Reset} ${add:-}${GreyDim}${content:-}${Reset}" >&2
+    eval "${sets}"  # set -u, if it was set before
+    unset add arg c content sets suffix
+  fi
+fi
+
