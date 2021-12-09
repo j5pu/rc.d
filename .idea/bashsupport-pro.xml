@@ -2,15 +2,19 @@
 <project version="4">
   <component name="bashsupport-pro.project">
     <scriptLibraries>
-      <library name="Sudoers">
+      <library name="bashpro">
+        <sources>
+          <source path="share/bashpro" recursive="true" />
+        </sources>
+        <targets>
+          <target recursive="true" />
+        </targets>
+      </library>
+      <library name="rc.d">
         <sources>
           <source path="bin/bats.lib" />
-          <source path="bin/color.lib" />
-          <source path="bin/die.lib" />
-          <source path="bin/strict.lib" />
-          <source path="bin/os.lib" />
-          <source path="bin/rebash.lib" />
-          <source path="bin/sh.lib" />
+          <source path="bin/colorf.lib" />
+          <source path="bin/helpers.lib" />
         </sources>
         <targets>
           <target recursive="true" />
@@ -18,25 +22,8 @@
       </library>
     </scriptLibraries>
     <globalVariables>
-      <var name="_user_data_home_rc_d" />
-      <var name="_bats_repo" />
-      <var name="_bats_sep" />
-      <var name="_rc_d_lib_sourced" />
-      <var name="file" />
-      <var name="Green" />
-      <var name="Reset" />
-      <var name="GreyBold" />
-      <var name="BlueBold" />
-      <var name="GreenBold" />
-      <var name="RedBg" />
-      <var name="RedBold" />
-      <var name="GreyInvert" />
+      <var name="firstrc" />
       <var name="arg" />
-      <var name="GreyDim" />
-      <var name="CyanBold" />
-      <var name="CyanDim" />
-      <var name="YellowInvert" />
-      <var name="YellowBold" />
     </globalVariables>
   </component>
 </project>

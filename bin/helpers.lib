@@ -1,0 +1,406 @@
+# shellcheck shell=sh
+
+# Helpers shell library. Sources strict.lib when $STRICT is set.
+#
+[ ! "${STRICT-}" ] || . strict.lib
+
+####################################### + debug: DEBUG (default: unset), QUIET (default: unset)
+# Show info message with > symbol in grey bold if DEBUG is set, unless QUIET is set
+# Globals:
+#   DEBUG              Show if DEBUG set, unless QUIET is set (default: unset).
+#   GreyDim            Grey dimmed color for info message and > symbol.
+#   QUIET              Do not show message if set, takes precedence over DEBUG (default: unset).
+#   Reset              Reset color.
+# Arguments:
+#   message            Message to show.
+#   -h, --help         Show help from man page and exit.
+#   --desc             Show description from $DESC or header file comment and exit.
+#   --manrepo          Show repository from man page and exit.
+#   --version          Show version from man page and exit.
+# Optional Arguments:
+#   --debug            Show debug messages.
+#   --dryrun           Show commands that will be executed.
+#   --quiet            Silent output.
+#   --verbose          Show verbose messages.
+#   --warning          Show warning messages.
+# Output:
+#   Message to stdout.
+#######################################
+debug() {
+  unset BASH_ENV ENV
+  if [ "${PARSED-}" ] && unset PARSED; then
+    if [ ! "${QUIET-}" ]; then
+      if [ "${DEBUG-}" ]; then
+        [ "${GreyInvert-}" ] || . color.lib
+        sets="$(set +o | tr '\n' ';')"
+        set +o nounset  # set +u
+        add=""; content=""; suffix=""
+        if command -v caller >/dev/null; then
+          i=0
+          while c="$(caller "${i}")"; do
+            if [ "$(echo "${c}" | awk '{ print $2 }')" = 'die' ] \
+              || [ "$(basename "$(echo "${c}" | awk '{ print $3 }')")" = 'helpers.lib' ]; then
+              i="$((i+1))"
+            else
+              break
+            fi
+          done
+          file="$(basename "$(echo "${c}" | awk '{ print $3 }')")"
+          line="$(echo "${c}" | awk '{ print $1 }')"
+        fi
+
+        [ "${file}" ] || file="$(basename "$(psargs '' | awk '{ print $1 }')" 2>/dev/null || true)"
+        add="${GreyInvert}${file:-}[${line:-}]${Reset}: "
+
+        for arg do
+          content="${content}${suffix}${arg}=$(eval echo "\$${arg}")"
+          suffix=", "
+        done
+        [ "${content-}" ] || { [ ! "${add-}" ] || add="${add%??}"; }  # if no content, remove trailing ": "
+        printf '%b\n' "${GreyBold}+${Reset} ${add:-}${GreyDim}${content:-}${Reset}" >&2
+        eval "${sets}"  # set -u, if it was set before
+        unset add arg c content sets suffix
+      fi
+    fi
+  else
+    DESC='Show info message with > symbol in grey bold if DEBUG is set, unless QUIET is set' \
+      PARSE='debug' parse "${@:-}"
+  fi
+}
+
+####################################### ✓|x die: QUIET (default: unset)
+# Show message (ok or error) with symbol (✓, x respectively) based on status code, unless QUIET is set and exit
+# Globals:
+#   Green              Green color for ✓ symbol.
+#   PARSE              Function name or file.
+#                      Default if BASH_VERSION: FUNCNAME[1] if BASH_SOURCE[1] is *.lib, otherwise BASH_SOURCE[1].
+#   PARSED             Function called has been parsed already, run the function.
+#   QUIET              Do not show message if set (default: unset).
+#   Red                Red color for error message and x symbol.
+#   Reset              Reset color.
+# Arguments:
+#   message            Message to show.
+#   -h, --help         Show help from man page and exit.
+#   --desc             Show description from $DESC or header file comment and exit.
+#   --manrepo          Show repository from man page and exit.
+#   --version          Show version from man page and exit.
+# Optional Arguments:
+#   --debug            Show debug messages.
+#   --dryrun           Show commands that will be executed.
+#   --quiet            Silent output.
+#   --verbose          Show verbose messages.
+#   --warning          Show warning messages.
+# Output:
+#   Message to stderr if error and stdout for ok.
+# Returns:
+#   1-255 for error, 0 for ok.
+#######################################
+die() {
+  rc=$?
+  unset BASH_ENV ENV
+  if [ "${PARSED-}" ] && unset PARSED; then
+    unset PARSED
+    if [ ! "${QUIET-}" ]; then
+      case "${firstrc}" in
+        0) ok "${@:-}" ;;
+        *) error "${@:-}" ;;
+      esac
+    fi
+    exit "${firstrc}"
+  else
+    # shellcheck disable=SC2034
+    firstrc=$rc
+    DESC="Show message (ok or error) with symbol (✓, x respectively) based on status code, unless QUIET is set \
+and exit" PARSE='die' parse "${@:-}"
+  fi
+}
+
+####################################### x error: QUIET (default: unset)
+# Show error message with x symbol in red, unless QUIET is set
+# Globals:
+#   PARSE              Function name or file.
+#                      Default if BASH_VERSION: FUNCNAME[1] if BASH_SOURCE[1] is *.lib, otherwise BASH_SOURCE[1].
+#   PARSED             Function called has been parsed already, run the function.
+#   QUIET              Do not show message if set (default: unset).
+#   Red                Red color for error message and x symbol.
+#   Reset              Reset color.
+# Arguments:
+#   message            Message to show.
+#   -h, --help         Show help from man page and exit.
+#   --desc             Show description from $DESC or header file comment and exit.
+#   --manrepo          Show repository from man page and exit.
+#   --version          Show version from man page and exit.
+# Optional Arguments:
+#   --debug            Show debug messages.
+#   --dryrun           Show commands that will be executed.
+#   --quiet            Silent output.
+#   --verbose          Show verbose messages.
+#   --warning          Show warning messages.
+# Output:
+#   Message to stderr.
+#######################################
+error() {
+  unset BASH_ENV ENV
+  if [ "${PARSED-}" ] && unset PARSED; then
+    if [ ! "${QUIET-}" ]; then
+      [ "${RedBg-}" ] || . color.lib
+      if command -v caller >/dev/null; then
+        i=0
+        while c="$(caller "${i}")"; do
+          if [ "$(echo "${c}" | awk '{ print $2 }')" = 'die' ] \
+            || [ "$(basename "$(echo "${c}" | awk '{ print $3 }')")" = 'helpers.lib' ]; then
+            i="$((i+1))"
+          else
+            break
+          fi
+        done
+        file="$(basename "$(echo "${c}" | awk '{ print $3 }')")"
+        line="$(echo "${c}" | awk '{ print $1 }')"
+      fi
+
+      [ "${file}" ] || file="$(basename "$(psargs '' | awk '{ print $1 }')" 2>/dev/null || true)"
+      add="${RedBg}${file:-}[${line:-}]${Reset}: "
+
+      [ "${*-}" ] || { [ ! "${add-}" ] || add="${add%??}"; }  # if no args, remove trailing ": "
+      printf '%b\n' "${RedBold}x${Reset} ${add:-}${RedBold}${*:-}${Reset}" >&2
+      unset add c file line
+    fi
+  else
+    DESC="Show error message with x symbol in red, unless QUIET is set" PARSE='error' parse "${@:-}"
+  fi
+}
+
+####################################### ✓ ok: QUIET (default: unset)
+# Show ok message in white with green ✓ symbol, unless QUIET is set
+# Globals:
+#   Green              Green color for ✓ symbol.
+#   PARSE              Function name or file.
+#                      Default if BASH_VERSION: FUNCNAME[1] if BASH_SOURCE[1] is *.lib, otherwise BASH_SOURCE[1].
+#   PARSED             Function called has been parsed already, run the function.
+#   QUIET              Do not show message if set (default: unset).
+#   Reset              Reset color.
+# Arguments:
+#   message            Message to show.
+#   -h, --help         Show help from man page and exit.
+#   --desc             Show description from $DESC or header file comment and exit.
+#   --manrepo          Show repository from man page and exit.
+#   --version          Show version from man page and exit.
+# Optional Arguments:
+#   --debug            Show debug messages.
+#   --dryrun           Show commands that will be executed.
+#   --quiet            Silent output.
+#   --verbose          Show verbose messages.
+#   --warning          Show warning messages.
+# Output:
+#   Message to stdout.
+#######################################
+ok() {
+  unset BASH_ENV ENV
+  if [ "${PARSED-}" ] && unset PARSED; then
+    if [ ! "${QUIET-}" ]; then
+      [ "${GreenBold-}" ] || . color.lib
+      printf '%b\n' "${GreenBold}✓${Reset} ${*:-}"
+    fi
+  else
+    DESC="Show ok message in white with green ✓ symbol, unless QUIET is set" PARSE='ok' parse "${@:-}"
+  fi
+}
+
+####################################### parse
+# Parse common long optional arguments.
+# Globals:
+#   PARSE              Function name or file.
+#                      Default if BASH_VERSION: FUNCNAME[1] if BASH_SOURCE[1] is *.lib, otherwise BASH_SOURCE[1].
+#   PARSED             Function called has been parsed already, run the function.
+#   POSTPARSE          Variables to unset after each run of a function when parsed.
+#   QUIET              Do not show message if set (default: unset).
+#   Red                Red color for error message and x symbol.
+#   Reset              Reset color.
+# Arguments:
+#   -h, --help         Show help from man page and exit.
+#   --desc             Show description from $DESC or header file comment and exit.
+#   --manrepo          Show repository from man page and exit.
+#   --version          Show version from man page and exit.
+# Optional Arguments:
+#   --debug            Show debug messages.
+#   --dryrun           Show commands that will be executed.
+#   --quiet            Silent output.
+#   --verbose          Show verbose messages.
+#   --warning          Show warning messages.
+# Output:
+#   Message to stderr if error and stdout for ok.
+# Returns:
+#   1-255 for error, 0 for ok.
+#######################################
+# shellcheck disable=SC3028,SC3054
+parse() {
+  unset BASH_ENV ENV
+  if [ "${PARSE-}" ] && unset PARSED; then
+    if echo "${PARSE}" | grep -qE '^/'; then
+      path="${PARSE}"
+      cmd="$(basename "${path}")"  # script.
+    else
+      cmd="${PARSE}"
+      path="$(command -pv "${cmd}" || false)"  # function: no path.
+    fi
+  elif [ "${BASH_VERSION-}" ]; then
+    if echo "${BASH_SOURCE[1]}" | grep -q '.lib$' ; then
+      cmd="${FUNCNAME[1]}"  # function: path.
+    else
+      cmd="$(basename "${BASH_SOURCE[1]}")"  # script.
+    fi
+    path="${BASH_SOURCE[1]}"
+  fi
+  directory="$(dirname "${path:-$(echo "${PATH}" | awk -F ':' '{ print $1 }' )/${PARSE}}")"  # for MANPATH in test.
+  variables='PARSED=1'
+  for arg do
+    skip=false
+    shift
+    case "${arg}" in
+      --debug|--dryrun|--quiet|--verbose|--warning)
+        variables="${variables} $(echo "${arg}" | sed 's/--//' | tr '[:lower:]' '[:upper:]')=1"
+        skip=true
+        ;;
+      --desc)
+        if [ ! "${DESC-}" ] && [ "${path-}" ]; then
+          DESC="$(awk '/^#/ && ! /^#!/ && ! /^##/ && ! /^#$/ && ! /^# shellcheck/ {sub(/^# /, ""); print $0=$0 }' \
+            "${path}" | head -1)"
+        fi
+        [ "${DESC-}" ] || exit
+        echo "${DESC}"; exit
+        ;;
+      -h|--help|--man-repo|--version)
+        # MANPATH to work in tests. It will not work for function in shell, since there is not path.
+        MANPATH="${MANPATH:-}"
+        page="$(MANPATH="${directory}/../share/man:./../share/man:${MANPATH:+:${MANPATH}}" \
+          man -P cat "${cmd}" 2>/dev/null || true)"
+        [ "${page:-}" ] || exit 1
+        case "${arg}" in
+          -h|--help) echo "${page}" ;;
+          --manrepo) echo "${page}" | awk '/^REPOSITORY$/{ getline; print $1 }' ;;
+          --version) echo "${page}" | tail -1 | awk '{ print $2 }' ;;
+        esac
+        exit
+    esac
+    $skip || set -- "$@" "${arg}"
+  done
+  unset arg DESC directory page PARSE
+
+  eval "${variables}" "${path:-${cmd}}" "${@:-}"
+}
+
+####################################### psargs
+# Parent process args (cmd/command and args part of ps) if in a subshell or cmd of the current shell if running in a subshell.
+# $$ is defined to return the process ID of the parent in a subshell; from the man page under "Special Parameters":
+# expands to the process ID of the shell. In a () subshell, it expands to the process ID of the current shell,
+# not the subshell.
+# Arguments:
+#   --usage             Show help message and exit.
+# Outputs:
+#   Process (ps) args.
+# Returns:
+#   1 if error during installation of procps or not know to install ps or --usage and not man page.
+# ######################################
+psargs() {
+  if [ "${PARSED-}" ] && unset PARSED; then
+    if command -v ps >/dev/null; then
+      if ! ps -p $$ -o args= 2>/dev/null; then
+        ps -o pid= -o args= | awk '/$$/ { $1=$1 };1' | grep "^$$ " | cut -d '' -f 2-
+      fi
+    fi
+  else
+    DESC='Parent process args (cmd/command and args part of ps)' PARSE='psargs' parse "${@:-}"
+  fi
+}
+
+####################################### > verbose: VERBOSE (default: unset), QUIET (default: unset)
+# Show verbose/dry-run message with > symbol in grey dim if VERBOSE or DRY_RUN are set, unless QUIET is set
+# Globals:
+#   VERBOSE            Shows message if set, unless QUIET is set (default: unset).
+#   GreyDim            Grey dimmed color for info message and > symbol.
+#   QUIET              Do not show message if set, takes precedence over VERBOSE/DRY_RUN (default: unset).
+#   Reset              Reset color.
+# Arguments:
+#   message            Message to show.
+#   -h, --help         Show help from man page and exit.
+#   --desc             Show description from $DESC or header file comment and exit.
+#   --manrepo          Show repository from man page and exit.
+#   --version          Show version from man page and exit.
+# Optional Arguments:
+#   --debug            Show debug messages.
+#   --dryrun           Show commands that will be executed.
+#   --quiet            Silent output.
+#   --verbose          Show verbose messages.
+#   --warning          Show warning messages.
+# Output:
+#   Message to stdout.
+#######################################
+verbose() {
+  if [ "${PARSED-}" ] && unset PARSED; then
+    if [ ! "${QUIET-}" ]; then
+      if [ "${VERBOSE-}" ]; then
+        [ "${CyanBold-}" ] || . color.lib
+        printf '%b\n' "${CyanBold}>${Reset}${CyanDim} ${*:-}${Reset}"
+      fi
+    fi
+  else
+    DESC='Show verbose/dry-run message with > symbol in grey dim if VERBOSE or DRY_RUN are set, unless QUIET is set' \
+      PARSE='verbose' parse "${@:-}"
+  fi
+}
+
+####################################### > warning: WARNING (default: unset), QUIET (default: unset)
+# Show warning message with ! symbol in yellow if WARNING is set, unless QUIET is set
+# Globals:
+#   Yellow             Yellow color for warning message and ! symbol.
+#   Reset              Reset color.
+#   QUIET              Do not show message if set, takes precedence over WARNING (default: unset).
+#   WARNING            Shows message if is set, unless QUIET is set (default: unset).
+# Arguments:
+#   message            Message to show.
+#   -h, --help         Show help from man page and exit.
+#   --desc             Show description from $DESC or header file comment and exit.
+#   --manrepo          Show repository from man page and exit.
+#   --version          Show version from man page and exit.
+# Optional Arguments:
+#   --debug            Show debug messages.
+#   --dryrun           Show commands that will be executed.
+#   --quiet            Silent output.
+#   --verbose          Show verbose messages.
+#   --warning          Show warning messages.
+# Output:
+#   Message to stderr.
+#######################################
+warning() {
+  if [ "${PARSED-}" ] && unset PARSED; then
+    if [ ! "${QUIET-}" ]; then
+      if [ "${WARNING-}" ]; then
+        [ "${YellowInvert-}" ] || . color.lib
+        add=""
+        if command -v caller >/dev/null; then
+          i=0
+          while c="$(caller "${i}")"; do
+            if [ "$(echo "${c}" | awk '{ print $2 }')" = 'die' ] \
+              || [ "$(basename "$(echo "${c}" | awk '{ print $3 }')")" = 'helpers.lib' ]; then
+              i="$((i+1))"
+            else
+              break
+            fi
+          done
+          file="$(basename "$(echo "${c}" | awk '{ print $3 }')")"
+          line="$(echo "${c}" | awk '{ print $1 }')"
+        fi
+        [ "${*-}" ] || { [ ! "${add-}" ] || add="${add%??}"; }  # if no args, remove trailing ": "
+
+        [ "${file}" ] || file="$(basename "$(psargs '' | awk '{ print $1 }')" 2>/dev/null || true)"
+        add="${YellowInvert}${file:-}[${line:-}]${Reset}: "
+
+        printf '%b\n' "${YellowBold}!${Reset} ${add:-}${YellowBold}${*:-}${Reset}" >&2
+        unset add c
+      fi
+    fi
+  else
+    DESC='Show warning message with ! symbol in yellow if WARNING is set, unless QUIET is set' \
+      PARSE='warning' parse "${@:-}"
+  fi
+}

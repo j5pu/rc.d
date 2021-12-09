@@ -1,0 +1,199 @@
+#!/bin/sh
+
+# Prepend (beginning, the default), append (end) or remove to colon variables (PATH, INFOPATH, MANPATH etc.)
+#
+
+unset BASH_ENV ENV
+set -eu
+
+#######################################
+# Prepend script directory and script directory parent with sbin to 'PATH'
+# Globals:
+#   DIRECTORY         Directory to prepend, append or remove.
+#   SCRIPT_BIN        Script directory.
+#   VALUE             Path value to manipulate.
+# Outputs:
+#   Updated path value.
+#######################################
+bins() {
+  _export="${EXPORT}"; EXPORT=''
+  cd "$(dirname "${0}")"
+  DIRECTORY="$(pwd)"
+  VALUE="$(run)"
+  cd ../sbin
+  DIRECTORY="$(pwd)"
+  EXPORT="${_export}"
+  run
+}
+
+#######################################
+# Base init PATH, INFOPATH or MANPATH
+# Globals:
+#   EXPORT              Variable name to add export command.
+# Arguments:
+#   value               Path value to show or add export command.
+# Output:
+#   value or variable and value with export command.
+#######################################
+
+init() {
+  _export="${EXPORT}"; EXPORT=''
+  . os.lib
+  if [ "$(uname -s)" = 'Darwin' ]; then
+    PATH="${PYCHARM}:${PYCHARM_CONTENTS}/MacOS:${PATH}"
+  else
+    PATH="${PYCHARM}:${PYCHARM_CONTENTS}/MacOS:${PATH}"
+    :
+  fi
+  case "${_export}" in
+    PATH)
+      if $MACOS; then
+        PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      else
+        PATH="${HOMEBREW_PREFIX}/sbin:/usr/local/sbin:${HOMEBREW_PREFIX}/bin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      fi
+      ;;
+    INFOPATH) true ;;
+    MANPATH) true ;;
+    *)
+      EXPORT='PATH' eval "$(sbins)" && . die.lib
+      false || die Init not Supported: "${EXPORT}"
+      ;;
+  esac
+}
+
+#######################################
+# Show plain output or with export command
+# Globals:
+#   EXPORT              Variable name to add export command.
+# Arguments:
+#   value               Path value to show or add export command.
+# Output:
+#   value or variable and value with export command.
+#######################################
+output() {
+  if [ "${EXPORT-}" ]; then
+    echo "${EXPORT}=${1}; export ${EXPORT}"
+  else
+    echo "${1}"
+  fi
+}
+
+#######################################
+# Prepend (beginning, the default), append (end) or remove
+# Globals:
+#   APPEND              Add at the end.
+#   DIRECTORY           Directory to prepend, append or remove.
+#   EXPORT              Variable name to add export command.
+#   NAME                Variable name (default: PATH).
+#   REMOVE              Remove for the path value.
+#   VALUE               Path value to manipulate.
+# Outputs:
+#   Updated path value.
+#######################################
+run() {
+  case ":${VALUE}:" in
+    *:"${DIRECTORY}":*)
+      if $REMOVE; then
+        output "$(echo "${VALUE}" | sed "s|${DIRECTORY}:||; s|:${DIRECTORY}||; s|${DIRECTORY}||")"
+      elif [ "${VALUE-}" ]; then
+        output "${VALUE}"
+      fi
+      ;;
+    *)
+      if $APPEND; then
+        output "${VALUE:+${VALUE}:}${DIRECTORY}"
+      else
+        output "${DIRECTORY}${VALUE:+:${VALUE}}"
+      fi
+    ;;
+  esac
+}
+
+#######################################
+# Prepend (beginning, the default), append (end) or remove to colon variables (PATH, INFOPATH, MANPATH etc.)
+# Globals:
+#   APPEND              Add at the end.
+#   DIRECTORY           Directory to prepend, append or remove.
+#   EXPORT              Variable name to add export command.
+#   REMOVE              Remove for the path value.
+#   VALUE               Path value to manipulate.
+# Optional Arguments:
+#   --append            Add at the end.
+#   --export=<var name> Show variable name with value and export command for eval (default: 'PATH).
+#   --init              A clean new 'PATH', 'INFOPATH', or 'MANPATH' with export command is initialized.
+#   --remove            Remove for the path value.
+#   DIRECTORY           Directory to prepend (default), append (--append) or remove (--remove).
+#                       (default: script directory and script directory parent with sbin).
+#   VALUE               Path value to manipulate (default: "" if 'DIRECTORY' provided, 'PATH' if no 'DIRECTORY').
+# Note:
+#   Only --init will add export command by default.
+# Outputs:
+#   Updated path value or variable and value with export command.
+# Examples:
+#   $ colon
+#   .../sbin:.../bin:$PATH
+#   $ colon --export
+#   PATH='.../sbin:.../bin:$PATH'; export PATH
+#   $ colon -e
+#   PATH='.../sbin:.../bin:$PATH'; export PATH
+#   $ color --init
+#   PATH='...'; export PATH
+#   $ colon /foo
+#   foo
+#   $ colon /foo -e
+#   PATH='foo'; export PATH
+#   $ colon /foo --export=PATH
+#   PATH='foo'; export PATH
+#   $ colon /foo /bar
+#   /foo:/bar
+#   $ colon /foo /bar --export=MANPATH
+#   MANPATH='/foo:/bar'; export MANPATH
+#   $ colon /foo /bar --append
+#   /bar:/foo
+#   $ colon /foo /bar --append --export=INFOPATH
+#   INFOPATH='/bar:/foo'; export INFOPATH
+#   $ colon --append /foo /bar
+#   /bar:/foo
+#   $ colon --append /foo /bar --export
+#   PATH='/bar:/foo'; export PATH
+#   $ colon /foo --remove /bar:/foo
+#   /bar
+#   $ colon /foo --remove /bar:/foo --export=
+#   PATH='/bar'; export PATH
+#######################################
+main() {
+  if [ "${PARSED-}" ] && unset PARSED; then
+    unset DIRECTORY VALUE
+    APPEND=false
+    init=false
+    REMOVE=false
+    for arg do
+      case "${arg}" in
+        --append) APPEND=true ;;
+        -e|--export|--export=) EXPORT='PATH' ;;
+        --export=*) EXPORT="$(echo "${arg}" | sed 's/--export=//')" ;;
+        --init) init=true ;;
+        --remove) REMOVE=true ;;
+        *) if [ "${DIRECTORY-}" ]; then VALUE="${arg}"; else DIRECTORY="${arg}"; fi
+      esac
+    done
+    echo si
+    if $init; then
+      APPEND=false; EXPORT="${EXPORT:-PATH}"; REMOVE=false;
+      init
+    else
+      if [ "${DIRECTORY-}" ]; then
+        VALUE="${VALUE:-}"
+        run
+      else
+        APPEND=false; REMOVE=false; VALUE="${PATH}"
+        bins
+      fi
+    fi
+  else
+    PARSE="${0}" parse "${@:-}"
+  fi
+}
+
+main "${@:-}"

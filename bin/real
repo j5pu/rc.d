@@ -1,0 +1,44 @@
+#!/bin/sh
+
+# Absolute logical (symlink, default) or resolved (physical, pwd -P) path (Accepts one level up if doesn't exists).
+#
+eval "$("$(dirname "${0}")/colon" -e)" || exit
+STRICT=1 . die.lib
+
+#######################################
+# Absolute logical (symlink, default) or resolved (physical, pwd -P) path (Accepts one level up if doesn't exists)
+# Arguments:
+#   -P, --resolve       Resolve symlinks (pwd -P).
+#   path                Path (default: cwd).
+# Output:
+#   Path or help message to stdout.
+# Returns:
+#   1 if parent directory does not exists.
+#######################################
+main() {
+  if [ "${PARSED-}" ] && unset PARSED; then
+    resolve=false
+
+    for arg do
+      case "${arg}" in
+        -P|--resolve) resolve=true ;;
+        *) relative="${arg}"
+      esac
+    done
+
+    relative="${relative:-.}"
+    [ -d "${relative}" ] || basename="/$(basename "${relative}")"  # does not exists or is file
+    cd "$(dirname "${relative}")" || die Directory not Found: "$(dirname "${relative}")"
+
+    if $resolve; then
+      echo "$(pwd -P)${basename}"
+    else
+      echo "$(pwd)${basename}"
+    fi
+    unset arg basename relative resolve
+  else
+    PARSE="${0}" parse "${@:-}"
+  fi
+}
+
+main "${@:-}"

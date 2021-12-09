@@ -1,0 +1,163 @@
+# shellcheck shell=sh
+
+# OS library
+#
+dir="${RCSHARE:-/tmp}/os"
+file="${dir}/os.sh"
+
+if [ ! "${UNAME-}" ] || [ ! -r "${file}" ]; then
+  if [ ! -r "${file}" ] || [ "${FORCE-}" ]; then
+    [ -d "${dir}" ] || mkdir "${dir}"
+    rm -f "${file}"
+    HOST="$(hostname | cut -d. -f1)"
+    UNAME="$(uname -s | tr '[:upper:]' '[:lower:]')"
+    if [ "${UNAME}" = 'darwin' ]; then
+      DIST_ID="$(sw_vers -ProductName)"
+      DIST_VERSION="$(sw_vers -ProductVersion)"
+      case "$(echo "${DIST_VERSION}" | awk -F. '{ print $1 $2 }')" in
+        1013) DIST_CODENAME='High Sierra' ;;
+        1014) DIST_CODENAME='Mojave' ;;
+        1015) DIST_CODENAME='Catalina' ;;
+        11*) DIST_CODENAME='Big Sur' ;;
+        12*) DIST_CODENAME='Monterey' ;;
+        *) DIST_CODENAME='Other' ;;
+      esac
+      HOMEBREW_PREFIX="/usr/local"
+      MACOS='true'; macos=true
+      PM='brew'
+      PM_INSTALL="${PM} install"
+      PYCHARM_CONTENTS='/Applications/PyCharm.app/Contents'
+      PYCHARM="${PYCHARM_CONTENTS}/bin"
+    else
+      HOMEBREW_PREFIX='/home/linuxbrew/.linuxbrew'
+      MACOS='false'; macos=false
+
+    fi
+    HOMEBREW_ETC="${HOMEBREW_PREFIX}/etc"
+
+    tee -a "${file}" > /dev/null <<EOF
+# shellcheck shell=sh
+
+export DIST_CODENAME='${DIST_CODENAME}'
+export DIST_ID='${DIST_ID}'
+export DIST_VERSION='${DIST_VERSION}'
+export HOMEBREW_CELLAR='${HOMEBREW_PREFIX}/Cellar'
+export HOMEBREW_COMPLETION='${HOMEBREW_ETC}/bash_completion.d'
+export HOMEBREW_ETC='${HOMEBREW_ETC}'
+export HOMEBREW_OPT='${HOMEBREW_PREFIX}/opt'
+export HOMEBREW_PROFILE='${HOMEBREW_ETC}/profile.d'
+export HOMEBREW_COMPLETION='${HOMEBREW_ETC}/bash_completion.d'
+export HOMEBREW_REPOSITORY='${HOMEBREW_PREFIX}/Homebrew'
+export HOMEBREW_TAPS='${HOMEBREW_REPOSITORY}/Library/Taps'
+export HOST='${HOST}'
+export MACOS=${MACOS}
+export PM='${PM}'
+export PM_INSTALL='${PM_INSTALL}'
+export UNAME='${UNAME}'
+
+EOF
+
+    if $macos; then tee -a "${file}" > /dev/null <<EOF
+export PYCHARM_CONTENTS='${PYCHARM_CONTENTS}'
+export PYCHARM='${PYCHARM_CONTENTS}/bin'
+EOF
+    else
+      f='/etc/os-release'
+      if test -f "${f}"; then
+        while IFS='=' read -r var value; do
+          case "${var}" in
+            ID)
+              DIST_ID="${value}"
+              case "${DIST_ID}" in
+                alpine)
+                  {
+                    echo 'export ALPINE=1'
+                    echo 'export ALPINE_LIKE=1'
+                    echo "export DIST_ID_LIKE='${DIST_ID}'"
+                    if [ -r '/etc/nix' ]; then
+                      echo 'export NIXOS=1'
+                      PM='nix-env'
+                    else
+                      PM='apk'
+                    fi
+                  } >> "${file}"
+                  ;;
+                arch)
+                  echo 'export ARCHLINUX=1' >> "${file}"
+                  PM='pacman'
+                  ;;
+                centos)
+                  echo 'export CENTOS=1' >> "${file}"
+                  PM='yum'
+                  ;;
+                debian)
+                  {
+                    echo 'export DEBIAN=1'
+                    echo 'export DEBIAN_LIKE=1'
+                    echo "export DIST_ID_LIKE='${DIST_ID}'"
+                  } >> "${file}"
+                  ;;
+                fedora)
+                  {
+                    echo 'export FEDORA=1'
+                    echo 'export FEDORA_LIKE=1'
+                  } >> "${file}"
+                  PM='dnf'; export FEDORA_LIKE
+                  ;;
+                kali) echo 'export KALI=1' >> "${file}" ;;
+                rhel)
+                  {
+                    echo 'export RHEL=1'
+                    echo 'export RHEL_LIKE=1'
+                  } >> "${file}"
+                  PM='yum'
+                  ;;
+                ubuntu) echo 'export UBUNTU=1' >> "${file}" ;;
+                *) echo 'export DIST_UNKNOWN=1' >> "${file}" ;;
+              esac
+              ;;
+            ID_LIKE)
+              DIST_ID="${value}"
+              case "${DIST_ID}" in
+                debian)
+                  echo 'export DEBIAN_LIKE=1' >> "${file}"
+                  PM='apt'
+                  ;;
+                *fedora*) echo 'export FEDORA_LIKE=1' >> "${file}" ;;
+                *rhel*) echo 'export RHEL_LIKE=1' >> "${file}" ;;
+              esac
+              ;;
+            VERSION_ID) DIST_VERSION="${value}" ;;
+            VERSION_CODENAME) DIST_CODENAME="${value}" ;;
+          esac
+        done < "${f}"
+      else
+        [ -d '/sbin' ] && echo 'export BUSYBOX=1' >> "${file}"
+      fi
+    fi
+
+    case "${PM}" in
+      apk) PM_INSTALL='add -q --no-progress'; no_cache='--no-cache' ;;
+      apt) PM_INSTALL='install -y -qq' ;;
+      brew) PM_INSTALL='install --quiet' ;;
+      dnf) PM_INSTALL='install -y -q' ;;
+      nix) PM_INSTALL='--install -A' ;; # nixos -> nixos.curl, no nixos --> nixpkgs.curl
+      pacman) PM_INSTALL='-S --noconfirm' ;;
+      yum) PM_INSTALL='install -y -q' ;;
+    esac
+
+    [ "${PM-}" ] && [ "${PM_INSTALL-}" ] && PM_INSTALL="${PM} ${PM_INSTALL}"
+    if [ "${SSH_CLIENT-}" ] || [ "${SSH_CONNECTION-}" ] || [ "${SSH_TTY-}" ]; then
+      HOST_PROMPT='ꜿ'; echo 'export SSH=1' >> "${file}"
+    fi
+    if [ -f '/proc/1/environ' ] || [ -f '/.dockerenv' ]; then
+      HOST_PROMPT='⌁'; echo 'export CONTAINER=1' >> "${file}"
+      [ "${DIST_ID}" = 'debian' ] && echo "export DEBIAN_FRONTEND='noninteractive'" >> "${file}"
+      [ "${PM_INSTALL-}" ] && PM_INSTALL="${PM_INSTALL} ${no_cache}"
+    fi
+    [ ! "${HOST_PROMPT-}" ] || echo "export HOST_PROMPT='${HOST_PROMPT} ${HOST}'" >> "${file}"
+  fi
+  unset macos f
+  . "${file}"
+fi
+unset dir file

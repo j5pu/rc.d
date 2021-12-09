@@ -1,13 +1,62 @@
 #!/bin/sh
 
 # Show colors and helper functions output
-set -eu; PATH="$(dirname "${0}"):${PATH}" && . strict.lib && . color.lib
+#
+set -eu;
+PATH="$(dirname "${0}"):${PATH}" && . strict.lib && . color.lib && . helpers.lib
 
-if [ "${BASH_VERSION-}" ]; then
+show() {
   prev_two=''
-  for i in ${COLORS}; do
+  awk -F '[= ]' '/^export / { print $2 }' "$(dirname "${0}")/color.lib" | while read -r i; do
     first_two="$(echo "${i}" | awk '{print substr($0,0,2)}')"
     [ "${first_two}" = "${prev_two}" ] || { echo; prev_two="${first_two}"; }
     printf "%b\n" "$(eval echo \$"${i}")${i}${Reset}"
   done
-fi
+
+  echo
+
+  export VAR1=1 VAR2=2
+  debug Debug Message: not shown "DEBUG unset"
+  DEBUG=1 debug VAR1
+  DEBUG=1 debug VAR1 VAR2
+  DEBUG=1 debug
+  DEBUG=1 QUIET=1 debug Not Shown: "QUIET=1"
+
+  echo
+
+  error Error Message
+  error
+  QUIET=1 error Not Shown: "QUIET=1"
+
+  echo
+
+  ok Ok Message
+  ok
+  QUIET=1 ok Not Shown: "QUIET=1"
+
+  echo
+
+  VERBOSE=1 verbose Verbose Message: "VERBOSE=1"
+  VERBOSE=1 verbose
+  VERBOSE=1 QUIET=1 verbose Not Shown: "QUIET=1"
+
+  echo
+
+  WARNING=1 warning Warning Message: "WARNING=1"
+  WARNING=1 warning
+  WARNING=1 QUIET=1 warning Not shown: "QUIET=1"
+
+  echo
+
+  die Die Message
+}
+
+main() {
+  if [ "${PARSED-}" ] && unset PARSED; then
+    show
+  else
+    PARSE="${0}" parse "${@:-}"
+  fi
+}
+
+main "${@:-}"

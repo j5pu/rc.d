@@ -1,8 +1,0 @@
-# shellcheck shell=sh
-
-# repo library test
-#
-
-repo_function() {
-
-}

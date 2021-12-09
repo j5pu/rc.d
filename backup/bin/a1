@@ -1,4 +1,0 @@
-#!/bin/sh
-
-
-{ bash /dev/stdin; } <<<$'f(){ g; }\ng(){ h; }\nh(){ while caller $((n++)); do :; done; }\nf'

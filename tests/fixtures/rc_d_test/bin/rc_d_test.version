@@ -1,0 +1,7 @@
+#!/bin/sh
+
+# rc_d_test repository installed version
+#
+version='0.0.1'
+
+echo "${version}"

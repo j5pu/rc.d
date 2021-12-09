@@ -1,10 +1,10 @@
 # shellcheck shell=sh
 
+# Strict mode library and prepend absolute caller DIRNAME to PATH.
 #
-# Strict mode library
-# http://redsymbol.net/articles/unofficial-bash-strict-mode/
+
 set -eu
-IFS=$(printf ' \n\t')
+#IFS=$(printf ' \n\t')
 
 if [ "${BASH_VERSION-}" ]; then
   # shellcheck disable=SC3040
