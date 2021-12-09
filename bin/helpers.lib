@@ -3,6 +3,7 @@
 # Helpers shell library. Sources strict.lib when $STRICT is set.
 #
 [ ! "${STRICT-}" ] || . strict.lib
+. color.lib
 
 ####################################### + debug: DEBUG (default: unset), QUIET (default: unset)
 # Show info message with > symbol in grey bold if DEBUG is set, unless QUIET is set

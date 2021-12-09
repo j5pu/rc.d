@@ -2,7 +2,7 @@
 
 #
 # Converts, tests and commit changes for AsciiDoc man pages in a repository.
-set -eu; PATH="$(dirname "${0}"):${PATH}" && export PATH && . strict.lib && . helpers.lib
+STRICT=1 . helpers.lib || exit 1
 
 adoc() {
   asciidoctor -b manpage \

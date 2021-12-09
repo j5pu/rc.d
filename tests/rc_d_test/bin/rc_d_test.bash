@@ -2,8 +2,7 @@
 
 # rc_d_test.bash is a test script in bash with main() function
 #
-set -eu; PATH="$(dirname "${0}"):${HOME}/rc.d/bin/${PATH}"
-. strict.lib; . helpers.lib
+STRICT=1 . helpers.lib
 
 main() {
   if [ "${PARSED-}" ] && unset PARSED; then

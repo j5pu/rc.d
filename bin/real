@@ -2,8 +2,7 @@
 
 # Absolute logical (symlink, default) or resolved (physical, pwd -P) path (Accepts one level up if doesn't exists).
 #
-eval "$("$(dirname "${0}")/colon" -e)" || exit
-STRICT=1 . die.lib
+STRICT=1 . helpers.lib || exit 1
 
 #######################################
 # Absolute logical (symlink, default) or resolved (physical, pwd -P) path (Accepts one level up if doesn't exists)

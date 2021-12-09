@@ -4,7 +4,7 @@
 #
 
 unset BASH_ENV ENV
-set -eu
+STRICT=1 . helpers.lib || exit 1
 
 #######################################
 # Prepend script directory and script directory parent with sbin to 'PATH'

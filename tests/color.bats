@@ -1,15 +1,17 @@
 #!/usr/bin/env bats
 
-load lib/test_helper
+setup() {
+  load test_helper
+}
 
-@test "${BATS_HEADER} color [DEBUG]: + color[xx]: VAR1=1, VAR2=2" {
+@test "color [DEBUG]: + color[xx]: VAR1=1, VAR2=2" {
   run color
   [ "$status" -eq 0 ]
   # + color.lib[xx]: VAR1=1, VAR2=2
   assert_line --regexp '\+.*color\[.*].*: .*VAR1=1,.*$'
 }
 
-@test "${BATS_HEADER} color [DEBUG]: + color[xx]: VAR1=1" {
+@test "color [DEBUG]: + color[xx]: VAR1=1" {
   run color
   [ "$status" -eq 0 ]
   # + color.lib[xx]: VAR1=1
@@ -17,7 +19,7 @@ load lib/test_helper
 "
 }
 
-@test "${BATS_HEADER} color [DEBUG]: + color[xx]" {
+@test "color [DEBUG]: + color[xx]" {
   run color
   [ "$status" -eq 0 ]
   # + color.lib[xx]
@@ -25,14 +27,14 @@ load lib/test_helper
 "
 }
 
-@test "${BATS_HEADER} color [DEBUG]: x color[xx]: Error Message" {
+@test "color [DEBUG]: x color[xx]: Error Message" {
   run color
   [ "$status" -eq 0 ]
   # x color[88]: Error Message
   assert_line --regexp 'x.*color\[.*].*: .*Error Message.*$'
 }
 
-@test "${BATS_HEADER} color [ERROR]: x color[xx]" {
+@test "color [ERROR]: x color[xx]" {
   run color
   [ "$status" -eq 0 ]
   # x color.lib[xx]
@@ -40,14 +42,14 @@ load lib/test_helper
 "
 }
 
-@test "${BATS_HEADER} color [OK]: ok Ok Message" {
+@test "color [OK]: ok Ok Message" {
   run color
   [ "$status" -eq 0 ]
   # ✓ Ok Message
   assert_line --regexp '✓*Ok Message.*$'
 }
 
-@test "${BATS_HEADER} color [OK]: ok" {
+@test "color [OK]: ok" {
   run color
   [ "$status" -eq 0 ]
   # ✓
@@ -55,14 +57,14 @@ load lib/test_helper
 "
 }
 
-@test "${BATS_HEADER} color [VERBOSE]: > Verbose Message: VERBOSE=1" {
+@test "color [VERBOSE]: > Verbose Message: VERBOSE=1" {
   run color
   [ "$status" -eq 0 ]
   # > Verbose Message: VERBOSE=1
   assert_line --regexp '>*Verbose Message: VERBOSE=1.*$'
 }
 
-@test "${BATS_HEADER} color [VERBOSE]: >" {
+@test "color [VERBOSE]: >" {
   run color
   [ "$status" -eq 0 ]
   # >
@@ -70,14 +72,14 @@ load lib/test_helper
 "
 }
 
-@test "${BATS_HEADER} color [WARNING]: ! color[xx]: Warning Message: WARNING=1" {
+@test "color [WARNING]: ! color[xx]: Warning Message: WARNING=1" {
   run color
   [ "$status" -eq 0 ]
   # ! color[xx]: Warning Message: WARNING=1
   assert_line --regexp '!.*color\[.*].*: .*Warning Message: WARNING=1.*$'
 }
 
-@test "${BATS_HEADER} color [WARNING]: x color[xx]" {
+@test "color [WARNING]: x color[xx]" {
   run color
   [ "$status" -eq 0 ]
   # ! color[xx]
@@ -85,21 +87,21 @@ load lib/test_helper
 "
 }
 
-@test "${BATS_HEADER} color: ok Die Message" {
+@test "color: ok Die Message" {
   run color
   [ "$status" -eq 0 ]
   # ✓ Die Message
   assert_line --regexp '✓*Die Message.*$'
 }
 
-@test "${BATS_HEADER} color: Not Shown" {
+@test "color: Not Shown" {
   run color
   [ "$status" -eq 0 ]
   #
   refute_line --partial 'Not Shown'
 }
 
-@test "${BATS_HEADER} color: bash -c 'false || die Die: Error Message'" {
+@test "color: bash -c 'false || die Die: Error Message'" {
   run bash -c '. helpers.lib; false || die Die: Error Message'
   [ "$status" -eq 1 ]
   assert_output --regexp 'x.*bash\[].*: .*Die: Error Message.*$'

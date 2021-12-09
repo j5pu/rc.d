@@ -1,12 +1,11 @@
 #!/usr/bin/env bats
 
-load lib/test_helper
 
 setup() {
-  PATH="${FIXTURES_RC}/bin:${PATH}"
+  load test_helper
 }
 
-@test "${BATS_HEADER} psargs" {
+@test "psargs" {
   . helpers.lib
   run psargs
   [ "$status" -eq 0 ]

@@ -1,0 +1,7 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="helpers-rc_d_test.bash.bats" type="bashpro.bats-core" singleton="false">
+    <option name="testDataPath" value="$PROJECT_DIR$/tests/helpers-rc_d_test.bash.bats" />
+    <option name="workingDirectory" value="$PROJECT_DIR$/tests" />
+    <method v="2" />
+  </configuration>
+</component>

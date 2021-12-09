@@ -1,0 +1,7 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="manpage.bats" type="bashpro.bats-core" singleton="false">
+    <option name="testDataPath" value="$PROJECT_DIR$/tests/manpage.bats" />
+    <option name="workingDirectory" value="$PROJECT_DIR$/tests" />
+    <method v="2" />
+  </configuration>
+</component>

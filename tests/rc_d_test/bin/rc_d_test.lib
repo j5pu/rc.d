@@ -2,7 +2,6 @@
 
 # rc_d_test.lib is a test library with one function rc_d_test_function
 #
-echo $PATH
 . helpers.lib
 
 rc_d_test_function() {

@@ -2,8 +2,7 @@
 
 # Show colors and helper functions output
 #
-set -eu;
-PATH="$(dirname "${0}"):${PATH}" && . strict.lib && . color.lib && . helpers.lib
+STRICT=1 . helpers.lib || exit 1
 
 show() {
   prev_two=''

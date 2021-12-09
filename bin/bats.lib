@@ -3,36 +3,17 @@
 # Installs, sources bats libraries and add repository: bin, test, scripts directories to PATH, excluding backup and tmp.
 #
 
-# <html><h2>Bats Libraries Repository Names</h2>
-# <p><strong><code>$BATS_LIBS</code></strong>.</p>
-# </html>
-BATS_LIBS='bats-assert bats-file bats-support'
-
-# <html><h2>Bats Libraries Installation Paths</h2>
-# <p><strong><code>$BATS_LIBS_DIRS</code></strong>.</p>
-# </html>
-BATS_LIBS_DIRS=''
-
-# <html><h2>Bats Libraries Sample Functions to test Bats Libraries</h2>
-# <p><strong><code>$BATS_LIBS_FUNCS</code></strong>.</p>
-# </html>
-BATS_LIBS_FUNCS='assert_equal assert_file_exist batslib_err'
-
-# <html><h2>Git Top Path</h2>
-# <p><strong><code>$BATS_TOP</code></strong> contains the git top directory when sourced from a git dir.</p>
-# </html>
-BATS_TOP=''
-
-
 if ! command -v assert_equal > /dev/null; then
-  BATS_TOP="$(git top || true)"
-  [ ! "${BATS_TOP-}" ] || for i in src/bin src/scripts test tests test/fixtures tests/fixtures tools lib scripts \
-    bin sbin; do
+  BATS_LIBS='bats-assert bats-file bats-support'
+  BATS_LIBS_DIRS=''
+  BATS_LIBS_FUNCS='assert_equal assert_file_exist batslib_err'
+  BATS_TOP="$(git top || true)"; export BATS_TOP
+  BATS_TOP_NAME="$(basename "${BATS_TOP}" || true)"; export BATS_TOP_NAME
+  BATS_TEST_PREFIX="$(basename "${BATS_TEST_FILENAME}" .bats || true)"; export BATS_TEST_PREFIX
+  [ ! "${BATS_TOP-}" ] || for i in src/bin src/scripts scripts bin sbin; do
     d="${BATS_TOP}/${i}"
-    [ ! -d "${d}" ] || PATH="${d}:${PATH}"
+    [ ! -d "${d}" ] || export PATH="${d}:${PATH}"
   done
-
-  [ "${Red-}" ] || . color.lib
 
   dir="${RCSHARE:-/tmp}/bats"
   [ -d "${dir}" ] || mkdir "${dir}"
@@ -51,12 +32,4 @@ if ! command -v assert_equal > /dev/null; then
   done
 
   unset d dir i
-fi
-
-# <html><h2>Header for Test Names</h2>
-# <p><strong><code>$BATS_HEADER</code></strong> contains the basename prefix of the file running tests.</p>
-# </html>
-export BATS_HEADER
-if [ "${BATS_TEST_FILENAME}" ]; then
-  BATS_HEADER="$(printf '%b' "[${BlueBold}$(basename "${BATS_TEST_FILENAME##*/}" .bats)${Reset}]")"
 fi

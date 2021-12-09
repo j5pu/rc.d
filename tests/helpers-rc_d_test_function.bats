@@ -1,14 +1,13 @@
 #!/usr/bin/env bats
 
-load lib/test_helper
-
 setup() {
-  PATH="${FIXTURES_RC}/bin:${PATH}"
+  load test_helper
+  setup_rc_d_test
   . rc_d_test.lib
-  export desc="rc d test function is a test function in rc.d.test.lib"
+  desc="rc d test function is a test function in rc.d.test.lib"
 }
 
-@test "${BATS_HEADER} rc_d_test_function" {
+@test "rc_d_test_function" {
   assert rc_d_test_function
   run rc_d_test_function
   assert_output - <<STDIN
@@ -21,7 +20,7 @@ args: ${args:-}
 STDIN
 }
 
-@test "${BATS_HEADER} rc_d_test_function --debug --dryrun --quiet --verbose --warning" {
+@test "rc_d_test_function --debug --dryrun --quiet --verbose --warning" {
   run rc_d_test_function --debug --dryrun --quiet --verbose --warning
   [ "$status" -eq 0 ]
   assert_output - <<STDIN
@@ -34,7 +33,7 @@ args: ${args:-}
 STDIN
 }
 
-@test "${BATS_HEADER} rc_d_test_function --debug --dryrun --other-option --quiet --verbose --warning opt" {
+@test "rc_d_test_function --debug --dryrun --other-option --quiet --verbose --warning opt" {
   run rc_d_test_function --debug --dryrun --quiet --other-option --verbose --warning opt
   [ "$status" -eq 0 ]
   assert_output - <<STDIN
@@ -49,7 +48,7 @@ opt
 STDIN
 }
 
-@test "${BATS_HEADER} rc_d_test_function --desc" {
+@test "rc_d_test_function --desc" {
   run rc_d_test_function --desc
   [ "$status" -eq 0 ]
   assert_output - <<STDIN
@@ -57,7 +56,7 @@ ${desc}
 STDIN
 }
 
-@test "${BATS_HEADER} rc_d_test_function --verbose --desc opt" {
+@test "rc_d_test_function --verbose --desc opt" {
   run rc_d_test_function --desc
   [ "$status" -eq 0 ]
   assert_output - <<STDIN
@@ -65,17 +64,17 @@ ${desc}
 STDIN
 }
 
-@test "${BATS_HEADER} rc_d_test_function --help: Error" {
+@test "rc_d_test_function --help: Error" {
   run rc_d_test_function --help
   assert_failure
 }
 
-@test "${BATS_HEADER} rc_d_test_function --version: Error" {
+@test "rc_d_test_function --version: Error" {
   run rc_d_test_function --help
   assert_failure
 }
 
-@test "${BATS_HEADER} rc_d_test_function --man-repo: Error" {
+@test "rc_d_test_function --man-repo: Error" {
   run rc_d_test_function --help
   assert_failure
 }

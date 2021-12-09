@@ -1,15 +1,21 @@
 #!/usr/bin/env bats
 # shellcheck disable=SC2086
 
-load lib/test_helper
-
 setup() {
+  load test_helper
   . os.lib
 }
 
-@test "${BATS_HEADER} \$MACOS" {
+@test "\$MACOS" {
   if ! $MACOS; then
     skip Linux
   fi
   assert $MACOS
+}
+
+@test "! \$MACOS" {
+  if $MACOS; then
+    skip macOS
+  fi
+  assert false
 }

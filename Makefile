@@ -15,7 +15,7 @@ chmod:
 	@for i in bin sbin; do chmod +x $(DIR)$${i}/* 2>/dev/null || true; done
 
 tests: clean chmod
-	@bats $(DIR)tests --print-output-on-failure --recursive --tap
+	@bats $(DIR)tests --print-output-on-failure --recursive
 
 verbose: clean chmod
 	@bats $(DIR)tests --gather-test-outputs-in $(OUTPUT) --no-tempdir-cleanup --output $(OUTPUT) \
