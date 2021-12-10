@@ -138,7 +138,7 @@ declare PARSED
 # <p><strong><code>The following messages are shown if unset:</code></strong></p>
 # <ul>
 # <li><code>error</code></li>
-# <li><code>ok</code></li>
+# <li><code>success</code></li>
 # </ul>
 # <p><strong><code>If unset, other messages are shown base on the variable value:</code></strong></p>
 # <ul>

@@ -33,7 +33,7 @@ tee -a "${libf}" > /dev/null <<EOF
 # </dd>
 # </dl>
 # </html>
-${f}() { printf '%b' "\${${co}}"; printf '%s' "\${@:-}"; printf '%b' "\${Reset}"; }
+${f}() { printf '%b' "\${${co}}"; printf '%s' "\${*:-}"; printf '%b' "\${Reset}"; }
 
 EOF
 

@@ -6,14 +6,14 @@ setup() {
   . os.lib
 }
 
-@test "\$MACOS" {
+@test "\$MACOS " {
   if ! $MACOS; then
     skip Linux
   fi
   assert $MACOS
 }
 
-@test "! \$MACOS" {
+@test "! \$MACOS " {
   if $MACOS; then
     skip macOS
   fi

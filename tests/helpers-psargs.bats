@@ -5,7 +5,7 @@ setup() {
   load test_helper
 }
 
-@test "psargs" {
+@test "psargs " {
   . helpers.lib
   run psargs
   [ "$status" -eq 0 ]

@@ -6,6 +6,8 @@
 unset BASH_ENV ENV
 STRICT=1 . helpers.lib || exit 1
 
+base() { output "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"; }
+
 #######################################
 # Prepend script directory and script directory parent with sbin to 'PATH'
 # Globals:
@@ -50,7 +52,8 @@ init() {
       if $MACOS; then
         PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
       else
-        PATH="${HOMEBREW_PREFIX}/sbin:/usr/local/sbin:${HOMEBREW_PREFIX}/bin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+        PATH="${HOMEBREW_PREFIX}/sbin:/usr/local/sbin:${HOMEBREW_PREFIX}/bin:\
+/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
       fi
       ;;
     INFOPATH) true ;;
@@ -123,6 +126,7 @@ run() {
 #   --export=<var name> Show variable name with value and export command for eval (default: 'PATH).
 #   --init              A clean new 'PATH', 'INFOPATH', or 'MANPATH' with export command is initialized.
 #   --remove            Remove for the path value.
+#   --base              Base init PATH
 #   DIRECTORY           Directory to prepend (default), append (--append) or remove (--remove).
 #                       (default: script directory and script directory parent with sbin).
 #   VALUE               Path value to manipulate (default: "" if 'DIRECTORY' provided, 'PATH' if no 'DIRECTORY').
@@ -137,6 +141,12 @@ run() {
 #   PATH='.../sbin:.../bin:$PATH'; export PATH
 #   $ colon -e
 #   PATH='.../sbin:.../bin:$PATH'; export PATH
+#   $ colon --base
+#   /usr/...
+#   $ colon /rc.d "$(colon --base)"
+#   /rc.d:/usr/...
+#   $ colon --base -e
+#   PATH='/usr/...'; export PATH
 #   $ color --init
 #   PATH='...'; export PATH
 #   $ colon /foo
@@ -166,11 +176,13 @@ main() {
   if [ "${PARSED-}" ] && unset PARSED; then
     unset DIRECTORY VALUE
     APPEND=false
+    base=false
     init=false
     REMOVE=false
     for arg do
       case "${arg}" in
         --append) APPEND=true ;;
+        --base) base=true ;;
         -e|--export|--export=) EXPORT='PATH' ;;
         --export=*) EXPORT="$(echo "${arg}" | sed 's/--export=//')" ;;
         --init) init=true ;;
@@ -178,8 +190,10 @@ main() {
         *) if [ "${DIRECTORY-}" ]; then VALUE="${arg}"; else DIRECTORY="${arg}"; fi
       esac
     done
-    echo si
-    if $init; then
+    if $base; then
+      APPEND=false; REMOVE=false;
+      base
+    elif $init; then
       APPEND=false; EXPORT="${EXPORT:-PATH}"; REMOVE=false;
       init
     else

@@ -4,7 +4,7 @@ setup() {
   load test_helper
 }
 
-@test "real" {
+@test "real " {
   skip
   run real
   [ "$status" -eq 0 ]

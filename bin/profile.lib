@@ -6,6 +6,7 @@
 unset BASH_ENV ENV
 
 [ "${RCSHARE-}" ] || . root.lib
+eval "$(direnv hook bash)" 2>/dev/null
 
 BASH_ENV="$(command -pv profile.lib || echo /etc/profile)"
 ENV="${BASH_ENV}"

@@ -80,7 +80,8 @@ main() {
 
         *.[1-8]) name="${name%.*}"; section="${name##*.}";;
       esac
-      desc="$(${name} --desc || die Invalid Desc for: "${name}")"
+      [ "${name}" != 'parse' ] || opt='-'
+      desc="$(${name} ${opt} --desc || die Invalid Desc for: "${name}")"
       section="${section:-1}"
 
       dest_filename="${name}.${section}"  # name.1

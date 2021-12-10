@@ -6,7 +6,7 @@ setup() {
   desc="rc_d_test.bash is a test script in bash with main() function"
 }
 
-@test "rc_d_test.bash" {
+@test "rc_d_test.bash " {
   assert rc_d_test.bash
   run rc_d_test.bash
   assert_output - <<STDIN
@@ -19,7 +19,7 @@ args: ${args:-}
 STDIN
 }
 
-@test "rc_d_test.bash --debug --dryrun --quiet --verbose --warning" {
+@test "rc_d_test.bash --debug --dryrun --quiet --verbose --warning " {
   run rc_d_test.bash --debug --dryrun --quiet --verbose --warning
   [ "$status" -eq 0 ]
   assert_output - <<STDIN
@@ -32,7 +32,7 @@ args: ${args:-}
 STDIN
 }
 
-@test "rc_d_test.bash --debug --dryrun --other-option --quiet --verbose --warning opt" {
+@test "rc_d_test.bash --debug --dryrun --other-option --quiet --verbose --warning opt " {
   run rc_d_test.bash --debug --dryrun --quiet --other-option --verbose --warning opt
   [ "$status" -eq 0 ]
   assert_output - <<STDIN
@@ -47,7 +47,7 @@ opt
 STDIN
 }
 
-@test "rc_d_test.bash --desc" {
+@test "rc_d_test.bash --desc " {
   run rc_d_test.bash --desc
   [ "$status" -eq 0 ]
   assert_output - <<STDIN
@@ -55,7 +55,7 @@ ${desc}
 STDIN
 }
 
-@test "rc_d_test.bash --verbose --desc opt" {
+@test "rc_d_test.bash --verbose --desc opt " {
   run rc_d_test.bash --desc
   [ "$status" -eq 0 ]
   assert_output - <<STDIN
@@ -63,17 +63,17 @@ ${desc}
 STDIN
 }
 
-@test "rc_d_test.bash --help: Error" {
+@test "rc_d_test.bash --help: Error " {
   run rc_d_test.bash --help
   assert_failure
 }
 
-@test "rc_d_test.bash --version: Error" {
+@test "rc_d_test.bash --version: Error " {
   run rc_d_test.bash --help
   assert_failure
 }
 
-@test "rc_d_test.bash --man-repo: Error" {
+@test "rc_d_test.bash --man-repo: Error " {
   run rc_d_test.bash --help
   assert_failure
 }

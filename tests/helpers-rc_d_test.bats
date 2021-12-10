@@ -6,7 +6,7 @@ setup() {
   desc="rc_d_test script in sh for the repository README.adoc and no main() function"
 }
 
-@test "rc_d_test" {
+@test "rc_d_test " {
   assert rc_d_test
   run rc_d_test
   assert_output - <<STDIN
@@ -19,7 +19,7 @@ args: ${args:-}
 STDIN
 }
 
-@test "rc_d_test --debug --dryrun --quiet --verbose --warning" {
+@test "rc_d_test --debug --dryrun --quiet --verbose --warning " {
   run rc_d_test --debug --dryrun --quiet --verbose --warning
   [ "$status" -eq 0 ]
   assert_output - <<STDIN
@@ -32,7 +32,7 @@ args: ${args:-}
 STDIN
 }
 
-@test "rc_d_test --debug --dryrun --other-option --quiet --verbose --warning opt" {
+@test "rc_d_test --debug --dryrun --other-option --quiet --verbose --warning opt " {
   run rc_d_test --debug --dryrun --quiet --other-option --verbose --warning opt
   [ "$status" -eq 0 ]
   assert_output - <<STDIN
@@ -47,7 +47,7 @@ opt
 STDIN
 }
 
-@test "rc_d_test --desc" {
+@test "rc_d_test --desc " {
   run rc_d_test --desc
   [ "$status" -eq 0 ]
   assert_output - <<STDIN
@@ -55,7 +55,7 @@ ${desc}
 STDIN
 }
 
-@test "rc_d_test --verbose --desc opt" {
+@test "rc_d_test --verbose --desc opt " {
   run rc_d_test --desc
   [ "$status" -eq 0 ]
   assert_output - <<STDIN
@@ -63,17 +63,17 @@ ${desc}
 STDIN
 }
 
-@test "rc_d_test --help: Error" {
+@test "rc_d_test --help: Error " {
   run rc_d_test --help
   assert_failure
 }
 
-@test "rc_d_test --version: Error" {
+@test "rc_d_test --version: Error " {
   run rc_d_test --help
   assert_failure
 }
 
-@test "rc_d_test --man-repo: Error" {
+@test "rc_d_test --man-repo: Error " {
   run rc_d_test --help
   assert_failure
 }

@@ -14,7 +14,7 @@
 # </dd>
 # </dl>
 # </html>
-reset() { printf '%b' "${Reset}"; printf '%s' "${@:-}"; printf '%b' "${Reset}"; }
+reset() { printf '%b' "${Reset}"; printf '%s' "${*:-}"; printf '%b' "${Reset}"; }
 
 # <html><h2>black - Show arguments in Black</h2>
 # <h3>Examples</h3>
@@ -26,7 +26,7 @@ reset() { printf '%b' "${Reset}"; printf '%s' "${@:-}"; printf '%b' "${Reset}"; 
 # </dd>
 # </dl>
 # </html>
-black() { printf '%b' "${Black}"; printf '%s' "${@:-}"; printf '%b' "${Reset}"; }
+black() { printf '%b' "${Black}"; printf '%s' "${*:-}"; printf '%b' "${Reset}"; }
 
 # <html><h2>blackbold - Show arguments in BlackBold</h2>
 # <h3>Examples</h3>
@@ -38,7 +38,7 @@ black() { printf '%b' "${Black}"; printf '%s' "${@:-}"; printf '%b' "${Reset}"; 
 # </dd>
 # </dl>
 # </html>
-blackbold() { printf '%b' "${BlackBold}"; printf '%s' "${@:-}"; printf '%b' "${Reset}"; }
+blackbold() { printf '%b' "${BlackBold}"; printf '%s' "${*:-}"; printf '%b' "${Reset}"; }
 
 # <html><h2>blackdim - Show arguments in BlackDim</h2>
 # <h3>Examples</h3>
@@ -50,7 +50,7 @@ blackbold() { printf '%b' "${BlackBold}"; printf '%s' "${@:-}"; printf '%b' "${R
 # </dd>
 # </dl>
 # </html>
-blackdim() { printf '%b' "${BlackDim}"; printf '%s' "${@:-}"; printf '%b' "${Reset}"; }
+blackdim() { printf '%b' "${BlackDim}"; printf '%s' "${*:-}"; printf '%b' "${Reset}"; }
 
 # <html><h2>blackunder - Show arguments in BlackUnder</h2>
 # <h3>Examples</h3>
@@ -62,7 +62,7 @@ blackdim() { printf '%b' "${BlackDim}"; printf '%s' "${@:-}"; printf '%b' "${Res
 # </dd>
 # </dl>
 # </html>
-blackunder() { printf '%b' "${BlackUnder}"; printf '%s' "${@:-}"; printf '%b' "${Reset}"; }
+blackunder() { printf '%b' "${BlackUnder}"; printf '%s' "${*:-}"; printf '%b' "${Reset}"; }
 
 # <html><h2>blackinvert - Show arguments in BlackInvert</h2>
 # <h3>Examples</h3>
@@ -74,7 +74,7 @@ blackunder() { printf '%b' "${BlackUnder}"; printf '%s' "${@:-}"; printf '%b' "$
 # </dd>
 # </dl>
 # </html>
-blackinvert() { printf '%b' "${BlackInvert}"; printf '%s' "${@:-}"; printf '%b' "${Reset}"; }
+blackinvert() { printf '%b' "${BlackInvert}"; printf '%s' "${*:-}"; printf '%b' "${Reset}"; }
 
 # <html><h2>blackbg - Show arguments in BlackBg</h2>
 # <h3>Examples</h3>
@@ -86,7 +86,7 @@ blackinvert() { printf '%b' "${BlackInvert}"; printf '%s' "${@:-}"; printf '%b' 
 # </dd>
 # </dl>
 # </html>
-blackbg() { printf '%b' "${BlackBg}"; printf '%s' "${@:-}"; printf '%b' "${Reset}"; }
+blackbg() { printf '%b' "${BlackBg}"; printf '%s' "${*:-}"; printf '%b' "${Reset}"; }
 
 # <html><h2>red - Show arguments in Red</h2>
 # <h3>Examples</h3>
@@ -98,7 +98,7 @@ blackbg() { printf '%b' "${BlackBg}"; printf '%s' "${@:-}"; printf '%b' "${Reset
 # </dd>
 # </dl>
 # </html>
-red() { printf '%b' "${Red}"; printf '%s' "${@:-}"; printf '%b' "${Reset}"; }
+red() { printf '%b' "${Red}"; printf '%s' "${*:-}"; printf '%b' "${Reset}"; }
 
 # <html><h2>redbold - Show arguments in RedBold</h2>
 # <h3>Examples</h3>
@@ -110,7 +110,7 @@ red() { printf '%b' "${Red}"; printf '%s' "${@:-}"; printf '%b' "${Reset}"; }
 # </dd>
 # </dl>
 # </html>
-redbold() { printf '%b' "${RedBold}"; printf '%s' "${@:-}"; printf '%b' "${Reset}"; }
+redbold() { printf '%b' "${RedBold}"; printf '%s' "${*:-}"; printf '%b' "${Reset}"; }
 
 # <html><h2>reddim - Show arguments in RedDim</h2>
 # <h3>Examples</h3>
@@ -122,7 +122,7 @@ redbold() { printf '%b' "${RedBold}"; printf '%s' "${@:-}"; printf '%b' "${Reset
 # </dd>
 # </dl>
 # </html>
-reddim() { printf '%b' "${RedDim}"; printf '%s' "${@:-}"; printf '%b' "${Reset}"; }
+reddim() { printf '%b' "${RedDim}"; printf '%s' "${*:-}"; printf '%b' "${Reset}"; }
 
 # <html><h2>redunder - Show arguments in RedUnder</h2>
 # <h3>Examples</h3>
@@ -134,7 +134,7 @@ reddim() { printf '%b' "${RedDim}"; printf '%s' "${@:-}"; printf '%b' "${Reset}"
 # </dd>
 # </dl>
 # </html>
-redunder() { printf '%b' "${RedUnder}"; printf '%s' "${@:-}"; printf '%b' "${Reset}"; }
+redunder() { printf '%b' "${RedUnder}"; printf '%s' "${*:-}"; printf '%b' "${Reset}"; }
 
 # <html><h2>redinvert - Show arguments in RedInvert</h2>
 # <h3>Examples</h3>
@@ -146,7 +146,7 @@ redunder() { printf '%b' "${RedUnder}"; printf '%s' "${@:-}"; printf '%b' "${Res
 # </dd>
 # </dl>
 # </html>
-redinvert() { printf '%b' "${RedInvert}"; printf '%s' "${@:-}"; printf '%b' "${Reset}"; }
+redinvert() { printf '%b' "${RedInvert}"; printf '%s' "${*:-}"; printf '%b' "${Reset}"; }
 
 # <html><h2>redbg - Show arguments in RedBg</h2>
 # <h3>Examples</h3>
@@ -158,7 +158,7 @@ redinvert() { printf '%b' "${RedInvert}"; printf '%s' "${@:-}"; printf '%b' "${R
 # </dd>
 # </dl>
 # </html>
-redbg() { printf '%b' "${RedBg}"; printf '%s' "${@:-}"; printf '%b' "${Reset}"; }
+redbg() { printf '%b' "${RedBg}"; printf '%s' "${*:-}"; printf '%b' "${Reset}"; }
 
 # <html><h2>green - Show arguments in Green</h2>
 # <h3>Examples</h3>
@@ -170,7 +170,7 @@ redbg() { printf '%b' "${RedBg}"; printf '%s' "${@:-}"; printf '%b' "${Reset}"; 
 # </dd>
 # </dl>
 # </html>
-green() { printf '%b' "${Green}"; printf '%s' "${@:-}"; printf '%b' "${Reset}"; }
+green() { printf '%b' "${Green}"; printf '%s' "${*:-}"; printf '%b' "${Reset}"; }
 
 # <html><h2>greenbold - Show arguments in GreenBold</h2>
 # <h3>Examples</h3>
@@ -182,7 +182,7 @@ green() { printf '%b' "${Green}"; printf '%s' "${@:-}"; printf '%b' "${Reset}"; 
 # </dd>
 # </dl>
 # </html>
-greenbold() { printf '%b' "${GreenBold}"; printf '%s' "${@:-}"; printf '%b' "${Reset}"; }
+greenbold() { printf '%b' "${GreenBold}"; printf '%s' "${*:-}"; printf '%b' "${Reset}"; }
 
 # <html><h2>greendim - Show arguments in GreenDim</h2>
 # <h3>Examples</h3>
@@ -194,7 +194,7 @@ greenbold() { printf '%b' "${GreenBold}"; printf '%s' "${@:-}"; printf '%b' "${R
 # </dd>
 # </dl>
 # </html>
-greendim() { printf '%b' "${GreenDim}"; printf '%s' "${@:-}"; printf '%b' "${Reset}"; }
+greendim() { printf '%b' "${GreenDim}"; printf '%s' "${*:-}"; printf '%b' "${Reset}"; }
 
 # <html><h2>greenunder - Show arguments in GreenUnder</h2>
 # <h3>Examples</h3>
@@ -206,7 +206,7 @@ greendim() { printf '%b' "${GreenDim}"; printf '%s' "${@:-}"; printf '%b' "${Res
 # </dd>
 # </dl>
 # </html>
-greenunder() { printf '%b' "${GreenUnder}"; printf '%s' "${@:-}"; printf '%b' "${Reset}"; }
+greenunder() { printf '%b' "${GreenUnder}"; printf '%s' "${*:-}"; printf '%b' "${Reset}"; }
 
 # <html><h2>greeninvert - Show arguments in GreenInvert</h2>
 # <h3>Examples</h3>
@@ -218,7 +218,7 @@ greenunder() { printf '%b' "${GreenUnder}"; printf '%s' "${@:-}"; printf '%b' "$
 # </dd>
 # </dl>
 # </html>
-greeninvert() { printf '%b' "${GreenInvert}"; printf '%s' "${@:-}"; printf '%b' "${Reset}"; }
+greeninvert() { printf '%b' "${GreenInvert}"; printf '%s' "${*:-}"; printf '%b' "${Reset}"; }
 
 # <html><h2>greenbg - Show arguments in GreenBg</h2>
 # <h3>Examples</h3>
@@ -230,7 +230,7 @@ greeninvert() { printf '%b' "${GreenInvert}"; printf '%s' "${@:-}"; printf '%b' 
 # </dd>
 # </dl>
 # </html>
-greenbg() { printf '%b' "${GreenBg}"; printf '%s' "${@:-}"; printf '%b' "${Reset}"; }
+greenbg() { printf '%b' "${GreenBg}"; printf '%s' "${*:-}"; printf '%b' "${Reset}"; }
 
 # <html><h2>yellow - Show arguments in Yellow</h2>
 # <h3>Examples</h3>
@@ -242,7 +242,7 @@ greenbg() { printf '%b' "${GreenBg}"; printf '%s' "${@:-}"; printf '%b' "${Reset
 # </dd>
 # </dl>
 # </html>
-yellow() { printf '%b' "${Yellow}"; printf '%s' "${@:-}"; printf '%b' "${Reset}"; }
+yellow() { printf '%b' "${Yellow}"; printf '%s' "${*:-}"; printf '%b' "${Reset}"; }
 
 # <html><h2>yellowbold - Show arguments in YellowBold</h2>
 # <h3>Examples</h3>
@@ -254,7 +254,7 @@ yellow() { printf '%b' "${Yellow}"; printf '%s' "${@:-}"; printf '%b' "${Reset}"
 # </dd>
 # </dl>
 # </html>
-yellowbold() { printf '%b' "${YellowBold}"; printf '%s' "${@:-}"; printf '%b' "${Reset}"; }
+yellowbold() { printf '%b' "${YellowBold}"; printf '%s' "${*:-}"; printf '%b' "${Reset}"; }
 
 # <html><h2>yellowdim - Show arguments in YellowDim</h2>
 # <h3>Examples</h3>
@@ -266,7 +266,7 @@ yellowbold() { printf '%b' "${YellowBold}"; printf '%s' "${@:-}"; printf '%b' "$
 # </dd>
 # </dl>
 # </html>
-yellowdim() { printf '%b' "${YellowDim}"; printf '%s' "${@:-}"; printf '%b' "${Reset}"; }
+yellowdim() { printf '%b' "${YellowDim}"; printf '%s' "${*:-}"; printf '%b' "${Reset}"; }
 
 # <html><h2>yellowunder - Show arguments in YellowUnder</h2>
 # <h3>Examples</h3>
@@ -278,7 +278,7 @@ yellowdim() { printf '%b' "${YellowDim}"; printf '%s' "${@:-}"; printf '%b' "${R
 # </dd>
 # </dl>
 # </html>
-yellowunder() { printf '%b' "${YellowUnder}"; printf '%s' "${@:-}"; printf '%b' "${Reset}"; }
+yellowunder() { printf '%b' "${YellowUnder}"; printf '%s' "${*:-}"; printf '%b' "${Reset}"; }
 
 # <html><h2>yellowinvert - Show arguments in YellowInvert</h2>
 # <h3>Examples</h3>
@@ -290,7 +290,7 @@ yellowunder() { printf '%b' "${YellowUnder}"; printf '%s' "${@:-}"; printf '%b' 
 # </dd>
 # </dl>
 # </html>
-yellowinvert() { printf '%b' "${YellowInvert}"; printf '%s' "${@:-}"; printf '%b' "${Reset}"; }
+yellowinvert() { printf '%b' "${YellowInvert}"; printf '%s' "${*:-}"; printf '%b' "${Reset}"; }
 
 # <html><h2>yellowbg - Show arguments in YellowBg</h2>
 # <h3>Examples</h3>
@@ -302,7 +302,7 @@ yellowinvert() { printf '%b' "${YellowInvert}"; printf '%s' "${@:-}"; printf '%b
 # </dd>
 # </dl>
 # </html>
-yellowbg() { printf '%b' "${YellowBg}"; printf '%s' "${@:-}"; printf '%b' "${Reset}"; }
+yellowbg() { printf '%b' "${YellowBg}"; printf '%s' "${*:-}"; printf '%b' "${Reset}"; }
 
 # <html><h2>blue - Show arguments in Blue</h2>
 # <h3>Examples</h3>
@@ -314,7 +314,7 @@ yellowbg() { printf '%b' "${YellowBg}"; printf '%s' "${@:-}"; printf '%b' "${Res
 # </dd>
 # </dl>
 # </html>
-blue() { printf '%b' "${Blue}"; printf '%s' "${@:-}"; printf '%b' "${Reset}"; }
+blue() { printf '%b' "${Blue}"; printf '%s' "${*:-}"; printf '%b' "${Reset}"; }
 
 # <html><h2>bluebold - Show arguments in BlueBold</h2>
 # <h3>Examples</h3>
@@ -326,7 +326,7 @@ blue() { printf '%b' "${Blue}"; printf '%s' "${@:-}"; printf '%b' "${Reset}"; }
 # </dd>
 # </dl>
 # </html>
-bluebold() { printf '%b' "${BlueBold}"; printf '%s' "${@:-}"; printf '%b' "${Reset}"; }
+bluebold() { printf '%b' "${BlueBold}"; printf '%s' "${*:-}"; printf '%b' "${Reset}"; }
 
 # <html><h2>bluedim - Show arguments in BlueDim</h2>
 # <h3>Examples</h3>
@@ -338,7 +338,7 @@ bluebold() { printf '%b' "${BlueBold}"; printf '%s' "${@:-}"; printf '%b' "${Res
 # </dd>
 # </dl>
 # </html>
-bluedim() { printf '%b' "${BlueDim}"; printf '%s' "${@:-}"; printf '%b' "${Reset}"; }
+bluedim() { printf '%b' "${BlueDim}"; printf '%s' "${*:-}"; printf '%b' "${Reset}"; }
 
 # <html><h2>blueunder - Show arguments in BlueUnder</h2>
 # <h3>Examples</h3>
@@ -350,7 +350,7 @@ bluedim() { printf '%b' "${BlueDim}"; printf '%s' "${@:-}"; printf '%b' "${Reset
 # </dd>
 # </dl>
 # </html>
-blueunder() { printf '%b' "${BlueUnder}"; printf '%s' "${@:-}"; printf '%b' "${Reset}"; }
+blueunder() { printf '%b' "${BlueUnder}"; printf '%s' "${*:-}"; printf '%b' "${Reset}"; }
 
 # <html><h2>blueinvert - Show arguments in BlueInvert</h2>
 # <h3>Examples</h3>
@@ -362,7 +362,7 @@ blueunder() { printf '%b' "${BlueUnder}"; printf '%s' "${@:-}"; printf '%b' "${R
 # </dd>
 # </dl>
 # </html>
-blueinvert() { printf '%b' "${BlueInvert}"; printf '%s' "${@:-}"; printf '%b' "${Reset}"; }
+blueinvert() { printf '%b' "${BlueInvert}"; printf '%s' "${*:-}"; printf '%b' "${Reset}"; }
 
 # <html><h2>bluebg - Show arguments in BlueBg</h2>
 # <h3>Examples</h3>
@@ -374,7 +374,7 @@ blueinvert() { printf '%b' "${BlueInvert}"; printf '%s' "${@:-}"; printf '%b' "$
 # </dd>
 # </dl>
 # </html>
-bluebg() { printf '%b' "${BlueBg}"; printf '%s' "${@:-}"; printf '%b' "${Reset}"; }
+bluebg() { printf '%b' "${BlueBg}"; printf '%s' "${*:-}"; printf '%b' "${Reset}"; }
 
 # <html><h2>magenta - Show arguments in Magenta</h2>
 # <h3>Examples</h3>
@@ -386,7 +386,7 @@ bluebg() { printf '%b' "${BlueBg}"; printf '%s' "${@:-}"; printf '%b' "${Reset}"
 # </dd>
 # </dl>
 # </html>
-magenta() { printf '%b' "${Magenta}"; printf '%s' "${@:-}"; printf '%b' "${Reset}"; }
+magenta() { printf '%b' "${Magenta}"; printf '%s' "${*:-}"; printf '%b' "${Reset}"; }
 
 # <html><h2>magentabold - Show arguments in MagentaBold</h2>
 # <h3>Examples</h3>
@@ -398,7 +398,7 @@ magenta() { printf '%b' "${Magenta}"; printf '%s' "${@:-}"; printf '%b' "${Reset
 # </dd>
 # </dl>
 # </html>
-magentabold() { printf '%b' "${MagentaBold}"; printf '%s' "${@:-}"; printf '%b' "${Reset}"; }
+magentabold() { printf '%b' "${MagentaBold}"; printf '%s' "${*:-}"; printf '%b' "${Reset}"; }
 
 # <html><h2>magentadim - Show arguments in MagentaDim</h2>
 # <h3>Examples</h3>
@@ -410,7 +410,7 @@ magentabold() { printf '%b' "${MagentaBold}"; printf '%s' "${@:-}"; printf '%b' 
 # </dd>
 # </dl>
 # </html>
-magentadim() { printf '%b' "${MagentaDim}"; printf '%s' "${@:-}"; printf '%b' "${Reset}"; }
+magentadim() { printf '%b' "${MagentaDim}"; printf '%s' "${*:-}"; printf '%b' "${Reset}"; }
 
 # <html><h2>magentaunder - Show arguments in MagentaUnder</h2>
 # <h3>Examples</h3>
@@ -422,7 +422,7 @@ magentadim() { printf '%b' "${MagentaDim}"; printf '%s' "${@:-}"; printf '%b' "$
 # </dd>
 # </dl>
 # </html>
-magentaunder() { printf '%b' "${MagentaUnder}"; printf '%s' "${@:-}"; printf '%b' "${Reset}"; }
+magentaunder() { printf '%b' "${MagentaUnder}"; printf '%s' "${*:-}"; printf '%b' "${Reset}"; }
 
 # <html><h2>magentainvert - Show arguments in MagentaInvert</h2>
 # <h3>Examples</h3>
@@ -434,7 +434,7 @@ magentaunder() { printf '%b' "${MagentaUnder}"; printf '%s' "${@:-}"; printf '%b
 # </dd>
 # </dl>
 # </html>
-magentainvert() { printf '%b' "${MagentaInvert}"; printf '%s' "${@:-}"; printf '%b' "${Reset}"; }
+magentainvert() { printf '%b' "${MagentaInvert}"; printf '%s' "${*:-}"; printf '%b' "${Reset}"; }
 
 # <html><h2>magentabg - Show arguments in MagentaBg</h2>
 # <h3>Examples</h3>
@@ -446,7 +446,7 @@ magentainvert() { printf '%b' "${MagentaInvert}"; printf '%s' "${@:-}"; printf '
 # </dd>
 # </dl>
 # </html>
-magentabg() { printf '%b' "${MagentaBg}"; printf '%s' "${@:-}"; printf '%b' "${Reset}"; }
+magentabg() { printf '%b' "${MagentaBg}"; printf '%s' "${*:-}"; printf '%b' "${Reset}"; }
 
 # <html><h2>cyan - Show arguments in Cyan</h2>
 # <h3>Examples</h3>
@@ -458,7 +458,7 @@ magentabg() { printf '%b' "${MagentaBg}"; printf '%s' "${@:-}"; printf '%b' "${R
 # </dd>
 # </dl>
 # </html>
-cyan() { printf '%b' "${Cyan}"; printf '%s' "${@:-}"; printf '%b' "${Reset}"; }
+cyan() { printf '%b' "${Cyan}"; printf '%s' "${*:-}"; printf '%b' "${Reset}"; }
 
 # <html><h2>cyanbold - Show arguments in CyanBold</h2>
 # <h3>Examples</h3>
@@ -470,7 +470,7 @@ cyan() { printf '%b' "${Cyan}"; printf '%s' "${@:-}"; printf '%b' "${Reset}"; }
 # </dd>
 # </dl>
 # </html>
-cyanbold() { printf '%b' "${CyanBold}"; printf '%s' "${@:-}"; printf '%b' "${Reset}"; }
+cyanbold() { printf '%b' "${CyanBold}"; printf '%s' "${*:-}"; printf '%b' "${Reset}"; }
 
 # <html><h2>cyandim - Show arguments in CyanDim</h2>
 # <h3>Examples</h3>
@@ -482,7 +482,7 @@ cyanbold() { printf '%b' "${CyanBold}"; printf '%s' "${@:-}"; printf '%b' "${Res
 # </dd>
 # </dl>
 # </html>
-cyandim() { printf '%b' "${CyanDim}"; printf '%s' "${@:-}"; printf '%b' "${Reset}"; }
+cyandim() { printf '%b' "${CyanDim}"; printf '%s' "${*:-}"; printf '%b' "${Reset}"; }
 
 # <html><h2>cyanunder - Show arguments in CyanUnder</h2>
 # <h3>Examples</h3>
@@ -494,7 +494,7 @@ cyandim() { printf '%b' "${CyanDim}"; printf '%s' "${@:-}"; printf '%b' "${Reset
 # </dd>
 # </dl>
 # </html>
-cyanunder() { printf '%b' "${CyanUnder}"; printf '%s' "${@:-}"; printf '%b' "${Reset}"; }
+cyanunder() { printf '%b' "${CyanUnder}"; printf '%s' "${*:-}"; printf '%b' "${Reset}"; }
 
 # <html><h2>cyaninvert - Show arguments in CyanInvert</h2>
 # <h3>Examples</h3>
@@ -506,7 +506,7 @@ cyanunder() { printf '%b' "${CyanUnder}"; printf '%s' "${@:-}"; printf '%b' "${R
 # </dd>
 # </dl>
 # </html>
-cyaninvert() { printf '%b' "${CyanInvert}"; printf '%s' "${@:-}"; printf '%b' "${Reset}"; }
+cyaninvert() { printf '%b' "${CyanInvert}"; printf '%s' "${*:-}"; printf '%b' "${Reset}"; }
 
 # <html><h2>cyanbg - Show arguments in CyanBg</h2>
 # <h3>Examples</h3>
@@ -518,7 +518,7 @@ cyaninvert() { printf '%b' "${CyanInvert}"; printf '%s' "${@:-}"; printf '%b' "$
 # </dd>
 # </dl>
 # </html>
-cyanbg() { printf '%b' "${CyanBg}"; printf '%s' "${@:-}"; printf '%b' "${Reset}"; }
+cyanbg() { printf '%b' "${CyanBg}"; printf '%s' "${*:-}"; printf '%b' "${Reset}"; }
 
 # <html><h2>grey - Show arguments in Grey</h2>
 # <h3>Examples</h3>
@@ -530,7 +530,7 @@ cyanbg() { printf '%b' "${CyanBg}"; printf '%s' "${@:-}"; printf '%b' "${Reset}"
 # </dd>
 # </dl>
 # </html>
-grey() { printf '%b' "${Grey}"; printf '%s' "${@:-}"; printf '%b' "${Reset}"; }
+grey() { printf '%b' "${Grey}"; printf '%s' "${*:-}"; printf '%b' "${Reset}"; }
 
 # <html><h2>greybold - Show arguments in GreyBold</h2>
 # <h3>Examples</h3>
@@ -542,7 +542,7 @@ grey() { printf '%b' "${Grey}"; printf '%s' "${@:-}"; printf '%b' "${Reset}"; }
 # </dd>
 # </dl>
 # </html>
-greybold() { printf '%b' "${GreyBold}"; printf '%s' "${@:-}"; printf '%b' "${Reset}"; }
+greybold() { printf '%b' "${GreyBold}"; printf '%s' "${*:-}"; printf '%b' "${Reset}"; }
 
 # <html><h2>greydim - Show arguments in GreyDim</h2>
 # <h3>Examples</h3>
@@ -554,7 +554,7 @@ greybold() { printf '%b' "${GreyBold}"; printf '%s' "${@:-}"; printf '%b' "${Res
 # </dd>
 # </dl>
 # </html>
-greydim() { printf '%b' "${GreyDim}"; printf '%s' "${@:-}"; printf '%b' "${Reset}"; }
+greydim() { printf '%b' "${GreyDim}"; printf '%s' "${*:-}"; printf '%b' "${Reset}"; }
 
 # <html><h2>greyunder - Show arguments in GreyUnder</h2>
 # <h3>Examples</h3>
@@ -566,7 +566,7 @@ greydim() { printf '%b' "${GreyDim}"; printf '%s' "${@:-}"; printf '%b' "${Reset
 # </dd>
 # </dl>
 # </html>
-greyunder() { printf '%b' "${GreyUnder}"; printf '%s' "${@:-}"; printf '%b' "${Reset}"; }
+greyunder() { printf '%b' "${GreyUnder}"; printf '%s' "${*:-}"; printf '%b' "${Reset}"; }
 
 # <html><h2>greyinvert - Show arguments in GreyInvert</h2>
 # <h3>Examples</h3>
@@ -578,7 +578,7 @@ greyunder() { printf '%b' "${GreyUnder}"; printf '%s' "${@:-}"; printf '%b' "${R
 # </dd>
 # </dl>
 # </html>
-greyinvert() { printf '%b' "${GreyInvert}"; printf '%s' "${@:-}"; printf '%b' "${Reset}"; }
+greyinvert() { printf '%b' "${GreyInvert}"; printf '%s' "${*:-}"; printf '%b' "${Reset}"; }
 
 # <html><h2>greybg - Show arguments in GreyBg</h2>
 # <h3>Examples</h3>
@@ -590,5 +590,5 @@ greyinvert() { printf '%b' "${GreyInvert}"; printf '%s' "${@:-}"; printf '%b' "$
 # </dd>
 # </dl>
 # </html>
-greybg() { printf '%b' "${GreyBg}"; printf '%s' "${@:-}"; printf '%b' "${Reset}"; }
+greybg() { printf '%b' "${GreyBg}"; printf '%s' "${*:-}"; printf '%b' "${Reset}"; }
 

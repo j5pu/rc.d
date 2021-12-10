@@ -1,5 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="os.bats" type="bashpro.bats-core" singleton="false">
+    <option name="programParameters" value="--jobs 19" />
     <option name="testDataPath" value="$PROJECT_DIR$/tests/os.bats" />
     <option name="workingDirectory" value="$PROJECT_DIR$/tests" />
     <method v="2" />

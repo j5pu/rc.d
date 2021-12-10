@@ -14,6 +14,7 @@ if ! command -v assert_equal > /dev/null; then
     d="${BATS_TOP}/${i}"
     [ ! -d "${d}" ] || export PATH="${d}:${PATH}"
   done
+  export MANPATH="${BATS_TOP}/share/man${MANPATH:+:${MANPATH}}"
 
   dir="${RCSHARE:-/tmp}/bats"
   [ -d "${dir}" ] || mkdir "${dir}"

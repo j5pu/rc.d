@@ -50,8 +50,8 @@ debug() {
           line="$(echo "${c}" | awk '{ print $1 }')"
         fi
 
-        [ "${file}" ] || file="$(basename "$(psargs '' | awk '{ print $1 }')" 2>/dev/null || true)"
-        add="${GreyInvert}${file:-}[${line:-}]${Reset}: "
+        [ "${file-}" ] || file="$(basename "$(psargs '' | awk '{ print $1 }')" 2>/dev/null || true)"
+        [ ! "${file-}" ] || add="${GreyInvert}${file:-}[${line:-}]${Reset}: "
 
         for arg do
           content="${content}${suffix}${arg}=$(eval echo "\$${arg}")"
@@ -70,7 +70,7 @@ debug() {
 }
 
 ####################################### ✓|x die: QUIET (default: unset)
-# Show message (ok or error) with symbol (✓, x respectively) based on status code, unless QUIET is set and exit
+# Show message (success or error) with symbol (✓, x respectively) based on status code, unless QUIET is set and exit
 # Globals:
 #   Green              Green color for ✓ symbol.
 #   PARSE              Function name or file.
@@ -92,9 +92,9 @@ debug() {
 #   --verbose          Show verbose messages.
 #   --warning          Show warning messages.
 # Output:
-#   Message to stderr if error and stdout for ok.
+#   Message to stderr if error and stdout for success.
 # Returns:
-#   1-255 for error, 0 for ok.
+#   1-255 for error, 0 for success.
 #######################################
 die() {
   rc=$?
@@ -103,7 +103,7 @@ die() {
     unset PARSED
     if [ ! "${QUIET-}" ]; then
       case "${firstrc}" in
-        0) ok "${@:-}" ;;
+        0) success "${@:-}" ;;
         *) error "${@:-}" ;;
       esac
     fi
@@ -159,8 +159,8 @@ error() {
         line="$(echo "${c}" | awk '{ print $1 }')"
       fi
 
-      [ "${file}" ] || file="$(basename "$(psargs '' | awk '{ print $1 }')" 2>/dev/null || true)"
-      add="${RedBg}${file:-}[${line:-}]${Reset}: "
+      [ "${file-}" ] || file="$(basename "$(psargs '' | awk '{ print $1 }')" 2>/dev/null || true)"
+      [ ! "${file-}" ] || add="${RedBg}${file:-}[${line:-}]${Reset}: "
 
       [ "${*-}" ] || { [ ! "${add-}" ] || add="${add%??}"; }  # if no args, remove trailing ": "
       printf '%b\n' "${RedBold}x${Reset} ${add:-}${RedBold}${*:-}${Reset}" >&2
@@ -168,42 +168,6 @@ error() {
     fi
   else
     DESC="Show error message with x symbol in red, unless QUIET is set" PARSE='error' parse "${@:-}"
-  fi
-}
-
-####################################### ✓ ok: QUIET (default: unset)
-# Show ok message in white with green ✓ symbol, unless QUIET is set
-# Globals:
-#   Green              Green color for ✓ symbol.
-#   PARSE              Function name or file.
-#                      Default if BASH_VERSION: FUNCNAME[1] if BASH_SOURCE[1] is *.lib, otherwise BASH_SOURCE[1].
-#   PARSED             Function called has been parsed already, run the function.
-#   QUIET              Do not show message if set (default: unset).
-#   Reset              Reset color.
-# Arguments:
-#   message            Message to show.
-#   -h, --help         Show help from man page and exit.
-#   --desc             Show description from $DESC or header file comment and exit.
-#   --manrepo          Show repository from man page and exit.
-#   --version          Show version from man page and exit.
-# Optional Arguments:
-#   --debug            Show debug messages.
-#   --dryrun           Show commands that will be executed.
-#   --quiet            Silent output.
-#   --verbose          Show verbose messages.
-#   --warning          Show warning messages.
-# Output:
-#   Message to stdout.
-#######################################
-ok() {
-  unset BASH_ENV ENV
-  if [ "${PARSED-}" ] && unset PARSED; then
-    if [ ! "${QUIET-}" ]; then
-      [ "${GreenBold-}" ] || . color.lib
-      printf '%b\n' "${GreenBold}✓${Reset} ${*:-}"
-    fi
-  else
-    DESC="Show ok message in white with green ✓ symbol, unless QUIET is set" PARSE='ok' parse "${@:-}"
   fi
 }
 
@@ -218,6 +182,7 @@ ok() {
 #   Red                Red color for error message and x symbol.
 #   Reset              Reset color.
 # Arguments:
+#   -                  As first argument indicates to parse for itself (parse function).
 #   -h, --help         Show help from man page and exit.
 #   --desc             Show description from $DESC or header file comment and exit.
 #   --manrepo          Show repository from man page and exit.
@@ -229,14 +194,23 @@ ok() {
 #   --verbose          Show verbose messages.
 #   --warning          Show warning messages.
 # Output:
-#   Message to stderr if error and stdout for ok.
+#   Message to stderr if error and stdout for success.
 # Returns:
-#   1-255 for error, 0 for ok.
+#   1-255 for error, 0 for success.
 #######################################
 # shellcheck disable=SC3028,SC3054
 parse() {
-  unset BASH_ENV ENV
-  if [ "${PARSE-}" ] && unset PARSED; then
+  # TODO: mirar que solo se valida cuando esta -h, --help, --repository, --version en 1 posición
+  # TODO: meter el PARSE='parse' de este pero tener cuidado recursion y el parsed (hacer un test)
+  # TODO: mirar los tests con lo de posición 1 del helpers, si había puesto en medio version, etc.
+  #   y añadir tests con los que se ha descubierto lo de rcdocker con --version, con --help, etc.
+  # TODO: poner el manpath en bats.lib y en test_helper
+  unset _arg BASH_ENV ENV
+  if [ ! "${PARSE-}" ] && [ "${#}" -eq 2 ] && [ "${1}" = '-' ]; then
+    shift
+    DESC='Parse common long optional arguments'
+    cmd='parse'
+  elif [ "${PARSE-}" ] && unset PARSED; then
     if echo "${PARSE}" | grep -qE '^/'; then
       path="${PARSE}"
       cmd="$(basename "${path}")"  # script.
@@ -252,15 +226,15 @@ parse() {
     fi
     path="${BASH_SOURCE[1]}"
   fi
-  directory="$(dirname "${path:-$(echo "${PATH}" | awk -F ':' '{ print $1 }' )/${PARSE}}")"  # for MANPATH in test.
   variables='PARSED=1'
-  for arg do
-    skip=false
+  first=true
+  for _arg do
+    _skip=false
     shift
-    case "${arg}" in
+    case "${_arg}" in
       --debug|--dryrun|--quiet|--verbose|--warning)
-        variables="${variables} $(echo "${arg}" | sed 's/--//' | tr '[:lower:]' '[:upper:]')=1"
-        skip=true
+        variables="${variables} $(echo "${_arg}" | sed 's/--//' | tr '[:lower:]' '[:upper:]')=1"
+        _skip=true
         ;;
       --desc)
         if [ ! "${DESC-}" ] && [ "${path-}" ]; then
@@ -270,24 +244,25 @@ parse() {
         [ "${DESC-}" ] || exit
         echo "${DESC}"; exit
         ;;
-      -h|--help|--man-repo|--version)
-        # MANPATH to work in tests. It will not work for function in shell, since there is not path.
-        MANPATH="${MANPATH:-}"
-        page="$(MANPATH="${directory}/../share/man:./../share/man:${MANPATH:+:${MANPATH}}" \
-          man -P cat "${cmd}" 2>/dev/null || true)"
-        [ "${page:-}" ] || exit 1
-        case "${arg}" in
-          -h|--help) echo "${page}" ;;
-          --manrepo) echo "${page}" | awk '/^REPOSITORY$/{ getline; print $1 }' ;;
-          --version) echo "${page}" | tail -1 | awk '{ print $2 }' ;;
-        esac
-        exit
+      -h|--help|--manrepo|--version)
+        if $first; then
+          page="$(man -P cat "${cmd}" 2>/dev/null || true)"
+          [ "${page:-}" ] || exit 1
+          case "${_arg}" in
+            -h|--help) echo "${page}" ;;
+            --manrepo) echo "${page}" | awk '/^REPOSITORY$/{ getline; print $1 }' ;;
+            --version) echo "${page}" | tail -1 | awk '{ print $2 }' ;;
+          esac
+          exit
+        fi
+        ;;
     esac
-    $skip || set -- "$@" "${arg}"
+    [ "${cmd}" != 'parse' ] || { echo parse: called with more than 2 or more arguments with -: "${_arg}"; exit 1; }
+    first=false
+    $_skip || set -- "$@" "${_arg}"
   done
-  unset arg DESC directory page PARSE
-
-  eval "${variables}" "${path:-${cmd}}" "${@:-}"
+  unset _arg DESC page PARSE
+  eval "${variables}" "\${path:-\${cmd}}" "\${@:-}"
 }
 
 ####################################### psargs
@@ -311,6 +286,42 @@ psargs() {
     fi
   else
     DESC='Parent process args (cmd/command and args part of ps)' PARSE='psargs' parse "${@:-}"
+  fi
+}
+
+####################################### ✓ success: QUIET (default: unset)
+# Show success message in white with green ✓ symbol, unless QUIET is set
+# Globals:
+#   Green              Green color for ✓ symbol.
+#   PARSE              Function name or file.
+#                      Default if BASH_VERSION: FUNCNAME[1] if BASH_SOURCE[1] is *.lib, otherwise BASH_SOURCE[1].
+#   PARSED             Function called has been parsed already, run the function.
+#   QUIET              Do not show message if set (default: unset).
+#   Reset              Reset color.
+# Arguments:
+#   message            Message to show.
+#   -h, --help         Show help from man page and exit.
+#   --desc             Show description from $DESC or header file comment and exit.
+#   --manrepo          Show repository from man page and exit.
+#   --version          Show version from man page and exit.
+# Optional Arguments:
+#   --debug            Show debug messages.
+#   --dryrun           Show commands that will be executed.
+#   --quiet            Silent output.
+#   --verbose          Show verbose messages.
+#   --warning          Show warning messages.
+# Output:
+#   Message to stdout.
+#######################################
+success() {
+  unset BASH_ENV ENV
+  if [ "${PARSED-}" ] && unset PARSED; then
+    if [ ! "${QUIET-}" ]; then
+      [ "${GreenBold-}" ] || . color.lib
+      printf '%b\n' "${GreenBold}✓${Reset} ${*:-}"
+    fi
+  else
+    DESC="Show success message in white with green ✓ symbol, unless QUIET is set" PARSE='success' parse "${@:-}"
   fi
 }
 
@@ -393,8 +404,8 @@ warning() {
         fi
         [ "${*-}" ] || { [ ! "${add-}" ] || add="${add%??}"; }  # if no args, remove trailing ": "
 
-        [ "${file}" ] || file="$(basename "$(psargs '' | awk '{ print $1 }')" 2>/dev/null || true)"
-        add="${YellowInvert}${file:-}[${line:-}]${Reset}: "
+        [ "${file-}" ] || file="$(basename "$(psargs '' | awk '{ print $1 }')" 2>/dev/null || true)"
+        [ ! "${file-}" ] || add="${YellowInvert}${file:-}[${line:-}]${Reset}: "
 
         printf '%b\n' "${YellowBold}!${Reset} ${add:-}${YellowBold}${*:-}${Reset}" >&2
         unset add c

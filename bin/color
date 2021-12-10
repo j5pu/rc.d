@@ -15,23 +15,23 @@ show() {
   echo
 
   export VAR1=1 VAR2=2
-  debug Debug Message: not shown "DEBUG unset"
-  DEBUG=1 debug VAR1
-  DEBUG=1 debug VAR1 VAR2
-  DEBUG=1 debug
-  DEBUG=1 QUIET=1 debug Not Shown: "QUIET=1"
+  debug Debug Message: not shown "DEBUG unset" 2>&1
+  DEBUG=1 debug VAR1 2>&1
+  DEBUG=1 debug VAR1 VAR2 2>&1
+  DEBUG=1 debug 2>&1
+  DEBUG=1 QUIET=1 debug Not Shown: "QUIET=1" 2>&1
 
   echo
 
-  error Error Message
-  error
-  QUIET=1 error Not Shown: "QUIET=1"
+  error Error Message 2>&1
+  error 2>&1
+  QUIET=1 error Not Shown: "QUIET=1" 2>&1
 
   echo
 
-  ok Ok Message
-  ok
-  QUIET=1 ok Not Shown: "QUIET=1"
+  success Success Message
+  success
+  QUIET=1 success Not Shown: "QUIET=1"
 
   echo
 
@@ -41,9 +41,9 @@ show() {
 
   echo
 
-  WARNING=1 warning Warning Message: "WARNING=1"
-  WARNING=1 warning
-  WARNING=1 QUIET=1 warning Not shown: "QUIET=1"
+  WARNING=1 warning Warning Message: "WARNING=1" 2>&1
+  WARNING=1 warning 2>&1
+  WARNING=1 QUIET=1 warning Not shown: "QUIET=1" 2>&1
 
   echo
 

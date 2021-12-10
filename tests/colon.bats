@@ -4,7 +4,7 @@ setup() {
   load test_helper
 }
 
-@test "colon" {
+@test "colon " {
   skip
   run colon
   [ "$status" -eq 0 ]
