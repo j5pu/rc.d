@@ -8,6 +8,7 @@ show() {
   prev_two=''
   awk -F '[= ]' '/^export / { print $2 }' "$(dirname "${0}")/color.lib" | while read -r i; do
     first_two="$(echo "${i}" | awk '{print substr($0,0,2)}')"
+    # shellcheck disable=SC2034
     [ "${first_two}" = "${prev_two}" ] || { echo; prev_two="${first_two}"; }
     printf "%b\n" "$(eval echo \$"${i}")${i}${Reset}"
   done
@@ -15,35 +16,35 @@ show() {
   echo
 
   export VAR1=1 VAR2=2
-  debug Debug Message: not shown "DEBUG unset" 2>&1
   DEBUG=1 debug VAR1 2>&1
+  debug Debug Message: not shown "DEBUG unset" 2>&1
   DEBUG=1 debug VAR1 VAR2 2>&1
-  DEBUG=1 debug 2>&1
   DEBUG=1 QUIET=1 debug Not Shown: "QUIET=1" 2>&1
+  DEBUG=1 debug 2>&1
 
   echo
 
   error Error Message 2>&1
-  error 2>&1
   QUIET=1 error Not Shown: "QUIET=1" 2>&1
+  error 2>&1
 
   echo
 
   success Success Message
-  success
   QUIET=1 success Not Shown: "QUIET=1"
+  success
 
   echo
 
   VERBOSE=1 verbose Verbose Message: "VERBOSE=1"
-  VERBOSE=1 verbose
   VERBOSE=1 QUIET=1 verbose Not Shown: "QUIET=1"
+  VERBOSE=1 verbose
 
   echo
 
   WARNING=1 warning Warning Message: "WARNING=1" 2>&1
-  WARNING=1 warning 2>&1
   WARNING=1 QUIET=1 warning Not shown: "QUIET=1" 2>&1
+  WARNING=1 warning 2>&1
 
   echo
 

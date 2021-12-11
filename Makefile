@@ -7,11 +7,7 @@ export PATH := $(DIR)bin:$(DIR)sbin:$(PATH)
 OUTPUT := $(DIR)tests/output
 FIXTURES := $(DIR)tests/fixtures
 FIXTURES_RC_D := $(DIR)tests/fixtures/rc_d_test
-BATS_JOBS := $(shell PATH=$(PATH) $(DIR)bin/rcdocker image --base | wc -l)
-BATS_JOBS := $(shell echo $$(($(BATS_JOBS)+1)))
-
-jobs:
-	@echo $(BATS_JOBS)
+BATS_JOBS := 60
 
 clean:
 	@rm -rf $(OUTPUT); rm -rf $(FIXTURES_RC_D)/share

@@ -204,7 +204,6 @@ parse() {
   # TODO: meter el PARSE='parse' de este pero tener cuidado recursion y el parsed (hacer un test)
   # TODO: mirar los tests con lo de posición 1 del helpers, si había puesto en medio version, etc.
   #   y añadir tests con los que se ha descubierto lo de rcdocker con --version, con --help, etc.
-  # TODO: poner el manpath en bats.lib y en test_helper
   unset _arg BASH_ENV ENV
   if [ ! "${PARSE-}" ] && [ "${#}" -eq 2 ] && [ "${1}" = '-' ]; then
     shift
@@ -262,7 +261,10 @@ parse() {
     $_skip || set -- "$@" "${_arg}"
   done
   unset _arg DESC page PARSE
-  eval "${variables}" "\${path:-\${cmd}}" "\${@:-}"
+  eval "${variables} ${path:-${cmd}}" "\${@:-}"
+  # FIXME: inline variables in centos sh remain after command: DEBUG=1 debug
+  # _f() { if [ "${1-}" ]; then ${path:-${cmd}} "${@}"; else ${path:-${cmd}}; fi; }
+  # eval "${variables} _f" "\${@:-}"
 }
 
 ####################################### psargs

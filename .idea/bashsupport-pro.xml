@@ -22,8 +22,8 @@
       </library>
     </scriptLibraries>
     <globalVariables>
-      <var name="firstrc" />
       <var name="arg" />
+      <var name="firstrc" />
     </globalVariables>
   </component>
 </project>

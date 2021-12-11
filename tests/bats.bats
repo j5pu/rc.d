@@ -6,8 +6,7 @@ setup() {
 
 @test "functions declared " {
    for func in ${BATS_LIBS_FUNCS}; do
-    run declare -pF "${func}"
-    [ "$status" -eq 0 ]
+    assert declare -pF "${func}"
   done
 }
 

@@ -3,6 +3,7 @@
 
 . bats.lib 2>/dev/null || . "${BATS_TEST_DIRNAME}/../bin/bats.lib"
 . colorf.lib
+. os.lib
 
 IMAGES="$(rcdocker image --base)"; export IMAGES
 
