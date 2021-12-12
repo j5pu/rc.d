@@ -213,7 +213,7 @@ error() {
 }
 
 #######################################
-# Check if an executable exists (which) excluding rc SBIN
+# Check if an executable exists.
 # Arguments:
 #   -a                  Find all paths ('type -aP' or 'which -a' when 'type -a' is not available).
 #   -p                  Use path (ignore for '-a').
@@ -238,20 +238,24 @@ error() {
 has() {
   unset BASH_ENV ENV
   if [ "${PARSED-}" ] && unset PARSED; then
+    set +x
     doc() { docker run -i --rm --entrypoint sh "${image}" -c "${c} ${executable}"; }
     loc() { ${c} "${executable}"; }
 
-    all=false; c='command -v'; t='type -aP'; v=false; w='which -a'
+    all=false; c='command -v'; p=false; t='type -aP'; v=false; w='which -a'
     for arg; do
       case "${arg}" in
-        -a) all=true; c="${t}";;
-        -p) c="${c}p" ;;
-        -v) v=true ;;
-        --exclude=*) all=true; c="${t}"; exclude="$(echo "${arg}" | sed 's/--exclude=//')";;
+#        --all) all=true; c="${t}";;
+        --all) all=true; c="${w}";;
+#        --path) c="type -P"; p=true ;;
+        --path) c='which'; p=true ;;
+        --value) v=true ;;
+#        --exclude=*) all=true; c="${t}"; exclude="$(echo "${arg}" | sed 's/--exclude=//')";;
+        --exclude=*) all=true; c="${w}"; exclude="$(echo "${arg}" | sed 's/--exclude=//')";;
         *)
           if [ "${executable-}" ]; then
             image="${arg}"
-          elif [ ! "${arg-}" ]; then
+          elif [ "${arg:-}" != '' ]; then
             executable="${arg}"
           fi
           ;;
@@ -261,43 +265,65 @@ has() {
     executable="${executable:-sudo}"
 
     if [ "${image-}" ] && $all; then
-      if command -vp docker >/dev/null; then
-        if docker run -i --rm --entrypoint sh "${image}" -c "${t} cut" 1>/dev/null 2>&1; then
+      if which docker >/dev/null 2>&1 || command -vp docker >/dev/null; then
+        if docker run -i --rm --entrypoint sh "${image}" -c "${w} cut" >/dev/null 2>&1; then
           rv="$(doc)"; rc=$?
         else
-          c="${w}"; rv="$(doc)"; rc=$?
+          c="${t}"; rv="$(doc)"; rc=$?
         fi
       fi
     elif [ "${image-}" ]; then
-      rv="$(doc)"; rc=$?
+      if $p; then
+        if docker run -i --rm --entrypoint sh "${image}" -c "which cut" >/dev/null 2>&1; then
+          rv="$(doc)"; rc=$?
+        else
+          c='type -P'; rv="$(doc)"; rc=$?
+        fi
+      else
+        rv="$(doc)"; rc=$?
+      fi
     elif $all; then
-      if ${t} cut 1>/dev/null 2>&1; then
+      if ${w} cut >/dev/null 2>&1; then
         rv="$(loc)"; rc=$?
       else
-        c="${w}"; rv="$(loc)"; rc=$?
+        c="${t}"; rv="$(loc)"; rc=$?
       fi
     else
-      rv="$(loc)"; rc=$?
+      if $p; then
+        if ${c} cut >/dev/null 2>&1; then
+          rv="$(loc)"; rc=$?
+        else
+          c='type -P'; rv="$(loc)"; rc=$?
+        fi
+      else
+        rv="$(loc)"; rc=$?
+      fi
     fi
 
     if $all; then
-      if [ "${exclude-}" ] && [ "${rv}" ]; then
-        real="$(real "${exclude}")"; realp="$(real -P "${exclude}")"; rc=1
+      if [ "${rv-}" ]; then
+        tmp="$(mktemp)"
         for i in ${rv}; do
-          { [ "${i}" = "${real}" ] || [ "${i}" = "${realp}" ]; } || { rc=0; echo "${i}"; }
+          real="$(real --resolve "${i}")"
+          grep -q "^${real}$" "${tmp}" >/dev/null || echo "${real}" >> "${tmp}"
+        done
+        rv="$(cat "${tmp}")"
+      fi
+      if [ "${exclude-}" ] && [ "${rv}" ]; then
+        real="$(real --resolve "${exclude}")"; rc=1
+        for i in ${rv}; do
+          [ "${i}" = "${real}" ] || { rc=0; echo "${i}"; }
         done
       elif [ "${rv-}" ]; then
         echo "${rv}"
       fi
     else
-      ! $v || [ ! "${rv-}" ] || echo "${rv}"
+      if $v && [ "${rv-}" ]; then echo "${rv}"; fi
     fi
-
     unset all c executable i image real realp rv t v w; unset -f doc loc
-
     return "${rc}" 2>/dev/null || exit "${rc}"
   else
-    PARSE="${0}" parse "${@:-}"
+    DESC='Check if an executable exists' PARSE='has' parse "${@:-}"
   fi
 }
 
@@ -490,6 +516,7 @@ parse() {
   done
   unset _arg DESC _page PARSE
   eval "${_variables} ${_path:-${_cmd}}" "\${@:-}"
+  eval_rc=$?
   if [ "${DRYRUN-}" ]; then
     # <html><h2>Dry Run</h2>
     # <p><strong><code>$DRYRUN</code></strong> (Default: unset).</p>
@@ -504,6 +531,7 @@ parse() {
   # FIXME: inline variables in centos sh remain after command: DEBUG=1 debug
   # _f() { if [ "${1-}" ]; then ${path:-${cmd}} "${@}"; else ${path:-${cmd}}; fi; }
   # eval "${variables} _f" "\${@:-}"
+  return "${eval_rc}" 2>/dev/null || exit "${eval_rc}"
 }
 
 ####################################### psargs

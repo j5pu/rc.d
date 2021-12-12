@@ -34,6 +34,9 @@ setup() {
   assert test "${TESTS:-}"
   echo TESTS: "${TESTS:-}" >&3
 
+  assert test "${FIXTURES:-}"
+  echo FIXTURES: "${FIXTURES:-}" >&3
+
   assert test "${RC_D_TEST_NAME:-}"
   echo RC_D_TEST_NAME: "${RC_D_TEST_NAME:-}" >&3
 

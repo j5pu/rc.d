@@ -20,7 +20,7 @@ main() {
 
     for arg do
       case "${arg}" in
-        -P|--resolve) resolve=true ;;
+        --resolve) resolve=true ;;
         *) relative="${arg}"
       esac
     done

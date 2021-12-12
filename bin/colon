@@ -11,7 +11,7 @@ base() { output "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"; 
 #######################################
 # Prepend script directory and script directory parent with sbin to 'PATH'
 # Globals:
-#   DIRECTORY         Directory to prepend, append or remove.
+#   DIRECTORY         The directory to prepend, append or remove.
 #   SCRIPT_BIN        Script directory.
 #   VALUE             Path value to manipulate.
 # Outputs:
@@ -86,7 +86,7 @@ output() {
 # Prepend (beginning, the default), append (end) or remove
 # Globals:
 #   APPEND              Add at the end.
-#   DIRECTORY           Directory to prepend, append or remove.
+#   DIRECTORY           The directory to prepend, append or remove.
 #   EXPORT              Variable name to add export command.
 #   NAME                Variable name (default: PATH).
 #   REMOVE              Remove for the path value.
@@ -117,7 +117,7 @@ run() {
 # Prepend (beginning, the default), append (end) or remove to colon variables (PATH, INFOPATH, MANPATH etc.)
 # Globals:
 #   APPEND              Add at the end.
-#   DIRECTORY           Directory to prepend, append or remove.
+#   DIRECTORY           The directory to prepend, append or remove.
 #   EXPORT              Variable name to add export command.
 #   REMOVE              Remove for the path value.
 #   VALUE               Path value to manipulate.
@@ -127,7 +127,7 @@ run() {
 #   --init              A clean new 'PATH', 'INFOPATH', or 'MANPATH' with export command is initialized.
 #   --remove            Remove for the path value.
 #   --base              Base init PATH
-#   DIRECTORY           Directory to prepend (default), append (--append) or remove (--remove).
+#   DIRECTORY           The directory to prepend (default), append (--append) or remove (--remove).
 #                       (default: script directory and script directory parent with sbin).
 #   VALUE               Path value to manipulate (default: "" if 'DIRECTORY' provided, 'PATH' if no 'DIRECTORY').
 # Note:
