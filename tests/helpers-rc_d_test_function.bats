@@ -4,7 +4,6 @@ setup() {
   load helpers/test_helper
   setup_rc_d_test
   . rc_d_test.lib
-  desc="rc d test function is a test function in rc.d.test.lib"
 }
 
 @test "rc_d_test_function " {
@@ -72,9 +71,7 @@ STDIN
 @test "rc_d_test_function --desc " {
   run rc_d_test_function --desc
   [ "$status" -eq 0 ]
-  assert_output - <<STDIN
-${desc}
-STDIN
+  assert_output "$(getdesc rc_d_test_function)"
 }
 
 @test "rc_d_test_function --verbose --desc opt " {
@@ -142,8 +139,6 @@ STDIN
 @test "rc_d_test_function -parse --desc " {
   run rc_d_test_function -parse --desc
   [ "$status" -eq 0 ]
-  assert_output - <<STDIN
-${PARSE_DESC}
-STDIN
+  assert_output "$(getdesc parse)"
 }
 

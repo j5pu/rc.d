@@ -3,7 +3,6 @@
 setup() {
   load helpers/test_helper
   setup_rc_d_test
-  desc="rc_d_test.bash is a test script in bash with main() function"
 }
 
 @test "rc_d_test.bash " {
@@ -71,9 +70,7 @@ STDIN
 @test "rc_d_test.bash --desc " {
   run rc_d_test.bash --desc
   [ "$status" -eq 0 ]
-  assert_output - <<STDIN
-${desc}
-STDIN
+  assert_output "$(getdesc rc_d_test.bash)"
 }
 
 @test "rc_d_test.bash --verbose --desc opt " {
@@ -127,7 +124,6 @@ version
 STDIN
 }
 
-
 @test "rc_d_test.bash -parse --help opt " {
   run rc_d_test.bash -parse --help opt
   [ "$status" -eq 0 ]
@@ -147,8 +143,6 @@ STDIN
 @test "rc_d_test.bash -parse --desc " {
   run rc_d_test.bash -parse --desc
   [ "$status" -eq 0 ]
-  assert_output - <<STDIN
-${PARSE_DESC}
-STDIN
+  assert_output "$(getdesc parse)"
 }
 

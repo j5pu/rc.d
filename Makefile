@@ -1,24 +1,29 @@
 
-.PHONY: clean chmod tests verbose
+.PHONY: clean chmod env tests verbose
 
 SHELL := $(shell command -v bash)
 DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
-export PATH := $(DIR)bin:$(DIR)sbin:$(PATH)
-OUTPUT := $(DIR)tests/output
-FIXTURES := $(DIR)tests/fixtures
-FIXTURES_RC_D := $(DIR)tests/fixtures/rc_d_test
-export BATS_LOCAL := 0
+export BASH_ENV := $(DIR).envrc
 
-BATS_JOBS := 60
 clean:
-	@rm -rf $(OUTPUT); rm -rf $(FIXTURES_RC_D)/share
+	@rm -rf $${TESTS}/output; rm -rf $${RC_D_TEST_SHARE}
 
 chmod:
-	@for i in bin sbin; do chmod +x $(DIR)$${i}/* 2>/dev/null || true; done
+	@for i in $${TOP}/bin $${TOP}/sbin; do chmod +x $${TOP}/$${i}/* 2>/dev/null || true; done
+
+env:
+	@. bats.lib && echo BATS_DOCKER: $${BATS_DOCKER}
+	@echo BATS_JOBS: $${BATS_JOBS}
+	@echo MANPATH: $${MANPATH}
+	@echo RC_D_TEST_SHARE: $${RC_D_TEST_SHARE}
+	@echo PATH: $${PATH}
+	@echo TESTS: $${TESTS}
+	@echo TOP: $${TOP}
 
 tests: clean chmod
-	@bats $(DIR)tests --jobs $(BATS_JOBS) --print-output-on-failure --recursive
+	@. bats.lib && bats $${TESTS} --jobs $${BATS_JOBS} --print-output-on-failure --recursive
 
 verbose: clean chmod
-	@bats $(DIR)tests --gather-test-outputs-in $(OUTPUT) --jobs $(BATS_JOBS) --no-tempdir-cleanup --output $(OUTPUT) \
---print-output-on-failure --recursive --show-output-of-passing-tests --timing --trace --verbose-run
+	@. bats.lib && bats $${TESTS} --gather-test-outputs-in $${TESTS}/output --jobs $${BATS_JOBS} --no-tempdir-cleanup \
+--output $${TESTS}/output --print-output-on-failure --recursive --show-output-of-passing-tests --timing \
+--trace --verbose-run

@@ -3,7 +3,6 @@
 setup() {
   load helpers/test_helper
   setup_rc_d_test
-  desc="rc_d_test script in sh for the repository README.adoc and no main() function"
 }
 
 @test "rc_d_test " {
@@ -71,9 +70,7 @@ STDIN
 @test "rc_d_test --desc " {
   run rc_d_test --desc
   [ "$status" -eq 0 ]
-  assert_output - <<STDIN
-${desc}
-STDIN
+  assert_output "$(getdesc rc_d_test)"
 }
 
 @test "rc_d_test --verbose --desc opt " {
@@ -141,7 +138,5 @@ STDIN
 @test "rc_d_test -parse --desc " {
   run rc_d_test -parse --desc
   [ "$status" -eq 0 ]
-  assert_output - <<STDIN
-${PARSE_DESC}
-STDIN
+  assert_output "$(getdesc parse)"
 }

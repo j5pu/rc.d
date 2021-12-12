@@ -28,12 +28,10 @@ setup() {
 @test "has -p sudo" {
   run ${BATS_TEST_DESCRIPTION}
   assert_success
-  assert_output "$(command -v sudo)"
 }
 
-#@test "has sudo" {
-#  assert ${BATS_TEST_DESCRIPTION}
-#}
-#
-#
-#assert_failure
+@test "has -vp sudo" {
+  run ${BATS_TEST_DESCRIPTION}
+  assert_success
+  assert_output "$(command -v sudo)"
+}

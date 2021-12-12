@@ -1,8 +1,7 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="real.bats" type="bashpro.bats-core" singleton="false">
+  <configuration default="false" name="helpers-rc_d_test~bk.bats" type="bashpro.bats-core" singleton="false">
     <option name="failingTestOutput" value="true" />
-    <option name="testDataPath" value="$PROJECT_DIR$/tests/real.bats" />
-    <option name="workingDirectory" value="$PROJECT_DIR$/tests" />
+    <option name="testDataPath" value="$PROJECT_DIR$/tests/helpers-rc_d_test~bk.bats" />
     <EXTENSION ID="net.ashald.envfile">
       <option name="IS_ENABLED" value="true" />
       <option name="IS_SUBST" value="true" />

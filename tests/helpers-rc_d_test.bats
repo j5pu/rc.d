@@ -26,7 +26,7 @@ STDIN
 cmd() {
   os="${1}"; shift
   for cmd in ${RC_D_TEST_RUN_SH}; do SH='sh' assertoutput "${*:-}"; done
-  for cmd in ${RC_D_TEST_RUN_SH}; do SH='sh' assertoutput "${*:-}"; done
+#  for cmd in ${RC_D_TEST_RUN_BASH}; do SH='bash' assertoutput "${*:-}"; done
 }
 
 @test "rc_d_test: no args " {

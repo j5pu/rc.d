@@ -1,10 +1,5 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="helpers-rc_d_test_main.bats" type="bashpro.bats-core" singleton="false">
-    <option name="envMap">
-      <map>
-        <entry key="BATS_LOCAL" value="0" />
-      </map>
-    </option>
     <option name="failingTestOutput" value="true" />
     <option name="testDataPath" value="$PROJECT_DIR$/tests/helpers-rc_d_test_main.bats" />
     <option name="workingDirectory" value="$PROJECT_DIR$/tests" />
