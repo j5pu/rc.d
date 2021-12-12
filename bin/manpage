@@ -47,7 +47,8 @@ tests() {
 
 main() {
   if [ "${PARSED-}" ]; then
-    cd "${1:-$(git top)}" || die Invalid Directory: "${1:-}", or Git Top "$(git top || true)"
+    top="$(git top || true)"
+    cd "${1:-${top}}" || die Invalid Directory: "${1:-}", or Git Top "${top}"
 
     tmp_main="$(mktemp)"
     find . -type f -name "*.lib" > "${tmp_main}"

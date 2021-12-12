@@ -109,6 +109,10 @@ debug() {
 #   --quiet            Silent output.
 #   --verbose          Show verbose messages.
 #   --warning          Show warning messages.
+# Note:
+#  Do not use command substitution in the message when false || die.
+#  Previous error code is overwritten by the command substitution return code.
+#  $ cd "$(dirname "${input}")" 2>/dev/null || die Directory not Found: "$(dirname "${input}")"
 # Output:
 #   Message to stderr if error and stdout for success.
 # Returns:
@@ -118,7 +122,6 @@ die() {
   rc=$?
   unset BASH_ENV ENV
   if [ "${PARSED-}" ] && unset PARSED; then
-    unset PARSED
     if [ ! "${QUIET-}" ]; then
       case "${firstrc}" in
         0) success "${@:-}" ;;
@@ -245,12 +248,9 @@ has() {
     all=false; c='command -v'; p=false; t='type -aP'; v=false; w='which -a'
     for arg; do
       case "${arg}" in
-#        --all) all=true; c="${t}";;
         --all) all=true; c="${w}";;
-#        --path) c="type -P"; p=true ;;
         --path) c='which'; p=true ;;
         --value) v=true ;;
-#        --exclude=*) all=true; c="${t}"; exclude="$(echo "${arg}" | sed 's/--exclude=//')";;
         --exclude=*) all=true; c="${w}"; exclude="$(echo "${arg}" | sed 's/--exclude=//')";;
         *)
           if [ "${executable-}" ]; then
@@ -304,13 +304,13 @@ has() {
       if [ "${rv-}" ]; then
         tmp="$(mktemp)"
         for i in ${rv}; do
-          real="$(real --resolve "${i}")"
+          real="$(real --resolved "${i}")"
           grep -q "^${real}$" "${tmp}" >/dev/null || echo "${real}" >> "${tmp}"
         done
         rv="$(cat "${tmp}")"
       fi
       if [ "${exclude-}" ] && [ "${rv}" ]; then
-        real="$(real --resolve "${exclude}")"; rc=1
+        real="$(real --resolved "${exclude}")"; rc=1
         for i in ${rv}; do
           [ "${i}" = "${real}" ] || { rc=0; echo "${i}"; }
         done

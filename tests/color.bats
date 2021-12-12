@@ -97,7 +97,7 @@ assertline () {
   ! $BATS_DOCKER || for i in ${IMAGES}; do assertline "${i}"; done
 }
 
-@test "color [WARNING]: x color[xx] " {
+@test "color: ! " {
   ASSERT_BASH="!.*color\[.*].*$\
 "  # ! color[xx]
   ASSERT_SH="!.*$\

@@ -2,42 +2,79 @@
 
 # Absolute logical (symlink, default) or resolved (physical, pwd -P) path (Accepts one level up if it doesn't exist).
 #
-STRICT=1 . helpers.lib || exit 1
+STRICT=1 . helpers.lib
 
 #######################################
 # Absolute logical (symlink, default) or resolved (physical, pwd -P) path (Accepts one level up if it doesn't exists)
 # Arguments:
-#   -P, --resolve       Resolve symlinks (pwd -P).
-#   path                Path (default: cwd).
+#   --fail          Exit if path does not exists (default: unset)
+#   --resolved      Resolve symlinks (pwd -P).
+#   path            Path (default: cwd).
 # Output:
 #   Path or help message to stdout.
 # Returns:
 #   1 if parent directory does not exist.
+# Examples:
+#   $ real --resolved /tmp/file  # one level up: accepts, if not file/dir.
+#   /private/tmp/file
+#   $ real --resolved --fail /tmp/file    # one level up: does not accept, if not file/dir.
+#   Directory not Found: /tmp/file
+#   $ real --resolved --fail --quiet /tmp/file
+#   Directory not Found: /tmp/file
+#   $ real --resolved /tmp/file1/file2
+#   Directory not Found: /tmp/file1
+#   $ cd /tmp; rm -rf d1 d2 d3; mkdir d1; ln -s d1 d2; ln -s d2 d3; touch d1/f1;ln -s d1/f1 d1/f2;real --resolved d3/f2
+#   /private/tmp/d1/f1
+#   $ cd /tmp; rm -rf d1 d2; mkdir d1; ln -s d1 d2; touch d1/f1;ln -s d1/f1 d1/f2;real --resolved d2/f2
+#   /private/tmp/d1/f1
+#   $ cd /tmp; rm -rf d1 d2; mkdir d1; ln -s d1 d2; touch d1/f1;ln -s d1/f1 d1/f2;real --resolved d2/f1
+#   /private/tmp/d1/f1
+#   $ cd /tmp; rm -rf d1 d2; mkdir d1; ln -s d1 d2; touch d1/f1;ln -s d1/f1 d1/f2;real --resolved d1/f2
+#   /private/tmp/dir1/file1
 #######################################
-main() {
-  if [ "${PARSED-}" ] && unset PARSED; then
-    resolve=false
+if [ "${PARSED-}" ] && unset PARSED; then
+  resolved=false
 
-    for arg do
-      case "${arg}" in
-        --resolve) resolve=true ;;
-        *) relative="${arg}"
-      esac
+  fail=false
+  for arg do
+    case "${arg}" in
+      --fail) fail=true ;;
+      --resolved) resolved=true ;;
+      *) input="${arg}"
+    esac
+  done
+
+  input="${input:-}"
+
+  if [ -d "${input:-}" ]; then
+    cd "${input}" 2>/dev/null || die Directory not Found: "${input}"
+  elif [ -L "${input}" ] && $resolved; then
+    while [ -L "${input}" ]; do
+      input="$(readlink "${input}")"
     done
-
-    relative="${relative:-.}"
-    [ -d "${relative}" ] || basename="/$(basename "${relative}")"  # does not exist or it is a file
-    cd "$(dirname "${relative}")" || die Directory not Found: "$(dirname "${relative}")"
-
-    if $resolve; then
-      echo "$(pwd -P)${basename}"
-    else
-      echo "$(pwd)${basename}"
-    fi
-    unset arg basename relative resolve
+    dirname="$(dirname "${input}")"
+    cd "${dirname}" 2>/dev/null || die Directory not Found: "${dirname}"
+    basename="$(basename "${input}")"
+  elif [ -f "${input}" ]; then
+    dirname="$(dirname "${input}")"
+    cd "${dirname}" 2>/dev/null || die Directory not Found: "${dirname}"
+    basename="$(basename "${input}")"
   else
-    PARSE="${0}" parse "${@:-}"
+    ! $fail || die Directory or File not Found: "${input}"
+    dirname="$(dirname "${input}")"
+    cd "${dirname}" 2>/dev/null || die Directory not Found: "${dirname}"
+    basename="$(basename "${input}")"
   fi
-}
 
-main "${@:-}"
+  if $resolved; then
+    dirname="$(pwd -P)"
+  else
+    dirname="$(pwd)"
+  fi
+
+  [ ! "${basename-}" ] || { echo "${dirname}/${basename}"; exit; }
+  echo "${dirname}"
+  unset arg basename dirname input resolved
+else
+  PARSE="${0}" parse "${@:-}"
+fi

@@ -18,12 +18,14 @@ base() { output "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"; 
 #   Updated path value.
 #######################################
 bins() {
-  _export="${EXPORT}"; EXPORT=''
+  _export="${EXPORT:-}"; EXPORT=''
   cd "$(dirname "${0}")"
   DIRECTORY="$(pwd)"
   VALUE="$(run)"
-  cd ../sbin
-  DIRECTORY="$(pwd)"
+  if [ -d ../sbin ]; then
+    cd ../sbin
+    DIRECTORY="$(pwd)"
+  fi
   EXPORT="${_export}"
   run
 }
@@ -37,7 +39,6 @@ bins() {
 # Output:
 #   value or variable and value with export command.
 #######################################
-
 init() {
   _export="${EXPORT}"; EXPORT=''
   . os.lib

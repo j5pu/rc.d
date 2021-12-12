@@ -3,7 +3,7 @@
 
 setup() {
   load helpers/test_helper
-  path_link="/${TOP_NAME}/tests/${RC_D_TEST_NAME}/bin/link"
+  path_link="/${TOP_NAME}/tests/fixtures/link"
 }
 
 assertlink() {

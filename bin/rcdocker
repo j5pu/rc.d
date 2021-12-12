@@ -72,7 +72,7 @@ EOF
 #######################################
 # shellcheck disable=SC2086
 rcdocker::build() {
-  local base=$BASE image output param="${1:-${ID}}" target="${TARGET:+--target ${TARGET}}"
+  local base=$BASE image output output_text param="${1:-${ID}}" target="${TARGET:+--target ${TARGET}}"
   local id build container repo tag sh
 
   if $HUB; then
@@ -109,7 +109,8 @@ rcdocker::build() {
       --build-arg repo="${repo}" --build-arg tag="${tag}" \
       --file "${DOCKERFILE_PATH}" --tag "${build}" . &>"${output}"; then
       image="${repo}:${tag}"
-      grep -q -E "FROM.*/${image}" "${output}" || die Invalid FROM image in Dockerfile: "$(cat "${output}")"
+      output_text="$(cat "${output}")"
+      grep -q -E "FROM.*/${image}" "${output}" || die Invalid FROM image in Dockerfile: "${output_text}"
       if $SHOW || [[ "${FUNCNAME[1]}" =~ rcdocker::create::force|rcdocker::main ]] ; then
         if $TEST; then
           success "${build}"
@@ -121,13 +122,14 @@ rcdocker::build() {
       if $OUTPUT; then success Build Output: "${build}" "$(cat "${output}")"; fi
       rcdocker::push "${id}" "${build}"
     else
-      die Build Error: "${build}" "$(cat "${output}")"
+      output_text="$(cat "${output}")"
+      die Build Error: "${build}" "${output_text}"
     fi
   done < <(rcdocker::vars "")
 }
 
 rcdocker::build::test::quiet::die() {
-  local container containers exists=false i output running=false
+  local container containers exists=false i output output_text running=false
   if $TEST; then
     ID="${1}"
     output="$(rcdocker::tmp "${1}")"
@@ -143,7 +145,8 @@ rcdocker::build::test::quiet::die() {
 FORCE: "${FORCE}", TEST: "${TEST}"; fi
           fi
         else
-          die Remove Container: "${i}" "$(cat "${output}")"
+          output_text="$(cat "${output}")"
+          die Remove Container: "${i}" "${output_text}"
         fi
       fi
     done
@@ -157,7 +160,8 @@ FORCE: "${FORCE}", TEST: "${TEST}"; fi
           if $WARN; then warn Removed Image: "${2}", exists: "${exists}", FORCE: "${FORCE}", TEST: "${TEST}"; fi
         fi
       else
-        die Remove Image: "${2}" "$(cat "${output}")"
+        output_text="$(cat "${output}")"
+        die Remove Image: "${2}" "${output_text}"
       fi
     fi
     rcdocker::build "${1}"
@@ -203,7 +207,7 @@ rcdocker::create() {
 }
 
 rcdocker::create::force() {
-  local container create=true exists=false output running=false
+  local container create=true exists=false output output_text running=false
   rcdocker::build::test::quiet::die "${1}" "${2}"
   if docker container inspect "${3}" &>/dev/null; then
     exists=true
@@ -239,7 +243,8 @@ TEST: "${TEST}"; fi
         { $BASE || $TEST; } || PUSH=true
         rcdocker::build "$(rcdocker::id "${2}")"
       elif [ -n "$(command cat "${output}")" ]; then
-        false || die Manifest Error: "${2}" "$(cat "${output}")"
+        output_text="$(cat "${output}")"
+        false || die Manifest Error: "${2}" "${output_text}"
       fi
     fi
     if docker create -it --name "${3}" "${2}" &>"${output}"; then
@@ -252,7 +257,8 @@ TEST: "${TEST}"; fi
         fi
       fi
     else
-      die Create Error: "${3}" "$(cat "${output}")"
+      output_text="$(cat "${output}")"
+      die Create Error: "${3}" "${output_text}"
     fi
   fi
 }
@@ -370,7 +376,7 @@ rcdocker::pull() {
 }
 
 rcdocker::pull::id() {
-  local output
+  local output output_text
   output="$(rcdocker::tmp "${1}")"
   if docker pull "${2}" &>"${output}"; then
     if $SHOW || [ "${FUNCNAME[1]}" = "rcdocker::main" ]; then
@@ -380,7 +386,8 @@ rcdocker::pull::id() {
     fi
     if $OUTPUT; then grey Pull output: "${2}" "$(cat "${output}")"; fi
   else
-    die Pull Error: "${2}" "$(cat "${output}")"
+    output_text="$(cat "${output}")"
+    die Pull Error: "${2}" "${output_text}"
   fi
 }
 
@@ -397,7 +404,7 @@ rcdocker::pull::id() {
 #   image
 #######################################
 rcdocker::push() {
-  local output
+  local output output_text
   output="$(rcdocker::tmp "${1}")"
   if ! $BASE; then
     if $HUB || $PUSH; then
@@ -405,7 +412,8 @@ rcdocker::push() {
         if $SHOW || [[ "${FUNCNAME[1]}" =~ rcdocker::build|rcdocker::main ]] ; then success Pushed: "${2}" ; fi
         if $OUTPUT; then success Push output: "${2}" "$(cat "${output}")"; fi
       else
-        die Push Error: "${2}" "$(cat "${output}")"
+        output_text="$(cat "${output}")"
+        die Push Error: "${2}" "${output_text}"
       fi
     fi
   fi
