@@ -2,7 +2,7 @@
 # shellcheck disable=SC2086
 
 setup() {
-  load test_helper
+  load helpers/test_helper
   . os.lib
 }
 

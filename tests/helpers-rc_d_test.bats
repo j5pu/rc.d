@@ -1,79 +1,44 @@
 #!/usr/bin/env bats
 
 setup() {
-  load test_helper
+  load helpers/test_helper
   setup_rc_d_test
-  desc="rc_d_test script in sh for the repository README.adoc and no main() function"
+  . rc_d_test.lib
 }
 
-@test "rc_d_test " {
-  assert rc_d_test
-  run rc_d_test
+assertoutput() {
+  description "${os}" "${cmd}"
+  [ "${os}" = 'macOS' ] || { add="'"; SH="container ${os} ${SH}"; }
+  # run sh -c "'${cmd} ${*}'"  # macOS
+  # run container "${os}" "sh -c '${cmd} ${*}'"  # image
+  if [ "${1-}" ]; then
+    run ${SH} -c "${add:-}. rc_d_test.lib; ${cmd} ${*}${add:-}"
+  else
+    run ${SH} -c "${add:-}. rc_d_test.lib; ${cmd}${add:-}"
+  fi
+
+  [ "$status" -eq "${STATUS:-0}" ]
   assert_output - <<STDIN
+${EXPECTED}
+STDIN
+}
+
+cmd() {
+  os="${1}"; shift
+  for cmd in ${RC_D_TEST_RUN_SH}; do SH='sh' assertoutput "${*:-}"; done
+  for cmd in ${RC_D_TEST_RUN_SH}; do SH='sh' assertoutput "${*:-}"; done
+}
+
+@test "rc_d_test: no args " {
+  EXPECTED="$(cat <<EOF
 DEBUG: ${DEBUG:-}
 DRYRUN: ${DRYRUN:-}
 QUIET: ${QUIET:-}
 VERBOSE: ${VERBOSE:-}
 WARNING: ${WARNING:-}
 args: ${args:-}
-STDIN
-}
-
-@test "rc_d_test --debug --dryrun --quiet --verbose --warning " {
-  run rc_d_test --debug --dryrun --quiet --verbose --warning
-  [ "$status" -eq 0 ]
-  assert_output - <<STDIN
-DEBUG: 1
-DRYRUN: 1
-QUIET: 1
-VERBOSE: 1
-WARNING: 1
-args: ${args:-}
-STDIN
-}
-
-@test "rc_d_test --debug --dryrun --other-option --quiet --verbose --warning opt " {
-  run rc_d_test --debug --dryrun --quiet --other-option --verbose --warning opt
-  [ "$status" -eq 0 ]
-  assert_output - <<STDIN
-DEBUG: 1
-DRYRUN: 1
-QUIET: 1
-VERBOSE: 1
-WARNING: 1
-args: --other-option opt
---other-option
-opt
-STDIN
-}
-
-@test "rc_d_test --desc " {
-  run rc_d_test --desc
-  [ "$status" -eq 0 ]
-  assert_output - <<STDIN
-${desc}
-STDIN
-}
-
-@test "rc_d_test --verbose --desc opt " {
-  run rc_d_test --desc
-  [ "$status" -eq 0 ]
-  assert_output - <<STDIN
-${desc}
-STDIN
-}
-
-@test "rc_d_test --help: Error " {
-  run rc_d_test --help
-  assert_failure
-}
-
-@test "rc_d_test --version: Error " {
-  run rc_d_test --help
-  assert_failure
-}
-
-@test "rc_d_test --man-repo: Error " {
-  run rc_d_test --help
-  assert_failure
+EOF
+  )"
+  cmd macOS
+  cmd alpine:latest
 }

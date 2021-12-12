@@ -9,11 +9,61 @@ if [ ! "${UNAME-}" ] || [ ! -r "${file}" ]; then
   if [ ! -r "${file}" ] || [ "${FORCE-}" ]; then
     [ -d "${dir}" ] || mkdir "${dir}"
     rm -f "${file}"
+    # <html><h2>First part of hostname</h2>
+# <p><strong><code>$HOST</code></strong> (always exported).</p>
+# <ul>
+# <li><code>foo.com</code>: foo</li>
+# <li><code>example.foo.com</code>: example</li>
+# </ul>
+# </html>
+    export HOST
     HOST="$(hostname | cut -d. -f1)"
+
+    # <html><h2>Operating System System Name</h2>
+# <p><strong><code>$UNAME</code></strong> (always exported).</p>
+# <ul>
+# <li><code>darwin</code></li>
+# <li><code>linux</code></li>
+# </ul>
+# </html>
+    export UNAME
     UNAME="$(uname -s | tr '[:upper:]' '[:lower:]')"
+
     if [ "${UNAME}" = 'darwin' ]; then
+      # <html><h2>Distribution ID</h2>
+      # <p><strong><code>$DIST_ID</code></strong> (always exported).</p>
+      # <ul>
+      # <li><code>alpine</code></li>
+      # <li><code>centos</code></li>
+      # <li><code>debian</code></li>
+      # <li><code>kali</code></li>
+      # <li><code>macOS</code></li>
+      # <li><code>ubuntu</code></li>
+      # </ul>
+      # </html>
+      export DIST_ID
       DIST_ID="$(sw_vers -ProductName)"
+      # <html><h2>Distribution Version</h2>
+# <p><strong><code>$DIST_ID</code></strong> (always exported).</p>
+# <ul>
+# <li><code>macOS</code>: 10.15.1, 10.16 ...</li>
+# <li><code>kali</code>: 2021.2, ...</li>
+# <li><code>ubuntu</code> 20.04, ...</li>
+# </ul>
+# </html>
+      export DIST_VERSION
       DIST_VERSION="$(sw_vers -ProductVersion)"
+      # <html><h2>Distribution Codename</h2>
+# <p><strong><code>$DIST_CODENAME</code></strong> (always exported).</p>
+# <ul>
+# <li><code>Catalina</code></li>
+# <li><code>Big Sur</code></li>
+# <li><code>kali-rolling</code></li>
+# <li><code>focal</code></li>
+# <li><code>etc.</code></li>
+# </ul>
+# </html>
+      export DIST_CODENAME
       case "$(echo "${DIST_VERSION}" | awk -F. '{ print $1 $2 }')" in
         1013) DIST_CODENAME='High Sierra' ;;
         1014) DIST_CODENAME='Mojave' ;;
@@ -22,18 +72,73 @@ if [ ! "${UNAME-}" ] || [ ! -r "${file}" ]; then
         12*) DIST_CODENAME='Monterey' ;;
         *) DIST_CODENAME='Other' ;;
       esac
-      HOMEBREW_PREFIX="/usr/local"
-      MACOS='true'; macos=true
-      PM='brew'
-      PM_INSTALL="${PM} install"
-      PYCHARM_CONTENTS='/Applications/PyCharm.app/Contents'
-      PYCHARM="${PYCHARM_CONTENTS}/bin"
+      # Homebrew prefix (brew shellenv)
+      #
+      export HOMEBREW_PREFIX="/usr/local"
+      # <html><h2>Is MACOS?</h2>
+      # <p><strong><code>$MACOS</code></strong> (always exported).</p>
+      # <p><strong><code>Boolean</code></strong></p>
+      # <ul>
+      # <li><code>true</code>: $UNAME is darwin</li>
+      # <li><code>false</code>: $UNAME is linux</li>
+      # </ul>
+      # </html>
+      export MACOS='true'; macos=true
+      # <html><h2>Default Package Manager</h2>
+      # <p><strong><code>$PM</code></strong> (always exported).</p>
+      # <ul>
+      # <li><code>apk</code></li>
+      # <li><code>apt</code></li>
+      # <li><code>brew</code></li>
+      # <li><code>nix</code></li>
+      # <li><code>yum</code></li>
+      # </ul>
+      # </html>
+      export PM='brew'
+      # <html><h2>Default Package Manager with Install Options</h2>
+# <p><strong><code>$PM_INSTALL</code></strong> (always exported).</p>
+# <p><strong><code>Quiet and no cache (for containers)</code></strong>.</p>
+# <ul>
+# <li><code>apk</code></li>
+# <li><code>apt</code></li>
+# <li><code>brew</code></li>
+# <li><code>nix</code></li>
+# <li><code>yum</code></li>
+# </ul>
+# </html>
+      export PM_INSTALL="${PM} install"
+      # PyCharm contents (initial plugins, etc.).
+      #
+      export PYCHARM_CONTENTS='/Applications/PyCharm.app/Contents'
+      # PyCharm repository, application executable and configuration full path.
+      #
+      export PYCHARM="${PYCHARM_CONTENTS}/bin"
     else
       HOMEBREW_PREFIX='/home/linuxbrew/.linuxbrew'
       MACOS='false'; macos=false
-
     fi
-    HOMEBREW_ETC="${HOMEBREW_PREFIX}/etc"
+
+    # Homebrew etc
+    #
+    export HOMEBREW_ETC="${HOMEBREW_PREFIX}/etc"
+    # Version of formula, $HOMEBREW_PREFIX/opt is a symlink to $HOMEBREW_CELLAR (brew shellenv).
+    #
+    export HOMEBREW_CELLAR
+    # Brew bash completion (bash_completion.d) compat directory $BASH_COMPLETION_COMPAT_DIR, under etc.
+    #
+    export HOMEBREW_COMPLETION
+    # Symlink for the latest version of formula to $HOMEBREW_CELLAR.
+    #
+    export HOMEBREW_OPT
+    # Profile compat dir (profile.d), under etc.
+    #
+    export HOMEBREW_PROFILE
+    # Repository and Library with homebrew gems and Taps (brew shellenv).
+    #
+    export HOMEBREW_REPOSITORY
+    # Taps path under '$HOMEBREW_REPOSITORY/Library'.
+    #
+    export HOMEBREW_TAPS
 
     tee -a "${file}" > /dev/null <<EOF
 # shellcheck shell=sh
@@ -70,27 +175,51 @@ EOF
               DIST_ID="${value}"
               case "${DIST_ID}" in
                 alpine)
+                  # '1' if 'DIST_ID' is 'alpine'
+                  #
+                  export ALPINE
+                  # '1' if 'DIST_ID' is 'alpine'
+                  #
+                  export ALPINE_LIKE
+                  # <alpine|debian|rhel fedora>.
+                  #
+                  export DIST_ID_LIKE
                   {
                     echo 'export ALPINE=1'
                     echo 'export ALPINE_LIKE=1'
                     echo "export DIST_ID_LIKE='${DIST_ID}'"
-                    if [ -r '/etc/nix' ]; then
-                      echo 'export NIXOS=1'
-                      PM='nix-env'
-                    else
-                      PM='apk'
-                    fi
                   } >> "${file}"
+                  if [ -r '/etc/nix' ]; then
+                    # '1' if 'DIST_ID' is 'alpine' and '/etc/nix'.
+                    #
+                    export NIXOS
+                    echo 'export NIXOS=1' >> "${file}"
+                    PM='nix-env'
+                  else
+                    PM='apk'
+                  fi
                   ;;
                 arch)
+                  # '1' if 'DIST_ID' is 'arch'
+                  #
+                  export ARCHLINUX
                   echo 'export ARCHLINUX=1' >> "${file}"
                   PM='pacman'
                   ;;
                 centos)
+                  # '1' if 'DIST_ID' is 'centos'.
+                  #
+                  export CENTOS
                   echo 'export CENTOS=1' >> "${file}"
                   PM='yum'
                   ;;
                 debian)
+                  # '1' if 'DIST_ID' is 'debian'.
+                  #
+                  export DEBIAN
+                  # '1' if 'DIST_ID_LIKE is 'debian'.
+                  #
+                  export DEBIAN_LIKE
                   {
                     echo 'export DEBIAN=1'
                     echo 'export DEBIAN_LIKE=1'
@@ -98,22 +227,49 @@ EOF
                   } >> "${file}"
                   ;;
                 fedora)
+                  # '1' if 'DIST_ID' is 'fedora' or 'fedora' in 'DIST_ID_LIKE'.
+                  #
+                  export FEDORA_LIKE
+                  # '1' if 'DIST_ID' is 'fedora'.
+                  #
+                  export FEDORA
                   {
                     echo 'export FEDORA=1'
                     echo 'export FEDORA_LIKE=1'
                   } >> "${file}"
-                  PM='dnf'; export FEDORA_LIKE
+                  PM='dnf'
                   ;;
-                kali) echo 'export KALI=1' >> "${file}" ;;
+                kali)
+                  # '1' if 'DIST_ID' is 'kali'.
+                  #
+                  export KALI
+                  echo 'export KALI=1' >> "${file}"
+                  ;;
                 rhel)
+                  # '1' if 'DIST_ID' is 'rhel'.
+                  #
+                  export RHEL
+                  # '1' if 'DIST_ID' is 'rhel' or 'rhel' in 'DIST_ID_LIKE'.
+                  #
+                  export RHEL_LIKE
                   {
                     echo 'export RHEL=1'
                     echo 'export RHEL_LIKE=1'
                   } >> "${file}"
                   PM='yum'
                   ;;
-                ubuntu) echo 'export UBUNTU=1' >> "${file}" ;;
-                *) echo 'export DIST_UNKNOWN=1' >> "${file}" ;;
+                ubuntu)
+                  # '1' if 'DIST_ID' is 'ubuntu'.
+                  #
+                  export UBUNTU
+                  echo 'export UBUNTU=1' >> "${file}"
+                  ;;
+                *)
+                  # '1' if 'DIST_ID' is unknown.
+                  #
+                  export DIST_UNKNOWN
+                  echo 'export DIST_UNKNOWN=1' >> "${file}"
+                  ;;
               esac
               ;;
             ID_LIKE)
@@ -132,6 +288,9 @@ EOF
           esac
         done < "${f}"
       else
+        # '1' if not '/etc/os-release' and not '/sbin'.
+        #
+        export BUSYBOX
         [ -d '/sbin' ] && echo 'export BUSYBOX=1' >> "${file}"
       fi
     fi
@@ -148,10 +307,22 @@ EOF
 
     [ "${PM-}" ] && [ "${PM_INSTALL-}" ] && PM_INSTALL="${PM} ${PM_INSTALL}"
     if [ "${SSH_CLIENT-}" ] || [ "${SSH_CONNECTION-}" ] || [ "${SSH_TTY-}" ]; then
-      HOST_PROMPT='ꜿ'; echo 'export SSH=1' >> "${file}"
+      # '1' if 'SSH_CLIENT' or 'SSH_TTY' or 'SSH_CONNECTION'.
+      #
+      export SSH
+      echo 'export SSH=1' >> "${file}"
+      # Symbol and 'HOST' if 'CONTAINER' or 'SSH'.
+      export HOST_PROMPT='ꜿ';
     fi
     if [ -f '/proc/1/environ' ] || [ -f '/.dockerenv' ]; then
-      HOST_PROMPT='⌁'; echo 'export CONTAINER=1' >> "${file}"
+      # '1' if running in docker container.
+      #
+      export CONTAINER
+      echo 'export CONTAINER=1' >> "${file}"
+      HOST_PROMPT='⌁'
+      # 'noninteractive' if 'IS_CONTAINER' and 'DEBIAN_LIKE' are set.
+      #
+      export DEBIAN_FRONTEND
       [ "${DIST_ID}" = 'debian' ] && echo "export DEBIAN_FRONTEND='noninteractive'" >> "${file}"
       [ "${PM_INSTALL-}" ] && PM_INSTALL="${PM_INSTALL} ${no_cache}"
     fi

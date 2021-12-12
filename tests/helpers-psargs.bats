@@ -2,7 +2,7 @@
 
 
 setup() {
-  load test_helper
+  load helpers/test_helper
 }
 
 @test "psargs " {

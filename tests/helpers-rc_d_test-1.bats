@@ -3,12 +3,12 @@
 setup() {
   load helpers/test_helper
   setup_rc_d_test
-  desc="rc_d_test_main is a test script in sh with main() function"
+  desc="rc_d_test script in sh for the repository README.adoc and no main() function"
 }
 
-@test "rc_d_test_main " {
-  assert rc_d_test_main
-  run rc_d_test_main
+@test "rc_d_test " {
+  assert rc_d_test
+  run rc_d_test
   assert_output - <<STDIN
 DEBUG: ${DEBUG:-}
 DRYRUN: ${DRYRUN:-}
@@ -19,8 +19,8 @@ args: ${args:-}
 STDIN
 }
 
-@test "rc_d_test_main --debug --dryrun --quiet --verbose --warning " {
-  run rc_d_test_main --debug --dryrun --quiet --verbose --warning
+@test "rc_d_test --debug --dryrun --quiet --verbose --warning " {
+  run rc_d_test --debug --dryrun --quiet --verbose --warning
   [ "$status" -eq 0 ]
   assert_output - <<STDIN
 DEBUG: 1
@@ -32,8 +32,8 @@ args: ${args:-}
 STDIN
 }
 
-@test "rc_d_test_main --debug --dryrun --other-option --quiet --verbose --warning opt " {
-  run rc_d_test_main --debug --dryrun --quiet --other-option --verbose --warning opt
+@test "rc_d_test --debug --dryrun --other-option --quiet --verbose --warning opt " {
+  run rc_d_test --debug --dryrun --quiet --other-option --verbose --warning opt
   [ "$status" -eq 0 ]
   assert_output - <<STDIN
 DEBUG: 1
@@ -47,9 +47,9 @@ opt
 STDIN
 }
 
-@test "rc_d_test_main --debug --dryrun -h --help --manrepo --version --other-option ... opt " {
-  run rc_d_test_main --debug --dryrun --desc -h --help --manrepo --version --quiet --other-option --verbose \
-    --warning opt
+@test "rc_d_test --debug --dryrun -h --help --manrepo --version --other-option ... opt " {
+  run rc_d_test --debug --dryrun --desc -h --help --manrepo --version --quiet --other-option \
+    --verbose --warning opt
   [ "$status" -eq 0 ]
   assert_output - <<STDIN
 DEBUG: 1
@@ -68,16 +68,16 @@ opt
 STDIN
 }
 
-@test "rc_d_test_main --desc " {
-  run rc_d_test_main --desc
+@test "rc_d_test --desc " {
+  run rc_d_test --desc
   [ "$status" -eq 0 ]
   assert_output - <<STDIN
 ${desc}
 STDIN
 }
 
-@test "rc_d_test_main --verbose --desc opt " {
-  run rc_d_test_main --verbose --desc opt
+@test "rc_d_test --verbose --desc opt " {
+  run rc_d_test --verbose --desc opt
   [ "$status" -eq 0 ]
   assert_output - <<STDIN
 DEBUG: ${a:-}
@@ -91,23 +91,23 @@ opt
 STDIN
 }
 
-@test "rc_d_test_main --help: Error " {
-  run rc_d_test_main --help
+@test "rc_d_test --help: Error " {
+  run rc_d_test --help
   assert_failure
 }
 
-@test "rc_d_test_main --version: Error " {
-  run rc_d_test_main --help
+@test "rc_d_test --version: Error " {
+  run rc_d_test --help
   assert_failure
 }
 
-@test "rc_d_test_main --man-repo: Error " {
-  run rc_d_test_main --help
+@test "rc_d_test --man-repo: Error " {
+  run rc_d_test --help
   assert_failure
 }
 
-@test "rc_d_test_main --debug --dryrun --quiet --verbose --warning -- bash version " {
-  run rc_d_test_main --debug --dryrun --quiet --verbose --warning -- bash version
+@test "rc_d_test --debug --dryrun --quiet --verbose --warning -- bash version " {
+  run rc_d_test --debug --dryrun --quiet --verbose --warning -- bash version
   [ "$status" -eq 0 ]
   assert_output - <<STDIN
 DEBUG: 1
@@ -122,8 +122,8 @@ version
 STDIN
 }
 
-@test "rc_d_test_main -parse --help opt " {
-  run rc_d_test_main -parse --help opt
+@test "rc_d_test -parse --help opt " {
+  run rc_d_test -parse --help opt
   [ "$status" -eq 0 ]
   assert_output - <<STDIN
 DEBUG: ${a:-}
@@ -138,8 +138,8 @@ opt
 STDIN
 }
 
-@test "rc_d_test_main -parse --desc " {
-  run rc_d_test_main -parse --desc
+@test "rc_d_test -parse --desc " {
+  run rc_d_test -parse --desc
   [ "$status" -eq 0 ]
   assert_output - <<STDIN
 ${PARSE_DESC}

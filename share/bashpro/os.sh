@@ -1,63 +1,83 @@
 # shellcheck shell=sh disable=SC2034
 
 # '1' if 'DIST_ID' is 'alpine'
+#
 export ALPINE
 
 # '1' if 'DIST_ID' is 'alpine'
+#
 export ALPINE_LIKE
 
 # '1' if 'DIST_ID' is 'arch'
+#
 export ARCHLINUX
 
 # '1' if not '/etc/os-release' and not '/sbin'
+#
 export BUSYBOX
 
 # '1' if 'DIST_ID' is 'centos'.
+#
 export CENTOS
 
 # '1' if running in docker container.
+#
 export CONTAINER
 
 # '1' if 'DIST_ID' is 'debian'.
+#
 export DEBIAN
 
 # '1' if 'DIST_ID_LIKE is 'debian'.
+#
 export DEBIAN_LIKE
 
 # 'noninteractive' if 'IS_CONTAINER' and 'DEBIAN_LIKE' are set.
+#
 export DEBIAN_FRONTEND
 
 # <alpine|debian|rhel fedora>.
+#
 export DIST_ID_LIKE
 
 # '1' if 'DIST_ID' is 'fedora'.
+#
 export FEDORA
 
 # '1' if 'DIST_ID' is 'fedora' or 'fedora' in 'DIST_ID_LIKE'.
+#
 export FEDORA_LIKE
 
-# Version of formula, $HOMEBREW_PREFIX/opt is a symlink to $HOMEBREW_CELLAR (brew shellenv)
+# Version of formula, $HOMEBREW_PREFIX/opt is a symlink to $HOMEBREW_CELLAR (brew shellenv).
+#
 export HOMEBREW_CELLAR
 
-# Brew bash completion (bash_completion.d) compat directory $BASH_COMPLETION_COMPAT_DIR, under etc
+# Brew bash completion (bash_completion.d) compat directory $BASH_COMPLETION_COMPAT_DIR, under etc.
+#
 export HOMEBREW_COMPLETION
 
-# Homebrew etc
+# Homebrew etc.
+#
 export HOMEBREW_ETC
 
-# Symlink for the latest version of formula to $HOMEBREW_CELLAR
+# Symlink for the latest version of formula to $HOMEBREW_CELLAR.
+#
 export HOMEBREW_OPT
 
-# Homebrew prefix (brew shellenv)
+# Homebrew prefix (brew shellenv).
+#
 export HOMEBREW_PREFIX
 
 # Profile compat dir (profile.d), under etc.
+#
 export HOMEBREW_PROFILE
 
-# Repository and Library with homebrew gems and Taps (brew shellenv)
+# Repository and Library with homebrew gems and Taps (brew shellenv).
+#
 export HOMEBREW_REPOSITORY
 
-# Taps path under '$HOMEBREW_REPOSITORY/Library'
+# Taps path under '$HOMEBREW_REPOSITORY/Library'.
+#
 export HOMEBREW_TAPS
 
 # <html><h2>Distribution Codename</h2>
@@ -105,9 +125,11 @@ export DIST_VERSION
 export HOST
 
 # Symbol and 'HOST' if 'CONTAINER' or 'SSH'.
+#
 export HOST_PROMPT
 
 # '1' if 'DIST_ID' is 'kali'.
+#
 export KALI
 
 # <html><h2>Is MACOS?</h2>
@@ -121,6 +143,7 @@ export KALI
 export MACOS
 
 # '1' if 'DIST_ID' is 'alpine' and '/etc/nix'.
+#
 export NIXOS
 
 # <html><h2>Default Package Manager</h2>
@@ -149,21 +172,27 @@ export PM
 export PM_INSTALL
 
 # PyCharm repository, application executable and configuration full path.
+#
 export PYCHARM
 
 # PyCharm contents (initial plugins, etc.).
+#
 export PYCHARM_CONTENTS
 
 # '1' if 'DIST_ID' is 'rhel'.
+#
 export RHEL
 
 # '1' if 'DIST_ID' is 'rhel' or 'rhel' in 'DIST_ID_LIKE'.
+#
 export RHEL_LIKE
 
 # '1' if 'SSH_CLIENT' or 'SSH_TTY' or 'SSH_CONNECTION'.
+#
 export SSH
 
 # '1' if 'DIST_ID' is 'ubuntu'.
+#
 export UBUNTU
 
 # <html><h2>Operating System System Name</h2>

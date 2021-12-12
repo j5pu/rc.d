@@ -1,8 +1,8 @@
 #!/usr/bin/env bats
 
-# Variables from test_helper not available outside @test, so images not available in while if setup()
+# Variables from test_helper not available outside @test, so images not available in 'while' if setup()
 setup() {
-  load test_helper
+  load helpers/test_helper
 }
 
 assertline () {
@@ -27,7 +27,7 @@ assertline () {
   ASSERT_BASH='\+.*color\[.*].*: .*VAR1=1,.*$'  # + color.lib[xx]: VAR1=1, VAR2=2
   ASSERT_SH='\+.*VAR1=1,.*$'  # + VAR1=1, VAR2=2
   assertline
-  for i in ${IMAGES}; do assertline "${i}"; done
+  ! $BATS_DOCKER || for i in ${IMAGES}; do assertline "${i}"; done
 }
 
 @test "color: + VAR1=1 " {
@@ -36,7 +36,7 @@ assertline () {
   ASSERT_SH="\+.*VAR1=1\
 "  # + VAR1=1
   assertline
-  for i in ${IMAGES}; do assertline "${i}"; done
+  ! $BATS_DOCKER || for i in ${IMAGES}; do assertline "${i}"; done
 }
 
 @test "color: + " {
@@ -45,14 +45,14 @@ assertline () {
   ASSERT_SH="\+.*\
 "  # +
   assertline
-  for i in ${IMAGES}; do assertline "${i}"; done
+  ! $BATS_DOCKER || for i in ${IMAGES}; do assertline "${i}"; done
 }
 
 @test "color: x Error Message " {
   ASSERT_BASH='x.*color\[.*].*: .*Error Message.*$'  # x color[88]: Error Message
   ASSERT_SH='x.*Error Message.*$'  # x Error Message
   assertline
-  for i in ${IMAGES}; do assertline "${i}"; done
+  ! $BATS_DOCKER || for i in ${IMAGES}; do assertline "${i}"; done
 }
 
 @test "color: x " {
@@ -61,40 +61,40 @@ assertline () {
   ASSERT_SH="x.*\
 "  # x
   assertline
-  for i in ${IMAGES}; do assertline "${i}"; done
+  ! $BATS_DOCKER || for i in ${IMAGES}; do assertline "${i}"; done
 }
 
 @test "color: ok Success Message " {
   ASSERT_SH='✓*Success Message.*$'  # ✓ Ok Message
   assertline
-  for i in ${IMAGES}; do assertline "${i}"; done
+  ! $BATS_DOCKER || for i in ${IMAGES}; do assertline "${i}"; done
 }
 
 @test "color: ok " {
   ASSERT_SH="✓.*$\
 "  # ✓
   assertline
-  for i in ${IMAGES}; do assertline "${i}"; done
+  ! $BATS_DOCKER || for i in ${IMAGES}; do assertline "${i}"; done
 }
 
 @test "color: > Verbose Message: VERBOSE=1 " {
   ASSERT_SH='>*Verbose Message: VERBOSE=1.*$'  # > Verbose Message: VERBOSE=1
   assertline
-  for i in ${IMAGES}; do assertline "${i}"; done
+  ! $BATS_DOCKER || for i in ${IMAGES}; do assertline "${i}"; done
 }
 
 @test "color: > " {
   ASSERT_SH=">.*$\
 "  # >
   assertline
-  for i in ${IMAGES}; do assertline "${i}"; done
+  ! $BATS_DOCKER || for i in ${IMAGES}; do assertline "${i}"; done
 }
 
 @test "color: ! Warning Message: WARNING=1 " {
   ASSERT_BASH='!.*color\[.*].*: .*Warning Message: WARNING=1.*$'  # ! color[xx]: Warning Message: WARNING=1
   ASSERT_SH='!.*Warning Message: WARNING=1.*$'  # ! Warning Message: WARNING=1
   assertline
-  for i in ${IMAGES}; do assertline "${i}"; done
+  ! $BATS_DOCKER || for i in ${IMAGES}; do assertline "${i}"; done
 }
 
 @test "color [WARNING]: x color[xx] " {
@@ -103,20 +103,20 @@ assertline () {
   ASSERT_SH="!.*$\
 "  # !
   assertline
-  for i in ${IMAGES}; do assertline "${i}"; done
+  ! $BATS_DOCKER || for i in ${IMAGES}; do assertline "${i}"; done
 }
 
 @test "color: ok Die Message " {
   ASSERT_SH='✓*Die Message.*$'  # ✓ Die Message
   assertline
-  for i in ${IMAGES}; do assertline "${i}"; done
+  ! $BATS_DOCKER || for i in ${IMAGES}; do assertline "${i}"; done
 }
 
 @test "color: Not Shown " {
   ASSERT_SH='Not Shown' #
   REFUTE='refute_line --partial'
   assertline
-  for i in ${IMAGES}; do assertline "${i}"; done
+  ! $BATS_DOCKER || for i in ${IMAGES}; do assertline "${i}"; done
 }
 
 @test "color: bash -c 'false || die Die: Error Message' " {
@@ -128,5 +128,5 @@ assertline () {
   COMMAND_MAC="bash -c"
   STATUS=1
   assertline
-  for i in ${IMAGES}; do assertline "${i}"; done
+  ! $BATS_DOCKER || for i in ${IMAGES}; do assertline "${i}"; done
 }

@@ -1,12 +1,12 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="helpers-psargs.bats" type="bashpro.bats-core" singleton="false">
+  <configuration default="false" name="has-local.bats" type="bashpro.bats-core" singleton="false">
     <option name="envMap">
       <map>
         <entry key="BATS_LOCAL" value="0" />
       </map>
     </option>
     <option name="failingTestOutput" value="true" />
-    <option name="testDataPath" value="$PROJECT_DIR$/tests/helpers-psargs.bats" />
+    <option name="testDataPath" value="$PROJECT_DIR$/tests/has-local.bats" />
     <option name="workingDirectory" value="$PROJECT_DIR$/tests" />
     <EXTENSION ID="net.ashald.envfile">
       <option name="IS_ENABLED" value="true" />

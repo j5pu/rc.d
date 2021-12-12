@@ -13,35 +13,35 @@ STRICT=1 . helpers.lib
 EXCLUDE="^bats|^python"
 #######################################
 # FIELDS            Fields in 'IMAGES' global.
-FIELDS="7"
+FIELDS="8"
 #######################################
-# IMAGES            enable;<repo owner>;<repo name>;<tag>;stripname;striptag;sh
+# IMAGES            enable;<repo owner>;<repo name>;<tag>;stripname;striptag;sh;bash
 IMAGES=$(cat <<EOF
-1;alpine;;;;;sh
-1;archlinux;;;;;bash
-1;bash;;;;;sh
-0;bash;;5.1;;;sh
-0;bash;;5.0;;;sh
-0;bash;;4.4;;;sh
-1;bats;bats;;;;sh
-1;busybox;;;;;sh
-1;centos;;;;;bash
-1;debian;;;;;dash
-1;debian;;bullseye-backports;;bullseye-;dash
-1;debian;;bullseye-slim;;bullseye-;dash
-1;fedora;;;;;bash
-0;jrei;systemd-ubuntu;;;;dash
-1;kalilinux;kali-rolling;;-rolling;;dash
-1;kalilinux;kali-bleeding-edge;;-bleeding;;dash
-1;nixos;nix;;;;busybox
-0;python;;3.9-alpine;;-alpine;sh
-0;python;;3.9-bullseye;;;dash
-0;python;;3.9-slim;;;dash
-1;python;;3.10-alpine;;-alpine;sh
-1;python;;3.10-bullseye;;;dash
-1;python;;3.10-slim;;;dash
-1;ubuntu;;;;;dash
-1;zshusers;zsh;;;;dash
+1;alpine;;;;;sh;
+1;archlinux;;;;;bash;1
+1;bash;;;;;sh;1
+0;bash;;5.1;;;sh;1
+0;bash;;5.0;;;sh;1
+0;bash;;4.4;;;sh;1
+1;bats;bats;;;;sh;1
+1;busybox;;;;;sh;
+1;centos;;;;;bash;1
+1;debian;;;;;dash;1
+1;debian;;bullseye-backports;;bullseye-;dash;1
+1;debian;;bullseye-slim;;bullseye-;dash;1
+1;fedora;;;;;bash;1
+0;jrei;systemd-ubuntu;;;;dash;1
+1;kalilinux;kali-rolling;;-rolling;;dash;1
+1;kalilinux;kali-bleeding-edge;;-bleeding;;dash;1
+1;nixos;nix;;;;busybox;
+0;python;;3.9-alpine;;-alpine;sh;
+0;python;;3.9-bullseye;;;dash;1
+0;python;;3.9-slim;;;dash;1
+1;python;;3.10-alpine;;-alpine;sh;
+1;python;;3.10-bullseye;;;dash;1
+1;python;;3.10-slim;;;dash;1
+1;ubuntu;;;;;dash;1
+1;zshusers;zsh;;;;dash;
 EOF
 )
 

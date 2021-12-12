@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 
 setup() {
-  load test_helper
+  load helpers/test_helper
   . os.lib
 }
 
@@ -12,21 +12,16 @@ setup() {
   done
 }
 
-@test "assert_success " {
+@test "assert " {
    for func in ${BATS_LIBS_FUNCS}; do
-    run declare -pF "${func}"
-    [ "$status" -eq 0 ]
-
-    run declare -pF "${func}"
-    run assert_success
-
     assert declare -pF "${func}"
   done
 }
 
-@test "assert " {
+@test "assert_success " {
    for func in ${BATS_LIBS_FUNCS}; do
-    assert declare -pF "${func}"
+    run declare -pF "${func}"
+    assert_success
   done
 }
 
@@ -43,7 +38,7 @@ setup() {
 
 @test "assert_line & assert_output " {
   run printf '%s\n' 1 2 3
-  [ "$status" -eq 0 ]
+  assert_success
   assert_line '2'
   assert_output - <<STDIN
 1

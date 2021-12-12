@@ -1,18 +1,18 @@
 #!/bin/sh
 
-# Absolute logical (symlink, default) or resolved (physical, pwd -P) path (Accepts one level up if doesn't exists).
+# Absolute logical (symlink, default) or resolved (physical, pwd -P) path (Accepts one level up if it doesn't exist).
 #
 STRICT=1 . helpers.lib || exit 1
 
 #######################################
-# Absolute logical (symlink, default) or resolved (physical, pwd -P) path (Accepts one level up if doesn't exists)
+# Absolute logical (symlink, default) or resolved (physical, pwd -P) path (Accepts one level up if it doesn't exists)
 # Arguments:
 #   -P, --resolve       Resolve symlinks (pwd -P).
 #   path                Path (default: cwd).
 # Output:
 #   Path or help message to stdout.
 # Returns:
-#   1 if parent directory does not exists.
+#   1 if parent directory does not exist.
 #######################################
 main() {
   if [ "${PARSED-}" ] && unset PARSED; then
@@ -26,7 +26,7 @@ main() {
     done
 
     relative="${relative:-.}"
-    [ -d "${relative}" ] || basename="/$(basename "${relative}")"  # does not exists or is file
+    [ -d "${relative}" ] || basename="/$(basename "${relative}")"  # does not exist or it is a file
     cd "$(dirname "${relative}")" || die Directory not Found: "$(dirname "${relative}")"
 
     if $resolve; then

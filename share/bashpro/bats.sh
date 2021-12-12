@@ -97,7 +97,7 @@ declare BATS_TEST_NUMBER
 # /var/folders/3c/k3_3r82s08q31699vdnxd2s00000gp/T/bats-run-7606/bats.7632.src
 declare BATS_TEST_SOURCE
 
-# A a temporary directory unique for each test.
+# A temporary directory unique for each test.
 # Could be used to create files required only for specific tests
 declare BATS_TEST_TMPDIR
 

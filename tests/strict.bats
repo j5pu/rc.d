@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 
 setup() {
-  load test_helper
+  load helpers/test_helper
 }
 
 @test "sh" {

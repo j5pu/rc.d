@@ -15,7 +15,7 @@ main() {
 
     for arg do
       case "${arg}" in
-        -h|--help) echo "Another help: ${arg}"; exit 1 ;;
+        -h|--help) echo "Another help: ${arg}" ;;
         --other-option) echo "${arg}" ;;
         *) echo "${arg}" ;;
       esac

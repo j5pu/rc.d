@@ -2,19 +2,19 @@
 <project version="4">
   <component name="bashsupport-pro.project">
     <scriptLibraries>
-      <library name="bashpro">
+      <library name="rc">
         <sources>
+          <source path="$PROJECT_DIR$/../.cache/bats.libs/bats-assert/src" recursive="true" external="true" />
+          <source path="$PROJECT_DIR$/../.cache/bats.libs/bats-file/src" recursive="true" external="true" />
           <source path="share/bashpro" recursive="true" />
-        </sources>
-        <targets>
-          <target recursive="true" />
-        </targets>
-      </library>
-      <library name="rc.d">
-        <sources>
           <source path="bin/bats.lib" />
+          <source path="bin/color.lib" />
           <source path="bin/colorf.lib" />
           <source path="bin/helpers.lib" />
+          <source path="bin/os.lib" />
+          <source path="bin/profile.lib" />
+          <source path="bin/root.lib" />
+          <source path="bin/strict.lib" />
         </sources>
         <targets>
           <target recursive="true" />
@@ -22,7 +22,8 @@
       </library>
     </scriptLibraries>
     <globalVariables>
-      <var name="arg" />
+      <var name="image" />
+      <var name="executable" />
       <var name="firstrc" />
     </globalVariables>
   </component>
