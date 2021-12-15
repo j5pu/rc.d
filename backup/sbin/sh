@@ -32,19 +32,19 @@ main () {
   echo "exec /bin/sh ${init_file} ${rcfile} ${login} ${*:-}" >/tmp/"${USER}-sh"
 
   if [ "${1-}" ]; then
-    exec /bin/sh ${init_file} ${rcfile} ${login} "${@}"
+    exec /bin/sh ${init_file} ${rcfile} ${login} "$@"
   else
     exec /bin/sh ${init_file} ${rcfile} ${login}
   fi
 }
 
-if [ "${1-}" ]; then main "${@}"; else main; fi
+if [ "${1-}" ]; then main "$@"; else main; fi
 
 ## SAME OUTPUT
 # sh --rcfile /etc/profile --init-file /etc/profile --login -o errexit echo hola
 # /bin/sh --rcfile /etc/profile --init-file /etc/profile --login -o errexit echo hola
 
-# echo 'echo "${@}"' > /tmp/login; chmod +x /tmp/login
+# echo 'echo "$@"' > /tmp/login; chmod +x /tmp/login
 # sh --rcfile /etc/profile --init-file /etc/profile --login -o errexit /tmp/login --login --init-file hola --rcfile -l
 # /bin/sh --rcfile /etc/profile --init-file /etc/profile --login -o errexit /tmp/login --login --init-file hola --rcfile -l
 

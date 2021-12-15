@@ -33,10 +33,10 @@ main () {
   echo "exec ${cmd} ${init_file} ${rcfile} ${login} ${*:-}" >/tmp/"${USER}-${name}"
 
   if [ "${1-}" ]; then
-    exec ${cmd} ${init_file} ${rcfile} ${login} "${@}"
+    exec ${cmd} ${init_file} ${rcfile} ${login} "$@"
   else
     exec ${cmd} ${init_file} ${rcfile} ${login}
   fi
 }
 
-if [ "${1-}" ]; then main "${@}"; else main; fi
+if [ "${1-}" ]; then main "$@"; else main; fi

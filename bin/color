@@ -52,7 +52,7 @@ show() {
 }
 
 main() {
-  if [ "${PARSED-}" ] && unset PARSED; then
+  if [ ! "${1-}" ] || [ "${PARSED-}" ]; then
     show
   else
     PARSE="${0}" parse "${@:-}"

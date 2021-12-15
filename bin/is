@@ -1,13 +1,15 @@
 #!/bin/sh
+# shellcheck disable=SC2010
 
 #
 # Boolean functions.
-set -eu; PATH="$(dirname "${0}"):${PATH}" && . strict.lib
+. helpers.lib
 
 admin() { [ -w /etc ] || command -v sudo [ -w /etc ]; }
 adminpass() { [ "${ADMINPASS-}" ] || { die Provide a password in: ADMINPASS variable; exit 1; }; /usr/bin/sudo true; }
 bash4() { command -v bash >/dev/null && [ "$(bash --version | head -1 | awk -F'[ .]' '{print $4}')" -ge 4 ]; }
 container() { [ -f '/proc/1/environ' ] || [ -f '/.dockerenv' ]; }
+empty() { ! ls -1qA "${1:-.}" | grep -q .; }
 linux() { [ "$(uname -s)" = "Linux" ]; }
 macos() { [ "$(uname -s)" = "Darwin" ]; }
 root() { [ "$(id -u)" -eq 0 ]; }
@@ -16,15 +18,20 @@ ssh() { [ "${SSH_CLIENT-}" ] || [ "${SSH_CONNECTION-}" ] || [ "${SSH_TTY-}" ]; }
 user() { ! is root && ! is sudo; }
 
 main() {
-  for arg do
-    case "${arg}" in
-      -h|--help) usage "${0}" ;;
-      --desc) desc "${0}" ;;
-      --version) rc.d.version ;;
-      --funcs) awk -F '\(' '/^[a-z].*\() {/ && !/^main/ { print $1 }' "${0}" ;;
-      *) "${arg}" ;;
-    esac
-  done
+  if [ ! "${1-}" ] || [ "${PARSED-}" ]; then
+    for arg do
+      skip=false
+      shift
+      case "${arg}" in
+        --commands) awk -F '\(' '/^[a-z].*\() {/ && !/^main/ { print $1 }' "${0}"; exit ;;
+        *) test "${func-}" || { func="${arg}"; skip=true; } ;;
+      esac
+      $skip || set -- "$@" "${arg}"
+    done
+    "${func}" "$@"
+  else
+    PARSE="${0}" parse "$@"
+  fi
 }
 
-main "${@:-}"
+main "${@}"

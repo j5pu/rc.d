@@ -52,13 +52,13 @@ main () {
     echo "exec /usr/bin/sudo ${_i} ${chdir_arg} ${*:-}" >/tmp/"${USER}-$(basename "${0}")"
 
     if [ "${1-}" ]; then
-      exec /usr/bin/sudo ${_i} ${chdir_arg} "${@}"
+      exec /usr/bin/sudo ${_i} ${chdir_arg} "$@"
     else
       exec /usr/bin/sudo ${_i} ${chdir_arg}
     fi
   else
-    [ ! "${1-}" ] || "${@}"
+    [ ! "${1-}" ] || "$@"
   fi
 }
 
-if [ "${1-}" ]; then main "${@}"; else main; fi
+if [ "${1-}" ]; then main "$@"; else main; fi

@@ -10,7 +10,7 @@ if [ "${PARSED-}" ] && unset PARSED; then
   echo "QUIET: ${QUIET:-}"
   echo "VERBOSE: ${VERBOSE:-}"
   echo "WARNING: ${WARNING:-}"
-  echo "args: ${*:-}"
+  echo "args: $*"
 
   for arg do
     case "${arg}" in
@@ -20,6 +20,6 @@ if [ "${PARSED-}" ] && unset PARSED; then
     esac
   done
 else
-  PARSE="${0}" parse "${@:-}"
+  PARSE="${0}" parse "$@"
 fi
 

@@ -1,0 +1,21 @@
+#!/bin/sh
+
+# Git remote url from 'git config'
+# Silents errors by default, use --noquiet or QUIET=1 to see errors.
+#
+: git config
+
+. helpers.lib
+
+if [ ! "${1-}" ] || [ "${PARSED-}" ]; then
+  [ "${1}" != '-C' ] || shift
+  if real="$(QUIET="${QUIET:-1}" real --dirname --fail "${1:-}")"; then
+    if rv="$(/usr/local/bin/git -C "${real}" config --get "remote.origin.url" 2>&1)"; then
+      echo "${rv}"
+    else
+      QUIET="${QUIET:-1}" die "${rv}"
+    fi
+  fi
+else
+  PARSE="${0}" parse "$@"
+fi

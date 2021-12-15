@@ -1,8 +1,8 @@
-#!/bin/bash
+#!/bin/sh
 
 # Generate color.lib, colorf.lib and color.sh (bashpro).
 #
-set -euo pipefail
+set -eu
 
 top="$(git top || exit)"
 bin="${top}/bin"
@@ -14,7 +14,7 @@ pro="${top}/share/bashpro/color.sh"
 script="$(basename "${0}")"
 
 color() {
-  local co f
+#  local co f
   co=${1}${4:-}; COLORS="${COLORS:-}${5:-}${co}"
   f="$(echo "${co}" | tr '[:upper:]' '[:lower:]')"
 
@@ -33,7 +33,7 @@ tee -a "${libf}" > /dev/null <<EOF
 # </dd>
 # </dl>
 # </html>
-${f}() { printf '%b' "\${${co}}"; printf '%s' "\${*:-}"; printf '%b' "\${Reset}"; }
+${f}() { test "\$#" -eq 0 || { printf '%b' "\${${co}}"; printf '%s' "\$@"; printf '%b' "\${Reset}"; }; }
 
 EOF
 

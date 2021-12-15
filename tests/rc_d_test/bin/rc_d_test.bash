@@ -11,7 +11,7 @@ main() {
     echo "QUIET: ${QUIET:-}"
     echo "VERBOSE: ${VERBOSE:-}"
     echo "WARNING: ${WARNING:-}"
-    echo "args: ${*:-}"
+    echo "args: $*"
 
     for arg do
       case "${arg}" in
@@ -25,4 +25,4 @@ main() {
   fi
 }
 
-main "${@:-}"
+main "$@"

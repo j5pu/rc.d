@@ -1,0 +1,14 @@
+#!/bin/sh
+
+# GIt sbin commands
+#
+
+. strict.lib
+
+if [ ! "${1-}" ] || [ "${PARSED-}" ]; then
+  for i in $(echo "${PATH}" | tr ':' '\n' | grep '/sbin$'); do
+    find -L "${i}" -type f -name "git-*" | awk -F '[/-]' '{ print $NF }'
+  done| sort -u
+else
+  PARSE="${0}" parse "$@"
+fi

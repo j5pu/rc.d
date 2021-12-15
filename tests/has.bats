@@ -1,37 +1,9 @@
 #!/usr/bin/env bats
-# shellcheck disable=SC2086,SC2153
+# shellcheck disable=SC2086,SC2153,SC2001
 
 setup() {
   load helpers/test_helper
   path_link="/${TOP_NAME}/tests/fixtures/link"
-}
-
-assertlink() {
-  case "${1}" in
-    *alpine*|bash*|bats*|busybox*|macOS|nix*) assert_output /bin/link ;;
-    *) assert_output /usr/bin/link ;;
-  esac
-}
-
-assertlinka() {
-  case "${1}" in
-    *alpine*|bash*|bats*|busybox*|macOS|nix*) assert_line /bin/link ;;
-    *) assert_line /usr/bin/link ;;
-  esac
-
-  case "${1}" in
-    macOS) assert_line "${HOME}${path_link}" ;;
-    *) assert_line "${path_link}" ;;
-  esac
-}
-
-assertlinkv() {
-  p="${path_link}"
-  if [ "${1}" = 'macOS' ]; then
-    p="${HOME}${path_link}"
-  fi
-  assert_output "${p}"
-  unset p
 }
 
 assertoutput() {
@@ -49,12 +21,8 @@ assertoutput() {
     assert_success
   fi
 
-  if [ "${LINK-}" ]; then
-    assertlink "${os}"
-  elif [ "${LINK_A-}" ]; then
-    assertlinka "${os}"
-  elif [ "${LINK_V-}" ]; then
-    assertlinkv "${os}"
+  if [ "${CALLBACK-}" ]; then
+    $(echo "${BATS_TEST_DESCRIPTION}" | sed 's/ /::/g') "${os}"
   else
     [ ! "${EXPECTED-}" ] || assert_output "${EXPECTED}"
   fi
@@ -80,6 +48,33 @@ cmd() {
 @test "has link" { unset ERROR; unset EXPECTED; FIXTURE='link'; cmd; }
 @test "has --value link" { EXPECTED="alias link='link'"; FIXTURE='link'; cmd; }
 @test "has --path link" { unset EXPECTED; FIXTURE='link'; cmd; }
-@test "has --value --path link" { LINK_V=1; FIXTURE='link'; cmd; }
-@test "has --all link" { LINK_A=1; FIXTURE='link'; cmd; }
-@test "link" { LINK=1; unset FIXTURE; cmd; }
+has::--value::--path::link() {
+  p="${path_link}"
+  if [ "${1}" = 'macOS' ]; then
+    p="${HOME}${path_link}"
+  fi
+  assert_output "${p}"
+  unset p
+}
+@test "has --value --path link" { CALLBACK=1; FIXTURE='link'; cmd; }
+has::--all::link() {
+  case "${1}" in
+    *alpine*|bash*|bats*|nix*) assert_line /bin/busybox ;;
+    busybox*|macOS) assert_line /bin/link ;;
+    *) assert_line /usr/bin/link ;;
+  esac
+
+  case "${1}" in
+    macOS) assert_line "${HOME}${path_link}" ;;
+    *) assert_line "${path_link}" ;;
+  esac
+}
+@test "has --all link" { CALLBACK=1; FIXTURE='link'; cmd; }
+link() {
+  case "${1}" in
+    *alpine*|bash*|bats*|nix*) assert_output /bin/busybox ;;
+    busybox*|macOS) assert_output /bin/link ;;
+    *) assert_output /usr/bin/link ;;
+  esac
+}
+@test "link" { CALLBACK=1; unset FIXTURE; cmd; }

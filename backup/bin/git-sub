@@ -132,4 +132,4 @@ main() {
   unset func
 }
 
-if [ "${1-}" ]; then main "${@}"; else main; fi
+if [ "${1-}" ]; then main "$@"; else main; fi

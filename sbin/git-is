@@ -1,0 +1,24 @@
+#!/bin/sh
+
+# Is git path or git url from 'git ls-files' and 'git ls-remote'
+# Silents errors by default, use --noquiet or QUIET=1 to see errors.
+#
+: git ls-files
+
+. helpers.lib
+
+if [ ! "${1-}" ] || [ "${PARSED-}" ]; then
+  if rv="$(QUIET="${QUIET:-1}" git-top "$@" 2>&1)"; then
+    exit
+  elif [ "${1}" = '-C' ]; then
+    false || QUIET="${QUIET:-1}" die Invalid Git Directory and -C "can't" be used for ls-remote: \$*="$*", rv="${rv}"
+  else
+    if rv="$(git ls-remote "${1}" CHECK_GIT_REMOTE_URL_REACHABILITY 2>&1)"; then
+      exit
+    else
+      QUIET="${QUIET:-1}" die Invalid Git Remote Url and or Invalid Git Directory: \$*="$*"
+    fi
+  fi
+else
+  PARSE="${0}" parse "$@"
+fi

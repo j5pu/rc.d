@@ -1,8 +1,6 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="env.bats" type="bashpro.bats-core" singleton="false">
-    <option name="failingTestOutput" value="true" />
-    <option name="testDataPath" value="$PROJECT_DIR$/tests/env.bats" />
-    <option name="workingDirectory" value="$PROJECT_DIR$/tests" />
+  <configuration default="false" name="git-top" type="BashProRunConfiguration" singleton="false">
+    <option name="scriptPath" value="$PROJECT_DIR$/sbin/git-top" />
     <EXTENSION ID="net.ashald.envfile">
       <option name="IS_ENABLED" value="true" />
       <option name="IS_SUBST" value="true" />
@@ -14,6 +12,7 @@
         <ENTRY IS_ENABLED="true" PARSER="env" PATH=".env" />
       </ENTRIES>
     </EXTENSION>
+    <RunnerSettings bashdbVersion="Automatic" bashPathMapper="Automatic" RunnerId="pro.bashsupport.shDebugRunner" />
     <method v="2" />
   </configuration>
 </component>

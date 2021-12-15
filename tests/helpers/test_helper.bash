@@ -14,33 +14,9 @@ alpine() {
   docker run -it -v "${PWD}"/bin:/usr/local/bin --entrypoint sh alpine -c color
 }
 
-container() {
-  local image="${1}"
-  shift
-  docker run -i \
-    --rm \
-    -e PATH="${PATH}" \
-    -e MANPATH="${MANPATH}" \
-    -v "${TOP}":/"${TOP_NAME}" \
-    --entrypoint /bin/sh \
-    "${image}" \
-    -c "${*}"
-}
-
 description() {
   echo "   [$(magenta "$(echo "${BATS_TEST_DESCRIPTION}" | awk '{ $1=$1 };1')")] [$(green "${1:-macOS}")] \
 ${2:+[$(blue "${2}")]}" >&3
-}
-
-detach() {
-  local image="${1}"
-  shift
-  docker run -it \
-    -e PATH="${PATH}" \
-    -e MANPATH="${MANPATH}" \
-    -v "${TOP}":/"${TOP_NAME}" \
-    --entrypoint /bin/sh \
-    "${image}"
 }
 
 getdesc() { head -1 "${INPUT}/${1}.desc"; }

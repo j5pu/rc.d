@@ -33,4 +33,4 @@ main() {
   done < <(swap | command sort -u)
 }
 
-main "${@}"
+main "$@"

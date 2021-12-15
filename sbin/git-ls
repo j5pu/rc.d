@@ -1,0 +1,27 @@
+#!/bin/sh
+
+# List all files in git dir but ignored, from 'git ls-files'
+# Silents errors by default, use --noquiet or QUIET=1 to see errors.
+#
+: git ls-files
+
+. helpers.lib
+
+if [ ! "${1-}" ] || [ "${PARSED-}" ]; then
+  for arg do
+    shift
+    case "${arg}" in
+      -C) continue; shift; path="${arg}" ;;
+      *) path="${arg}"
+    esac
+  done
+
+  if rv="$(/usr/local/bin/git ls-files --cached --deduplicate --deleted --error-unmatch --full-name --killed \
+    --modified --others --unmerged  "${path:-.}" 2>&1)"; then
+    echo "${rv}"
+  else
+    QUIET="${QUIET:-1}" die "${rv}"
+  fi
+else
+  PARSE="${0}" parse "$@"
+fi

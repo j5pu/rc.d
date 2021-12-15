@@ -174,7 +174,7 @@ run() {
 #   PATH='/bar'; export PATH
 #######################################
 main() {
-  if [ "${PARSED-}" ] && unset PARSED; then
+  if [ ! "${1-}" ] || [ "${PARSED-}" ]; then
     unset DIRECTORY VALUE
     APPEND=false
     base=false
@@ -211,4 +211,4 @@ main() {
   fi
 }
 
-main "${@:-}"
+main "$@"

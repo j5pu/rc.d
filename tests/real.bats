@@ -35,6 +35,7 @@ cmd() {
 @test 'real' { EXPECTED='/'; cmd='cd / && real'; cmd; }
 
 @test 'real bin' { EXPECTED='/bin'; cmd='cd / && real bin'; cmd; }
+@test 'real dirname bin' { EXPECTED='/'; cmd='cd / && real --dirname bin'; cmd; }
 real::resolved::bin() {
   case "${1}" in
     *alpine*|bash*|bats*|busybox*|debian*|macOS|nix*|python*|zsh*) assert_output /bin ;;

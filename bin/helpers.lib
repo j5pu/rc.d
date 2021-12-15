@@ -1,11 +1,13 @@
 # shellcheck shell=sh
 
-# Helpers shell library. Sources strict.lib when $STRICT is set.
+# Helpers shell library. Sources strict.lib by default when $STRICT is set.
 #
 
-[ ! "${STRICT-}" ] || . strict.lib; . color.lib
+[ "${STRICT-1}" -eq 0 ] || . strict.lib
+. colorf.lib
+
 # <html><h2>Bash Strict Mode</h2>
-# <p><strong><code>$STRICT</code></strong> Set to 1 when sourcing helpers.lib to source strict.lib (Default: unset).</p>
+# <p><strong><code>$STRICT</code></strong> 0 when sourcing helpers.lib to not source strict.lib (Default: unset).</p>
 # <h3>Links</h3>
 # <ul>
 # <li><a href="http://redsymbol.net/articles/unofficial-bash-strict-mode/">Unofficial Bash Strict Mode</a></li>
@@ -18,17 +20,18 @@ unset STRICT
 # Globals:
 #   DEBUG              Show if DEBUG set, unless QUIET is set (default: unset).
 #   GreyDim            Grey dimmed color for info message and > symbol.
-#   QUIET              Do not show message if set, takes precedence over DEBUG (default: unset).
+#   QUIET              Do not show message if set (but 0), takes precedence over VERBOSE/DRY_RUN (default: unset).
 #   Reset              Reset color.
 # Arguments:
 #   message            Message to show.
-#   -h, --help         Show help from man page and exit.
+#   --man              Show help from man page and exit.
 #   --desc             Show description from $DESC or header file comment and exit.
 #   --manrepo          Show repository from man page and exit.
-#   --version          Show version from man page and exit.
+#   --vers             Show version from man page and exit.
 # Optional Arguments:
 #   --debug            Show debug messages.
 #   --dryrun           Show commands that will be executed.
+#   --noquiet          Do not silent output for commands which silent error by default (git top, etc.).
 #   --quiet            Silent output.
 #   --verbose          Show verbose messages.
 #   --warning          Show warning messages.
@@ -36,21 +39,21 @@ unset STRICT
 #   Message to stdout.
 #######################################
 debug() {
-  unset BASH_ENV ENV
-  if [ "${PARSED-}" ] && unset PARSED; then
-    if [ ! "${QUIET-}" ]; then
+  if [ ! "${1-}" ] || [ "${PARSED-}" ]; then
+    unset PARSED
+    if [ ! "${QUIET-}" ] || [ "${QUIET:-}" -ne 0 ]; then
       if [ "${DEBUG-}" ]; then
-        # <html><h2>Show Debug Messages</h2>
-        # <p><strong><code>$DEBUG</code></strong> (Default: unset).</p>
-        # <p><strong><code>Debug messages are not shown if unset.</code></strong></p>
-        # <p>Activate with either of:</p>
-        # <ul>
-        # <li><code>DEBUG=1</code></li>
-        # <li><code>--debug</code></li>
-        # </ul>
-        # </html>
+# <html><h2>Show Debug Messages</h2>
+# <p><strong><code>$DEBUG</code></strong> (Default: unset).</p>
+# <p><strong><code>Debug messages are not shown if unset.</code></strong></p>
+# <p>Activate with either of:</p>
+# <ul>
+# <li><code>DEBUG=1</code></li>
+# <li><code>--debug</code></li>
+# </ul>
+# </html>
         DEBUG=1
-        [ "${GreyInvert-}" ] || . color.lib
+        add=''; content=''; sep=' '
         sets="$(set +o | tr '\n' ';')"
         set +o nounset  # set +u
         add=""; content=""; suffix=""
@@ -75,15 +78,22 @@ debug() {
           content="${content}${suffix}${arg}=$(eval echo "\$${arg}")"
           suffix=", "
         done
+
+        if test -z "${content}" && test "${add}"; then
+          add="${add%??}" # if no args, remove trailing ": "
+        elif test -z "${content}"; then
+          sep=''
+        fi
+
         [ "${content-}" ] || { [ ! "${add-}" ] || add="${add%??}"; }  # if no content, remove trailing ": "
-        printf '%b\n' "${GreyBold}+${Reset} ${add:-}${GreyDim}${content:-}${Reset}" >&2
+        printf '%b\n' "$(greybold "+${sep}${add}")$(greydim "$@")" >&2
         eval "${sets}"  # set -u, if it was set before
-        unset add arg c content sets suffix
+        unset add arg c content sep sets suffix
       fi
     fi
   else
     DESC='Show info message with > symbol in grey bold if DEBUG is set, unless QUIET is set' \
-      PARSE='debug' parse "${@:-}"
+      PARSE='debug' parse "$@"
   fi
 }
 
@@ -94,18 +104,19 @@ debug() {
 #   PARSE              Function name or file.
 #                      Default if BASH_VERSION: FUNCNAME[1] if BASH_SOURCE[1] is *.lib, otherwise BASH_SOURCE[1].
 #   PARSED             Function called has been parsed already, run the function.
-#   QUIET              Do not show message if set (default: unset).
+#   QUIET              Do not show message if set (but 0), takes precedence over VERBOSE/DRY_RUN (default: unset).
 #   Red                Red color for error message and x symbol.
 #   Reset              Reset color.
 # Arguments:
 #   message            Message to show.
-#   -h, --help         Show help from man page and exit.
+#   --man              Show help from man page and exit.
 #   --desc             Show description from $DESC or header file comment and exit.
 #   --manrepo          Show repository from man page and exit.
-#   --version          Show version from man page and exit.
+#   --vers             Show version from man page and exit.
 # Optional Arguments:
 #   --debug            Show debug messages.
 #   --dryrun           Show commands that will be executed.
+#   --noquiet          Do not silent output for commands which silent error by default (git top, etc.).
 #   --quiet            Silent output.
 #   --verbose          Show verbose messages.
 #   --warning          Show warning messages.
@@ -120,43 +131,44 @@ debug() {
 #######################################
 die() {
   rc=$?
-  unset BASH_ENV ENV
-  if [ "${PARSED-}" ] && unset PARSED; then
-    if [ ! "${QUIET-}" ]; then
-      case "${firstrc}" in
-        0) success "${@:-}" ;;
-        *) error "${@:-}" ;;
+  if [ ! "${1-}" ] || [ "${PARSED-}" ]; then
+    unset PARSED
+    rc="${firstrc:-${rc}}"
+    if [ ! "${QUIET-}" ] || [ "${QUIET:-}" -ne 0 ]; then
+      case "${rc}" in
+        0) success "$@" ;;
+        *) error "$@" ;;
       esac
     else
-      # <html><h2>Silent Output</h2>
-      # <p><strong><code>$QUIET</code></strong> (Default: unset).</p>
-      # <p><strong><code>The following messages are shown if unset:</code></strong></p>
-      # <ul>
-      # <li><code>error</code></li>
-      # <li><code>success</code></li>
-      # </ul>
-      # <p><strong><code>If unset, other messages are shown base on the variable value:</code></strong></p>
-      # <ul>
-      # <li><code>debug</code>: $DEBUG</li>
-      # <li><code>verbose</code>: $VERBOSE</li>
-      # <li><code>warning</code>: $WARNING</li>
-      # </ul>
-      # <p>Activate with either of:</p>
-      # <ul>
-      # <li><code>QUIET=1</code></li>
-      # <li><code>--quiet</code></li>
-      # </ul>
-      # <p><strong><code>Note:</code></strong></p>
-      # <p>Takes precedence over $DEBUG, $VERBOSE and $WARNING.</p>
-      # </html>
+# <html><h2>Silent Output</h2>
+# <p><strong><code>$QUIET</code></strong> (Default: unset).</p>
+# <p><strong><code>The following messages are shown if unset:</code></strong></p>
+# <ul>
+# <li><code>error</code></li>
+# <li><code>success</code></li>
+# </ul>
+# <p><strong><code>If unset or 0, other messages are shown base on the variable value:</code></strong></p>
+# <ul>
+# <li><code>debug</code>: $DEBUG</li>
+# <li><code>verbose</code>: $VERBOSE</li>
+# <li><code>warning</code>: $WARNING</li>
+# </ul>
+# <p>Activate with either of:</p>
+# <ul>
+# <li><code>QUIET=1</code></li>
+# <li><code>--quiet</code></li>
+# </ul>
+# <p><strong><code>Note:</code></strong></p>
+# <p>Takes precedence over $DEBUG, $VERBOSE and $WARNING.</p>
+# </html>
       QUIET=1
     fi
-    exit "${firstrc}"
+    exit "${rc}"
   else
     # shellcheck disable=SC2034
-    firstrc=$rc
+    firstrc="${rc}"
     DESC="Show message (ok or error) with symbol (✓, x respectively) based on status code, unless QUIET is set \
-and exit" PARSE='die' parse "${@:-}"
+and exit" PARSE='die' parse "$@"
   fi
 }
 
@@ -166,18 +178,19 @@ and exit" PARSE='die' parse "${@:-}"
 #   PARSE              Function name or file.
 #                      Default if BASH_VERSION: FUNCNAME[1] if BASH_SOURCE[1] is *.lib, otherwise BASH_SOURCE[1].
 #   PARSED             Function called has been parsed already, run the function.
-#   QUIET              Do not show message if set (default: unset).
+#   QUIET              Do not show message if set (but 0), takes precedence over VERBOSE/DRY_RUN (default: unset).
 #   Red                Red color for error message and x symbol.
 #   Reset              Reset color.
 # Arguments:
 #   message            Message to show.
-#   -h, --help         Show help from man page and exit.
+#   --man              Show help from man page and exit.
 #   --desc             Show description from $DESC or header file comment and exit.
 #   --manrepo          Show repository from man page and exit.
-#   --version          Show version from man page and exit.
+#   --vers             Show version from man page and exit.
 # Optional Arguments:
 #   --debug            Show debug messages.
 #   --dryrun           Show commands that will be executed.
+#   --noquiet          Do not silent output for commands which silent error by default (git top, etc.).
 #   --quiet            Silent output.
 #   --verbose          Show verbose messages.
 #   --warning          Show warning messages.
@@ -185,10 +198,10 @@ and exit" PARSE='die' parse "${@:-}"
 #   Message to stderr.
 #######################################
 error() {
-  unset BASH_ENV ENV
-  if [ "${PARSED-}" ] && unset PARSED; then
-    if [ ! "${QUIET-}" ]; then
-      [ "${RedBg-}" ] || . color.lib
+  if [ ! "${1-}" ] || [ "${PARSED-}" ]; then
+    unset PARSED
+    if [ ! "${QUIET-}" ] || [ "${QUIET:-}" -ne 0 ]; then
+      add=''; sep=' '
       if command -v caller >/dev/null; then
         i=0
         while c="$(caller "${i}")"; do
@@ -206,32 +219,38 @@ error() {
       [ "${file-}" ] || file="$(basename "$(psargs '' | awk '{ print $1 }')" 2>/dev/null || true)"
       [ ! "${file-}" ] || add="${RedBg}${file:-}[${line:-}]${Reset}: "
 
-      [ "${*-}" ] || { [ ! "${add-}" ] || add="${add%??}"; }  # if no args, remove trailing ": "
-      printf '%b\n' "${RedBold}x${Reset} ${add:-}${RedBold}${*:-}${Reset}" >&2
-      unset add c file line
+      if test "$#" -eq 0 && test "${add}"; then
+        add="${add%??}" # if no args, remove trailing ": "
+      elif test "$#" -eq 0; then
+        sep=''
+      fi
+      printf '%b\n' "$(redbold "x${sep}${add}")$(redbold "$@")" >&2
+      unset add c file line sep
     fi
   else
-    DESC="Show error message with x symbol in red, unless QUIET is set" PARSE='error' parse "${@:-}"
+    DESC="Show error message with x symbol in red, unless QUIET is set" PARSE='error' parse "$@"
   fi
 }
 
-#######################################
+####################################### has
 # Check if an executable exists.
 # Arguments:
-#   -a                  Find all paths ('type -aP' or 'which -a' when 'type -a' is not available).
-#   -p                  Use path (ignore for '-a').
-#   -v                  Show value (ignore for '-a').
-#   --exclude=<exe>     Exclude executable (sets the '-a' option and returns all but exe)
+#   --all               Find all paths ('type -aP' or 'which -a' when 'type -a' is not available).
+#   --binary            The first with shebang and not in sbin.
+#   --path              Use path (ignore for '--all').
+#   --value             Show value (ignore for '-a').
+#   --exclude=<path>    Exclude executable (sets the '--all' option and returns all but exe)
 #   executable          Executable to check (default: sudo if no image and not executable).
 #   image               The image name (default: local).
 # Common Arguments:
-#   -h, --help          Show help from man page and exit.
+#   --man               Show help from man page and exit.
 #   --desc              Show description from $DESC or header file comment and exit.
 #   --manrepo           Show repository from man page and exit.
-#   --version           Show version from man page and exit.
+#   --vers              Show version from man page and exit.
 # Optional Arguments:
 #   --debug             Show debug messages.
 #   --dryrun            Show commands that will be executed.
+#   --noquiet          Do not silent output for commands which silent error by default (git top, etc.).
 #   --quiet             Silent output.
 #   --verbose           Show verbose messages.
 #   --warning           Show warning messages.
@@ -239,16 +258,17 @@ error() {
 #   1 if it does not exist.
 #######################################
 has() {
-  unset BASH_ENV ENV
-  if [ "${PARSED-}" ] && unset PARSED; then
-    set +x
+  if [ ! "${1-}" ] || [ "${PARSED-}" ]; then
+    unset PARSED
+    unset BASH_ENV ENV
     doc() { docker run -i --rm --entrypoint sh "${image}" -c "${c} ${executable}"; }
     loc() { ${c} "${executable}"; }
 
-    all=false; c='command -v'; p=false; t='type -aP'; v=false; w='which -a'
+    all=false; binary=false; c='command -v'; p=false; t='type -aP'; v=false; w='which -a'
     for arg; do
       case "${arg}" in
-        --all) all=true; c="${w}";;
+        --all) all=true; c="${w}" ;;
+        --binary) all=true; binary=true; c="${w}" ;;
         --path) c='which'; p=true ;;
         --value) v=true ;;
         --exclude=*) all=true; c="${w}"; exclude="$(echo "${arg}" | sed 's/--exclude=//')";;
@@ -300,30 +320,39 @@ has() {
       fi
     fi
 
-    if $all; then
-      if [ "${rv-}" ]; then
+    if test "${rv-}"; then
+      if $v; then
+        echo "${rv}"
+
+      elif $all; then
         tmp="$(mktemp)"
         for i in ${rv}; do
           real="$(real --resolved "${i}")"
           grep -q "^${real}$" "${tmp}" >/dev/null || echo "${real}" >> "${tmp}"
         done
+
         rv="$(cat "${tmp}")"
+
+        if test "${binary-}"; then
+          rc=1
+          for i in $(echo "${rv}" | grep -v '/sbin/'); do
+            head -1 "${i}" | grep -q '^#\!' || { rc=0; echo "${i}"; break; }
+          done
+        elif test "${exclude-}"; then
+          rc=1
+          real="$(real --resolved "${exclude}")"
+          for i in ${rv}; do
+            [ "${i}" = "${real}" ] || { rc=0; echo "${i}"; }
+          done
+        else
+          echo "${rv}"
+        fi
       fi
-      if [ "${exclude-}" ] && [ "${rv}" ]; then
-        real="$(real --resolved "${exclude}")"; rc=1
-        for i in ${rv}; do
-          [ "${i}" = "${real}" ] || { rc=0; echo "${i}"; }
-        done
-      elif [ "${rv-}" ]; then
-        echo "${rv}"
-      fi
-    else
-      if $v && [ "${rv-}" ]; then echo "${rv}"; fi
     fi
-    unset all c executable i image real realp rv t v w; unset -f doc loc
+    unset all c executable i image real realp rv t tmp v w; unset -f doc loc
     return "${rc}" 2>/dev/null || exit "${rc}"
   else
-    DESC='Check if an executable exists' PARSE='has' parse "${@:-}"
+    DESC='Check if an executable exists' PARSE='has' parse "$@"
   fi
 }
 
@@ -334,19 +363,20 @@ has() {
 #                      Default if BASH_VERSION: FUNCNAME[1] if BASH_SOURCE[1] is *.lib, otherwise BASH_SOURCE[1].
 #   PARSED             Function called has been parsed already, run the function.
 #   POSTPARSE          Variables to unset after each run of a function when parsed.
-#   QUIET              Do not show message if set (default: unset).
+#   QUIET              Do not show message if set (but 0), takes precedence over VERBOSE/DRY_RUN (default: unset).
 #   Red                Red color for error message and x symbol.
 #   Reset              Reset color.
 # Arguments:
 #   -parse             As first argument indicates to parse for itself and expects only one long arguments,
 #                      otherwise act as proxy (parse function).
-#   -h, --help         Show help from man page and exit.
+#   --man              Show help from man page and exit.
 #   --desc             Show description from $DESC or header file comment and exit.
 #   --manrepo          Show repository from man page and exit.
-#   --version          Show version from man page and exit.
+#   --vers             Show version from man page and exit.
 # Optional Arguments:
 #   --debug            Show debug messages.
 #   --dryrun           Show commands that will be executed.
+#   --noquiet          Do not silent output for commands which silent error by default (git top, etc.).
 #   --quiet            Silent output.
 #   --verbose          Show verbose messages.
 #   --warning          Show warning messages.
@@ -357,83 +387,85 @@ has() {
 #######################################
 # shellcheck disable=SC3028,SC3054
 parse() {
-  unset _arg BASH_ENV ENV
-  if [ "${#}" -eq 2 ] && [ "${1}" = '-parse' ]; then
-    case "${2-}" in --desc|-h|--help|--manrepo|--version) shift;; esac
-    # <html><h2>Function one line Description</h2>
-    # <p><strong><code>$DESC</code></strong> contains the function description, for scripts is automatically extracted.</p>
-    # <p>Use <strong>$DESC</strong> to call `parse` from a function so it is shown when --desc argument is used.</p>
-    # <h3>Examples</h3>
-    # <dl>
-    # <dt>From a function:</dt>
-    # <dd>
-    # <pre><code class="language-bash">DESC='description'
-    # [ &quot;${PARSED-}&quot; ] || PARSE='function' parse &quot;${@:-}&quot;
-    # </code></pre>
-    # </dd>
-    # </dl>
-    # </html>
-    DESC='Parse common long optional arguments'
-    # <html><h2>Function Name or Full Script Path to Parse Arguments</h2>
-    # <p><strong><code>$PARSE</code></strong> contains the function name or script path ($0).</p>
-    # <p>Use <strong>$PARSE</strong> to call `parse` from a function or script in posix.</p>
-    # <p>If not set and BASH_VERSION, the following are used: </p>
-    # <ul>
-    # <li><code>FUNCNAME[1]: if BASH_SOURCE[1] =~ *.lib</code></li>
-    # <li><code>BASH_SOURCE[1]: if BASH_SOURCE[1] != *.lib</code></li>
-    # </ul>
-    # <h3>Examples</h3>
-    # <dl>
-    # <dt>From a function:</dt>
-    # <dd>
-    # <pre><code class="language-bash">if [ &quot;${PARSED-}&quot; ] && unset PARSED; then
-    # &emsp;for arg do; case &quot;${arg}&quot; in --other-option) echo &quot;${arg}&quot; ;; esac; done
-    # else
-    # &emsp;DESC='description' PARSE='function' parse &quot;${@:-}&quot;
-    # fi
-    # </code></pre>
-    # </dd>
-    # </dl>
-    # <dl>
-    # <dt>From a script in sh:</dt>
-    # <dd>
-    # <pre><code class="language-bash">if [ &quot;${PARSED-}&quot; ] && unset PARSED; then
-    # &emsp;for arg do; case &quot;${arg}&quot; in --other-option) echo &quot;${arg}&quot; ;; esac; done
-    # &emsp; unset PARSED
-    # else
-    # &emsp;PARSE=&quot;${0}&quot; parse &quot;${@:-}&quot;
-    # fi
-    # </code></pre>
-    # </dd>
-    # </dl>
-    # <dl>
-    # <dt>From a script in bash:</dt>
-    # <dd>
-    # <pre><code class="language-bash">if [ &quot;${PARSED-}&quot; ] && unset PARSED; then
-    # &emsp;for arg do; case &quot;${arg}&quot; in --other-option) echo &quot;${arg}&quot; ;; esac; done
-    # &emsp; unset PARSED
-    # else
-    # &emsp;parse &quot;${@:-}&quot;
-    # fi
-    # </code></pre>
-    # </dd>
-    # </dl>
-    # </html>
-    PARSE='parse'
-  fi
+  if [ "${1-}" ]; then
+    unset _arg
+    if [ "${#}" -eq 2 ] && [ "${1}" = '-parse' ]; then
+      case "${2-}" in --desc|--man|--manrepo|--vers) shift;; esac
+# <html><h2>Function one line Description</h2>
+# <p><strong><code>$DESC</code></strong> contains the function description, for scripts is automatically extracted.</p>
+# <p>Use <strong>$DESC</strong> to call `parse` from a function so it is shown when --desc argument is used.</p>
+# <h3>Examples</h3>
+# <dl>
+# <dt>From a function:</dt>
+# <dd>
+# <pre><code class="language-bash">DESC='description'
+# DESC='Function description' PARSE='function' parse &quot;$@&quot;
+# </code></pre>
+# </dd>
+# </dl>
+# </html>
+      DESC='Parse common long optional arguments'
+      # <html><h2>Function Name or Full Script Path to Parse Arguments</h2>
+      # <p><strong><code>$PARSE</code></strong> contains the function name or script path ($0).</p>
+      # <p>Use <strong>$PARSE</strong> to call `parse` from a function or script in posix.</p>
+      # <p>If not set and BASH_VERSION, the following are used: </p>
+      # <ul>
+      # <li><code>FUNCNAME[1]: if BASH_SOURCE[1] =~ *.lib</code></li>
+      # <li><code>BASH_SOURCE[1]: if BASH_SOURCE[1] != *.lib</code></li>
+      # </ul>
+      # <h3>Examples</h3>
+      # <dl>
+      # <dt>From a function:</dt>
+      # <dd>
+      # <pre><code class="language-bash">if [ ! &quot;${1-}&quot; ] || [ &quot;${PARSED-}&quot; ]; then
+      # &emsp;unset PARSED
+      # &emsp;for arg do; case &quot;${arg}&quot; in --other-option) echo &quot;${arg}&quot; ;; esac; done
+      # else
+      # &emsp;DESC='description' PARSE='function' parse &quot;$@&quot;
+      # fi
+      # </code></pre>
+      # </dd>
+      # </dl>
+      # <dl>
+      # <dt>From a script in sh:</dt>
+      # <dd>
+      # <pre><code class="language-bash">if [ ! &quot;${1-}&quot; ] || [ &quot;${PARSED-}&quot; ]; then
+      # &emsp;for arg do; case &quot;${arg}&quot; in --other-option) echo &quot;${arg}&quot; ;; esac; done
+      # &emsp; unset PARSED
+      # else
+      # &emsp;PARSE=&quot;${0}&quot; parse &quot;$@&quot;
+      # fi
+      # </code></pre>
+      # </dd>
+      # </dl>
+      # <dl>
+      # <dt>From a script in bash:</dt>
+      # <dd>
+      # <pre><code class="language-bash">if [ ! &quot;${1-}&quot; ] || [ &quot;${PARSED-}&quot; ]; then
+      # &emsp;for arg do; case &quot;${arg}&quot; in --other-option) echo &quot;${arg}&quot; ;; esac; done
+      # else
+      # &emsp;parse &quot;$@&quot;
+      # fi
+      # </code></pre>
+      # </dd>
+      # </dl>
+      # </html>
+      PARSE='parse'
+    fi
 
-  if [ "${PARSE-}" ]; then
-    # <html><h2>Arguments Parsed</h2>
+    if [ "${PARSE-}" ]; then
+# <html><h2>Arguments Parsed</h2>
 # <p><strong><code>$PARSED</code></strong> will be set when arguments have been parsed to avoid recursion.</p>
 # <p>Check if <strong>$PARSE</strong> is set before calling `parse` from a function or script.</p>
 # <h3>Examples</h3>
 # <dl>
 # <dt>From a function:</dt>
 # <dd>
-# <pre><code class="language-bash">if [ &quot;${PARSED-}&quot; ] && unset PARSED; then
+# <pre><code class="language-bash">if [ ! &quot;${1-}&quot; ] || [ &quot;${PARSED-}&quot; ]; then
+# &emsp;unset PARSED
 # &emsp;for arg do; case &quot;${arg}&quot; in --other-option) echo &quot;${arg}&quot; ;; esac; done
 # else
-# &emsp;DESC='description' PARSE='function' parse &quot;${@:-}&quot;
+# &emsp;DESC='description' PARSE='function' parse &quot;$@&quot;
 # fi
 # </code></pre>
 # </dd>
@@ -441,10 +473,10 @@ parse() {
 # <dl>
 # <dt>From a script in sh:</dt>
 # <dd>
-# <pre><code class="language-bash">if [ &quot;${PARSED-}&quot; ] && unset PARSED; then
+# <pre><code class="language-bash">if [ ! &quot;${1-}&quot; ] || [ &quot;${PARSED-}&quot; ]; then
 # &emsp;for arg do; case &quot;${arg}&quot; in --other-option) echo &quot;${arg}&quot; ;; esac; done
 # else
-# &emsp;PARSE=&quot;${0}&quot; parse &quot;${@:-}&quot;
+# &emsp;PARSE=&quot;${0}&quot; parse &quot;$@&quot;
 # fi
 # </code></pre>
 # </dd>
@@ -452,86 +484,88 @@ parse() {
 # <dl>
 # <dt>From a script in bash:</dt>
 # <dd>
-# <pre><code class="language-bash">if [ &quot;${PARSED-}&quot; ] && unset PARSED; then
+# <pre><code class="language-bash">if [ ! &quot;${1-}&quot; ] || [ &quot;${PARSED-}&quot; ]; then
 # &emsp;for arg do; case &quot;${arg}&quot; in --other-option) echo &quot;${arg}&quot; ;; esac; done
 # else
-# &emsp;parse &quot;${@:-}&quot;
+# &emsp;parse &quot;$@&quot;
 # fi
 # </code></pre>
 # </dd>
 # </dl>
 # </html>
-    unset PARSED
-    if echo "${PARSE}" | grep -qE '^/'; then
-      _path="${PARSE}"
-      _cmd="$(basename "${_path}")"  # script.
-    else
-      _cmd="${PARSE}"
-      _path="$(command -pv "${_cmd}" || false)"  # function: no path.
+      unset PARSED
+      if echo "${PARSE}" | grep -qE '^/'; then
+        _path="${PARSE}"
+        _cmd="$(basename "${_path}")"  # script.
+      else
+        _cmd="${PARSE}"
+        _path="$(command -pv "${_cmd}" || false)"  # function: no path.
+      fi
+    elif [ "${BASH_VERSION-}" ]; then
+      if echo "${BASH_SOURCE[1]}" | grep -q '.lib$' ; then
+        _cmd="${FUNCNAME[1]}"  # function: path.
+      else
+        _cmd="$(basename "${BASH_SOURCE[1]}")"  # script.
+      fi
+      _path="${BASH_SOURCE[1]}"
     fi
-  elif [ "${BASH_VERSION-}" ]; then
-    if echo "${BASH_SOURCE[1]}" | grep -q '.lib$' ; then
-      _cmd="${FUNCNAME[1]}"  # function: path.
-    else
-      _cmd="$(basename "${BASH_SOURCE[1]}")"  # script.
-    fi
-    _path="${BASH_SOURCE[1]}"
-  fi
-  _variables='PARSED=1'
-  _first=true
-  for _arg do
-    _skip=false
-    shift
-    set +x
-    case "${_arg}" in
-      --debug|--dryrun|--quiet|--verbose|--warning)
-        _variables="${_variables} $(echo "${_arg}" | sed 's/--//' | tr '[:lower:]' '[:upper:]')=1"
-        _skip=true
-        ;;
-      --desc)
-        if $_first; then
-          if [ ! "${DESC-}" ] && [ "${_path-}" ]; then
-            DESC="$(awk '/^#/ && ! /^#!/ && ! /^##/ && ! /^#$/ && ! /^# shellcheck/ {sub(/^# /, ""); print $0=$0 }' \
-              "${_path}" | head -1)"
+    _variables='PARSED=1'
+    _first=true
+    for _arg do
+      _skip=false
+      shift
+      set +x
+      case "${_arg}" in
+        --noquiet) _variables="${_variables} QUIET=0" ;;
+        --debug|--dryrun|--quiet|--verbose|--warning)
+          _variables="${_variables} $(echo "${_arg}" | sed 's/--//' | tr '[:lower:]' '[:upper:]')=1"
+          _skip=true
+          ;;
+        --desc)
+          if $_first; then
+            if [ ! "${DESC-}" ] && [ "${_path-}" ]; then
+              DESC="$(awk '/^#/ && ! /^#!/ && ! /^##/ && ! /^#$/ && ! /^# shellcheck/ {sub(/^# /, ""); print $0=$0 }' \
+                "${_path}" | head -1)"
+            fi
+            [ "${DESC-}" ] || exit
+            echo "${DESC}"; exit
           fi
-          [ "${DESC-}" ] || exit
-          echo "${DESC}"; exit
-        fi
-        ;;
-      -h|--help|--manrepo|--version)
-        if $_first; then
-          _page="$(man -P cat "${_cmd}" 2>/dev/null || true)"
-          [ "${_page:-}" ] || exit 1
-          case "${_arg}" in
-            -h|--help) echo "${_page}" ;;
-            --manrepo) echo "${_page}" | awk '/^REPOSITORY$/{ getline; print $1 }' ;;
-            --version) echo "${_page}" | tail -1 | awk '{ print $2 }' ;;
-          esac
-          exit
-        fi
-        ;;
-    esac
-    _first=false
-    $_skip || set -- "$@" "${_arg}"
-  done
-  unset _arg DESC _page PARSE
-  eval "${_variables} ${_path:-${_cmd}}" "\${@:-}"
-  eval_rc=$?
-  if [ "${DRYRUN-}" ]; then
-    # <html><h2>Dry Run</h2>
-    # <p><strong><code>$DRYRUN</code></strong> (Default: unset).</p>
-    # <p>Activate with either of:</p>
-    # <ul>
-    # <li><code>DRYRUN=1</code></li>
-    # <li><code>--dryrun</code></li>
-    # </ul>
-    # </html>
-    DRYRUN=1
+          ;;
+         --man|--manrepo|--vers)
+          if $_first; then
+            _page="$(man -P cat "${_cmd}" 2>/dev/null || true)"
+            [ "${_page:-}" ] || exit 1
+            case "${_arg}" in
+              --man) echo "${_page}" ;;
+              --manrepo) echo "${_page}" | awk '/^REPOSITORY$/{ getline; print $1 }' ;;
+              --vers) echo "${_page}" | tail -1 | awk '{ print $2 }' ;;
+            esac
+            exit
+          fi
+          ;;
+      esac
+      _first=false
+      $_skip || set -- "$@" "${_arg}"
+    done
+    unset _arg DESC _page PARSE
+    eval "${_variables} ${_path:-${_cmd}}" "\$@"
+    eval_rc=$?
+    if [ "${DRYRUN-}" ]; then
+      # <html><h2>Dry Run</h2>
+      # <p><strong><code>$DRYRUN</code></strong> (Default: unset).</p>
+      # <p>Activate with either of:</p>
+      # <ul>
+      # <li><code>DRYRUN=1</code></li>
+      # <li><code>--dryrun</code></li>
+      # </ul>
+      # </html>
+      DRYRUN=1
+    fi
+    # FIXME: inline variables in centos sh remain after command: DEBUG=1 debug
+    # _f() { if [ "${1-}" ]; then ${path:-${cmd}} "$@"; else ${path:-${cmd}}; fi; }
+    # eval "${variables} _f" "\$@"
+    return "${eval_rc}" 2>/dev/null || exit "${eval_rc}"
   fi
-  # FIXME: inline variables in centos sh remain after command: DEBUG=1 debug
-  # _f() { if [ "${1-}" ]; then ${path:-${cmd}} "${@}"; else ${path:-${cmd}}; fi; }
-  # eval "${variables} _f" "\${@:-}"
-  return "${eval_rc}" 2>/dev/null || exit "${eval_rc}"
 }
 
 ####################################### psargs
@@ -547,14 +581,15 @@ parse() {
 #   1 if error during installation of procps or not know to install ps or --usage and not man page.
 # ######################################
 psargs() {
-  if [ "${PARSED-}" ] && unset PARSED; then
+  if [ ! "${1-}" ] || [ "${PARSED-}" ]; then
+    unset PARSED
     if command -v ps >/dev/null; then
       if ! ps -p $$ -o args= 2>/dev/null; then
         ps -o pid= -o args= | awk '/$$/ { $1=$1 };1' | grep "^$$ " | cut -d '' -f 2-
       fi
     fi
   else
-    DESC='Parent process args (cmd/command and args part of ps)' PARSE='psargs' parse "${@:-}"
+    DESC='Parent process args (cmd/command and args part of ps)' PARSE='psargs' parse "$@"
   fi
 }
 
@@ -565,17 +600,18 @@ psargs() {
 #   PARSE              Function name or file.
 #                      Default if BASH_VERSION: FUNCNAME[1] if BASH_SOURCE[1] is *.lib, otherwise BASH_SOURCE[1].
 #   PARSED             Function called has been parsed already, run the function.
-#   QUIET              Do not show message if set (default: unset).
+#   QUIET              Do not show message if set (but 0), takes precedence over VERBOSE/DRY_RUN (default: unset).
 #   Reset              Reset color.
 # Arguments:
 #   message            Message to show.
-#   -h, --help         Show help from man page and exit.
+#   --man              Show help from man page and exit.
 #   --desc             Show description from $DESC or header file comment and exit.
 #   --manrepo          Show repository from man page and exit.
-#   --version          Show version from man page and exit.
+#   --vers             Show version from man page and exit.
 # Optional Arguments:
 #   --debug            Show debug messages.
 #   --dryrun           Show commands that will be executed.
+#   --noquiet          Do not silent output for commands which silent error by default (git top, etc.).
 #   --quiet            Silent output.
 #   --verbose          Show verbose messages.
 #   --warning          Show warning messages.
@@ -583,33 +619,36 @@ psargs() {
 #   Message to stdout.
 #######################################
 success() {
-  unset BASH_ENV ENV
-  if [ "${PARSED-}" ] && unset PARSED; then
-    if [ ! "${QUIET-}" ]; then
-      [ "${GreenBold-}" ] || . color.lib
-      printf '%b\n' "${GreenBold}✓${Reset} ${*:-}"
+  if [ ! "${1-}" ] || [ "${PARSED-}" ]; then
+    unset PARSED
+    if [ ! "${QUIET-}" ] || [ "${QUIET:-}" -ne 0 ]; then
+      sep=''
+      test "$#" -eq 0 || sep=' '
+      printf '%b\n' "$(greenbold '✓')$(greenbold "$@")"
+      unset sep
     fi
   else
-    DESC="Show success message in white with green ✓ symbol, unless QUIET is set" PARSE='success' parse "${@:-}"
+    DESC="Show success message in white with green ✓ symbol, unless QUIET is set" PARSE='success' parse "$@"
   fi
 }
 
 ####################################### > verbose: VERBOSE (default: unset), QUIET (default: unset)
 # Show verbose/dry-run message with > symbol in grey dim if VERBOSE or DRY_RUN are set, unless QUIET is set
 # Globals:
-#   VERBOSE            Shows message if set, unless QUIET is set (default: unset).
 #   GreyDim            Grey dimmed color for info message and > symbol.
-#   QUIET              Do not show message if set, takes precedence over VERBOSE/DRY_RUN (default: unset).
+#   QUIET              Do not show message if set (but 0), takes precedence over VERBOSE/DRY_RUN (default: unset).
 #   Reset              Reset color.
+#   VERBOSE            Shows message if set, unless QUIET is set (default: unset).
 # Arguments:
 #   message            Message to show.
-#   -h, --help         Show help from man page and exit.
+#   --man              Show help from man page and exit.
 #   --desc             Show description from $DESC or header file comment and exit.
 #   --manrepo          Show repository from man page and exit.
-#   --version          Show version from man page and exit.
+#   --vers             Show version from man page and exit.
 # Optional Arguments:
 #   --debug            Show debug messages.
 #   --dryrun           Show commands that will be executed.
+#   --noquiet          Do not silent output for commands which silent error by default (git top, etc.).
 #   --quiet            Silent output.
 #   --verbose          Show verbose messages.
 #   --warning          Show warning messages.
@@ -617,10 +656,11 @@ success() {
 #   Message to stdout.
 #######################################
 verbose() {
-  if [ "${PARSED-}" ] && unset PARSED; then
-    if [ ! "${QUIET-}" ]; then
+  if [ ! "${1-}" ] || [ "${PARSED-}" ]; then
+    unset PARSED
+    if [ ! "${QUIET-}" ] || [ "${QUIET:-}" -ne 0 ]; then
       if [ "${VERBOSE-}" ]; then
-        # <html><h2>Show Verbose Messages</h2>
+# <html><h2>Show Verbose Messages</h2>
         # <p><strong><code>$VERBOSE</code></strong>  (Default: unset).</p>
         # <p><strong><code>Verbose messages are not shown if unset.</code></strong></p>
         # <p>Activate with either of:</p>
@@ -628,15 +668,17 @@ verbose() {
         # <li><code>VERBOSE=1</code></li>
         # <li><code>--verbose</code></li>
         # </ul>
-        # </html>
+      # </html>
         VERBOSE=1
-        [ "${CyanBold-}" ] || . color.lib
-        printf '%b\n' "${CyanBold}>${Reset}${CyanDim} ${*:-}${Reset}"
+        sep=''
+        test "$#" -eq 0 || sep=' '
+        printf '%b\n' "$(cyanbold '✓')$(cyandim "$@")"
+        unset sep
       fi
     fi
   else
     DESC='Show verbose/dry-run message with > symbol in grey dim if VERBOSE or DRY_RUN are set, unless QUIET is set' \
-      PARSE='verbose' parse "${@:-}"
+      PARSE='verbose' parse "$@"
   fi
 }
 
@@ -645,17 +687,18 @@ verbose() {
 # Globals:
 #   Yellow             Yellow color for warning message and ! symbol.
 #   Reset              Reset color.
-#   QUIET              Do not show message if set, takes precedence over WARNING (default: unset).
+#   QUIET              Do not show message if set (but 0), takes precedence over VERBOSE/DRY_RUN (default: unset).
 #   WARNING            Shows message if is set, unless QUIET is set (default: unset).
 # Arguments:
 #   message            Message to show.
-#   -h, --help         Show help from man page and exit.
+#   --man              Show help from man page and exit.
 #   --desc             Show description from $DESC or header file comment and exit.
 #   --manrepo          Show repository from man page and exit.
-#   --version          Show version from man page and exit.
+#   --vers             Show version from man page and exit.
 # Optional Arguments:
 #   --debug            Show debug messages.
 #   --dryrun           Show commands that will be executed.
+#   --noquiet          Do not silent output for commands which silent error by default (git top, etc.).
 #   --quiet            Silent output.
 #   --verbose          Show verbose messages.
 #   --warning          Show warning messages.
@@ -663,10 +706,11 @@ verbose() {
 #   Message to stderr.
 #######################################
 warning() {
-  if [ "${PARSED-}" ] && unset PARSED; then
-    if [ ! "${QUIET-}" ]; then
+  if [ ! "${1-}" ] || [ "${PARSED-}" ]; then
+    unset PARSED
+    if [ ! "${QUIET-}" ] || [ "${QUIET:-}" -ne 0 ]; then
       if [ "${WARNING-}" ]; then
-        # <html><h2>Show Warning Messages</h2>
+# <html><h2>Show Warning Messages</h2>
 # <p><strong><code>$WARNING</code></strong>  (Default: unset).</p>
 # <p><strong><code>Warning messages are not shown if unset</code></strong></p>
 # <p>Activate with either of:</p>
@@ -676,7 +720,7 @@ warning() {
 # </ul>
 # </html>
         WARNING=1
-        [ "${YellowInvert-}" ] || . color.lib
+        add=''; sep=' '
         add=""
         if command -v caller >/dev/null; then
           i=0
@@ -691,17 +735,22 @@ warning() {
           file="$(basename "$(echo "${c}" | awk '{ print $3 }')")"
           line="$(echo "${c}" | awk '{ print $1 }')"
         fi
-        [ "${*-}" ] || { [ ! "${add-}" ] || add="${add%??}"; }  # if no args, remove trailing ": "
 
         [ "${file-}" ] || file="$(basename "$(psargs '' | awk '{ print $1 }')" 2>/dev/null || true)"
         [ ! "${file-}" ] || add="${YellowInvert}${file:-}[${line:-}]${Reset}: "
 
-        printf '%b\n' "${YellowBold}!${Reset} ${add:-}${YellowBold}${*:-}${Reset}" >&2
-        unset add c
+        if test "$#" -eq 0 && test "${add}"; then
+          add="${add%??}" # if no args, remove trailing ": "
+        elif test "$#" -eq 0; then
+          sep=''
+        fi
+
+        printf '%b\n' "$(yellowbold "!${sep}${add}")$(yellowbold "$@")" >&2
+        unset add c file line sep
       fi
     fi
   else
     DESC='Show warning message with ! symbol in yellow if WARNING is set, unless QUIET is set' \
-      PARSE='warning' parse "${@:-}"
+      PARSE='warning' parse "$@"
   fi
 }

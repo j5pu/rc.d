@@ -1,6 +1,14 @@
 #!/bin/sh
 # shellcheck disable=SC2086,SC3045
 
+for arg do
+  shift
+  skip=false
+  case "${arg}" in
+    --bypass)
+  esac
+done
+
 main () {
   name="$(basename "${0}")"
   path="$(cd "$(dirname "${0}")" || exit 1; pwd)/${name}"
@@ -15,11 +23,11 @@ main () {
   echo "exec ${cmd} ${*:-}" >/tmp/"${USER}-${name}"
 
   if [ "${1-}" ]; then
-    exec ${cmd} "${@}"
+    exec ${cmd} "$@"
   else
     exec ${cmd}
   fi
 }
 
-if [ "${1-}" ]; then main "${@}"; else main; fi
+main "$@"
 

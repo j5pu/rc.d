@@ -7,6 +7,7 @@ STRICT=1 . helpers.lib
 #######################################
 # Absolute logical (symlink, default) or resolved (physical, pwd -P) path (Accepts one level up if it doesn't exists)
 # Arguments:
+#   --dirname       Show dirname instead of path (default: unset)
 #   --fail          Exit if path does not exists (default: unset)
 #   --resolved      Resolve symlinks (pwd -P).
 #   path            Path (default: cwd).
@@ -19,6 +20,8 @@ STRICT=1 . helpers.lib
 #   /private/tmp/file
 #   $ real --resolved --fail /tmp/file    # one level up: does not accept, if not file/dir.
 #   Directory not Found: /tmp/file
+#   $ real --dirname --resolved /tmp/file  # one level up: accepts, if not file/dir.
+#   /private/tmp
 #   $ real --resolved --fail --quiet /tmp/file
 #   Directory not Found: /tmp/file
 #   $ real --resolved /tmp/file1/file2
@@ -32,49 +35,48 @@ STRICT=1 . helpers.lib
 #   $ cd /tmp; rm -rf d1 d2; mkdir d1; ln -s d1 d2; touch d1/f1;ln -s d1/f1 d1/f2;real --resolved d1/f2
 #   /private/tmp/dir1/file1
 #######################################
-if [ "${PARSED-}" ] && unset PARSED; then
-  resolved=false
-
-  fail=false
+if [ ! "${1-}" ] || [ "${PARSED-}" ]; then
   for arg do
+    shift
     case "${arg}" in
-      --fail) fail=true ;;
-      --resolved) resolved=true ;;
-      *) input="${arg}"
+      --dirname) dir=1 ;;
+      --fail) fail=1 ;;
+      --resolved) resolved=1 ;;
     esac
   done
 
-  input="${input:-}"
+  arg="${1:-.}"
 
-  if [ -d "${input:-}" ]; then
-    cd "${input}" 2>/dev/null || die Directory not Found: "${input}"
-  elif [ -L "${input}" ] && $resolved; then
-    while [ -L "${input}" ]; do
-      input="$(readlink "${input}")"
+  if [ -d "${arg}" ]; then
+    cd "${arg}" 2>/dev/null || die Directory not Found: "${arg}"
+  elif [ -L "${arg}" ] && test "${resolved-}"; then
+    while [ -L "${arg}" ]; do
+      arg="$(readlink "${arg}")"
     done
-    dirname="$(dirname "${input}")"
+    dirname="$(dirname "${arg}")"
     cd "${dirname}" 2>/dev/null || die Directory not Found: "${dirname}"
-    basename="$(basename "${input}")"
-  elif [ -f "${input}" ]; then
-    dirname="$(dirname "${input}")"
+    basename="$(basename "${arg}")"
+  elif [ -f "${arg}" ]; then
+    dirname="$(dirname "${arg}")"
     cd "${dirname}" 2>/dev/null || die Directory not Found: "${dirname}"
-    basename="$(basename "${input}")"
+    basename="$(basename "${arg}")"
   else
-    ! $fail || die Directory or File not Found: "${input}"
-    dirname="$(dirname "${input}")"
+    ! test "${fail-}" || die Directory or File not Found: "${arg}"
+    dirname="$(dirname "${arg}")"
     cd "${dirname}" 2>/dev/null || die Directory not Found: "${dirname}"
-    basename="$(basename "${input}")"
+    basename="$(basename "${arg}")"
   fi
 
-  if $resolved; then
-    dirname="$(pwd -P)"
+  if test "${resolved-}"; then
+    dirname="$(pwd -P)";
   else
     dirname="$(pwd)"
   fi
 
-  [ ! "${basename-}" ] || { echo "${dirname}/${basename}"; exit; }
+  if test "${basename-}" && test -z "${dir-}"; then
+    echo "${dirname}/${basename}"; exit
+  fi
   echo "${dirname}"
-  unset arg basename dirname input resolved
 else
-  PARSE="${0}" parse "${@:-}"
+  PARSE="${0}" parse "$@"
 fi

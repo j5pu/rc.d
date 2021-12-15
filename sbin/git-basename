@@ -1,0 +1,22 @@
+#!/bin/sh
+
+# Repository top level path base name
+# Silents errors by default, use --noquiet or QUIET=1 to see errors.
+#
+# Git remote url from 'git config'
+# Silents errors by default, use --noquiet or QUIET=1 to see errors.
+#
+: git rev-parse
+
+. helpers.lib
+
+if [ ! "${1-}" ] || [ "${PARSED-}" ]; then
+  [ "${1}" != '-C' ] || shift
+  if real="$(QUIET="${QUIET:-1}" git-top "${1:-}")"; then
+    basename "${rv}"
+  else
+    QUIET="${QUIET:-1}" die "${rv}"
+  fi
+else
+  PARSE="${0}" parse "${@}"
+fi

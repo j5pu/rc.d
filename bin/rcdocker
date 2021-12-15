@@ -61,14 +61,14 @@ EOF
 #   SOURCE_BRANCH      Name of the branch or the tag that is currently being tested.
 #   SOURCE_COMMIT      SHA1 hash of the commit being tested.
 # Globals:
-#   BASE              Base images (never get pushed).
-#   HUB               Running in auto build Docker Hub.
-#   ID                ID to build, create, exec or run command (default: all).
-#   OUTPUT            show output in plain format even if succesful build.
-#   PUSH              Push after build.
-#   SHOW              Show image id for exec and run.
-#   TARGET            --target option.
-#   TARGETS           Targets from Dockerfile.
+#   BASE               The base images (never get pushed).
+#   HUB                Running in auto build Docker Hub.
+#   ID                 The ID to build, create, exec or run command (default: all).
+#   OUTPUT             Show output in plain format even if succesful build.
+#   PUSH               Perform push after build.
+#   SHOW               Show image id for exec and run.
+#   TARGET             --target option.
+#   TARGETS            Targets from Dockerfile.
 #######################################
 # shellcheck disable=SC2086
 rcdocker::build() {
@@ -188,9 +188,9 @@ rcdocker::clean() {
 }
 
 #######################################
-# Create a container with default name if it does not exists.
+# Create a container with default name if it does not exist.
 # Globals:
-#   ID                ID to build, create, exec or run command (default: all).
+#   ID                The ID to build, create, exec or run command (default: all).
 #######################################
 rcdocker::create() {
   local image
@@ -268,13 +268,13 @@ rcdocker::entry() { echo "${ENTRY:+--entrypoint ${ENTRY}}"; }
 #######################################
 # Exec command in an ephemeral container.
 # Globals:
-#   ID                ID to build, create, exec or run command (default: all).
+#   ID                The ID to build, create, exec or run command (default: all).
 #   SHOW              Show image id for exec and run.
 #   TEST              Build local images if repository is not base.
 #######################################
 rcdocker::exec() {
   local i image
-  export ARGUMENTS=("${@}")
+  export ARGUMENTS=("$@")
   if [ "${ID-}" ]; then
     image="$(rcdocker::image "${ID}")"
     rcdocker::exec::rm "${ID}" "${image}"
@@ -334,7 +334,7 @@ rcdocker::id() {
 #######################################
 # Shows image for id.
 # Globals:
-#   ID                ID to build, create, exec or run command (default: all).
+#   ID                The ID to build, create, exec or run command (default: all).
 # Arguments:
 #   id                ID to build, create, exec or run command (default: all).
 # ######################################
@@ -380,7 +380,7 @@ rcdocker::pull::id() {
   output="$(rcdocker::tmp "${1}")"
   if docker pull "${2}" &>"${output}"; then
     if $SHOW || [ "${FUNCNAME[1]}" = "rcdocker::main" ]; then
-      if ! grep -q "Status: Image is up to date for ${2}" "${output}"; then
+      if ! grep -q "Status: Image is up-to-date for ${2}" "${output}"; then
         success Pulled: "${2}"
       fi
     fi
@@ -396,7 +396,7 @@ rcdocker::pull::id() {
 # Globals:
 #   BASE              Base images (never get pushed).
 #   HUB               Running in auto build Docker Hub.
-#   PUSH              Push after build.
+#   PUSH              Perform push after build.
 #   OUTPUT            show output in plain format even if succesful build.
 #   SHOW              Show image id for exec and run.
 # Arguments:
@@ -422,7 +422,7 @@ rcdocker::push() {
 #######################################
 # Runs command in an ephemeral container.
 # Globals:
-#   EXCLUDE           Excluded IDs when doing 'docker run' for all (not shell CMD/ENTRYPOINT if 'ENTRY' unset).
+#   EXCLUDE           IDs to be excluded IDs when doing 'docker run' for all (not shell CMD/ENTRYPOINT if 'ENTRY' unset).
 #   ID                ID to build, create, exec or run command (default: all).
 #   SHOW              Show image id for exec and run.
 #   TEST              Build local images if repository is not base.
@@ -438,7 +438,7 @@ rcdocker::run() {
     fi
     rcdocker::build::test::quiet::die "${ID}" "${image}"
     set +eo pipefail
-    docker run -it $(rcdocker::entry) --rm "${image}" "${@}" | grep -v "failed to resize tty"
+    docker run -it $(rcdocker::entry) --rm "${image}" "$@" | grep -v "failed to resize tty"
     set -eo pipefail
     if $TEST; then docker rmi "${image}" >/dev/null; fi
   else
@@ -451,7 +451,7 @@ rcdocker::run() {
       fi
       rcdocker::build::test::quiet::die "${i}" "${image}"
       set +eo pipefail
-      docker run -it $(rcdocker::entry) --rm "${image}" "${@}" | grep -v "failed to resize tty"
+      docker run -it $(rcdocker::entry) --rm "${image}" "$@" | grep -v "failed to resize tty"
       set -eo pipefail
       $TEST && docker rmi "${image}" >/dev/null
     done
@@ -731,7 +731,7 @@ $(green Summary):
 #                     - Examples: base, rc
 #   TEST              Build prefix test images for rc (never get pushed).
 # Locals:
-#   enable            '1' if enable, enable field of 'IMAGES'.
+#   enable            '1' if enabled, enable field of 'IMAGES'.
 #   name              [Base]: image repository name, <repo name> field of 'IMAGES' (default: <repo owner>).
 #                     - Format: <repo name>
 #                     - Examples: alpine, systemd-ubuntu.
@@ -809,18 +809,18 @@ rcdocker::vars() {
 #   DOCKERFILE_PATH   Dockerfile currently being built.
 #   DEFAULT_TARGET    When targets are active.
 #   ENTRY             Overwrite ENTRYPOINT.
-#   FORCE             Force creation of container, default true for --test.
+#   FORCE             Forces creation of container, default true for --test.
 #   GIT               Docker Hub User.
 #   HUB               Running in auto build Docker Hub.
-#   ID                ID to build, create, exec or run command (default: all).
+#   ID                The ID to build, create, exec or run command (default: all).
 #   IMAGE             IMAGE to get ID (default: all).
 #   FUNC              Functions prefix.
 #   OUTPUT            show output in plain format even if succesful build.
-#   PUSH              Push after build.
+#   PUSH              Perform push after build.
 #   REPOSITORY        rc.
-#   SCAN              Scan.
+#   SCAN              Perform scan.
 #   SHOW              Show image id for exec and run.
-#   START             Start container after creation.
+#   START             To start container after creation.
 #   TARGET            --target option.
 #   TARGETS           Targets from Dockerfile.
 #   TEST              Build prefix test images for rc (never get pushed).
@@ -844,6 +844,7 @@ rcdocker::main() {
   ids="$(rcdocker::id)"
 
   [ "${1-}" ] || rcdocker::usage
+
   for arg; do
     if $finish; then
       args+=("${arg}")
@@ -914,10 +915,14 @@ rcdocker::main() {
       debug BASE CACHE DOCKERFILE_PATH EXCLUDE FORCE HUB ID OUTPUT PUSH REPOSITORY SH SHOW TARGET targets
       die "${command}" "${args[@]}"
     fi
-    rcdocker::${command} "${args[@]}"
+    if [ "${args-}" ]; then
+      rcdocker::${command} "${args[@]}"
+    else
+      rcdocker::${command}
+    fi
   fi
 }
 
 cat(){ echo; command cat "${1}"; }
 
-rcdocker::main "${@}"
+rcdocker::main "$@"

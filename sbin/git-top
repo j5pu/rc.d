@@ -1,0 +1,19 @@
+#!/bin/sh
+
+# Repository top level path
+# Silents errors by default, use --noquiet or QUIET=1 to see errors.
+#
+: git rev-parse
+
+. helpers.lib
+
+if [ ! "${1-}" ] || [ "${PARSED-}" ]; then
+  [ "${1-}" != '-C' ] || { C="${1}/"; shift; }
+  if rv="$(/usr/local/bin/git rev-parse --show-toplevel "${C:-${1:-.}}" 2>&1)"; then
+    echo "${rv}" | head -1
+  else
+    QUIET="${QUIET:-1}" die "${rv}"
+  fi
+else
+  PARSE="${0}" parse "$@"
+fi

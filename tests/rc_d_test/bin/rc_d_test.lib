@@ -11,7 +11,7 @@ rc_d_test_function() {
     echo "QUIET: ${QUIET:-}"
     echo "VERBOSE: ${VERBOSE:-}"
     echo "WARNING: ${WARNING:-}"
-    echo "args: ${*:-}"
+    echo "args: $*"
 
     for arg do
       case "${arg}" in
@@ -22,6 +22,6 @@ rc_d_test_function() {
     done
     unset arg
   else
-    DESC="rc d test function is a test function in rc.d.test.lib" PARSE='rc_d_test_function' parse "${@:-}"
+    DESC="rc d test function is a test function in rc.d.test.lib" PARSE='rc_d_test_function' parse "$@"
   fi
 }

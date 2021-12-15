@@ -1,0 +1,14 @@
+#!/bin/sh
+
+# Repository remote repository name, from url or repository git config
+# Silents errors by default, use --noquiet or QUIET=1 to see errors.
+#
+: git config
+
+. helpers.lib
+
+if rv="$(QUIET="${QUIET:-1}" git-owner-name "$@" 2>&1)"; then
+  echo "${rv}" | awk '{ print $2 }'
+else
+  QUIET="${QUIET:-1}" die "$*", rv="${rv}"
+fi

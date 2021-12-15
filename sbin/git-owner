@@ -1,0 +1,18 @@
+#!/bin/sh
+
+# Repository remote repository owner, from url or repository git config
+# Silents errors by default, use --noquiet or QUIET=1 to see errors.
+#
+: git config
+
+. helpers.lib
+
+if [ ! "${1-}" ] || [ "${PARSED-}" ]; then
+  if rv="$(QUIET="${QUIET:-1}" git-owner-name "$@" 2>&1)"; then
+    echo "${rv}" | awk '{ print $1 }'
+  else
+    QUIET="${QUIET:-1}" die "$*", rv="${rv}"
+  fi
+else
+  PARSE="${0}" parse "$@"
+fi

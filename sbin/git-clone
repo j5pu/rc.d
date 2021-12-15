@@ -1,0 +1,47 @@
+#!/bin/sh
+# shellcheck disable=SC2153
+
+# Repository clone (pull, rm).
+# Silents errors by default, use --noquiet or QUIET=1 to see errors.
+#
+# git -C /tmp clone --quiet "https://github.com/bats-core/bats-assert"
+: git clone
+
+. helpers.lib
+
+if [ ! "${1-}" ] || [ "${PARSED-}" ]; then
+  cmd='clone'
+  test -z "${FORCE}" || force='--force'
+  test "${QUIET}" != 0 || quiet='--quiet'
+  for arg do
+    shift
+    skip=false
+    case "${arg}" in
+      --force) unset force ;;
+      --quiet) unset quiet ;;
+      -C) C=1 ;;
+      -*) : ;;
+      *)
+        if test "${C-}" = 1; then
+          path="${arg}"; unset C
+        elif git-is "${arg}"; then
+          url="${arg}"
+        elif test "${path-}"; then
+          path="${path}/${arg}"
+        else
+          path="${arg}"
+        fi
+        skip=true
+        ;;
+    esac
+    $skip || set -- "$@" "${arg}"
+  done
+
+  if test -d "${path-}" && ! is empty "${path}"; then
+    cmd='pull'
+  fi
+
+  rv="$(/usr/local/bin/git ${path:+-C ${path}} ${cmd} ${quiet} ${force} "$@" "${url}" 2>&1)" || die "${rv}"
+else
+  PARSE="${0}" parse "$@"
+fi
