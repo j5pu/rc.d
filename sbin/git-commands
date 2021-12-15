@@ -1,14 +1,32 @@
 #!/bin/sh
 
-# GIt sbin commands
+# Git sbin commands
 #
 
-. strict.lib
+. helpers.lib
+
+cmds() {
+  for i in $(echo "${PATH}" | tr ':' '\n' | grep '/sbin$'); do
+    if test -d "${i}"; then
+      find -L "${i}" -type f -name "git-*" | awk -F '[/-]' '{ print $NF }' 2>/dev/null || true
+    fi
+  done | sort -u
+}
 
 if [ ! "${1-}" ] || [ "${PARSED-}" ]; then
-  for i in $(echo "${PATH}" | tr ':' '\n' | grep '/sbin$'); do
-    find -L "${i}" -type f -name "git-*" | awk -F '[/-]' '{ print $NF }'
-  done| sort -u
+  unset PARSED
+  if [ "${1-}" = '--descs' ]; then
+    cmds="$(cmds 2>/dev/null)"
+    maximum="$(echo "${cmds}" | awk '{ print length }' | sort -r | head -1)"
+    total="$((maximum+2))"
+    for i in ${cmds}; do
+      length="$(echo "${i}" | awk '{ print length }')"
+      echo "$(greenbold "${i}")$(yes ' ' | head -"$((total-length))" | tr -d "\n")\
+$(git-"${i}" --desc 2>/dev/null || true) "
+    done
+  else
+    cmds 2>/dev/null
+  fi
 else
   PARSE="${0}" parse "$@"
 fi

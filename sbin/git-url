@@ -8,7 +8,8 @@
 . helpers.lib
 
 if [ ! "${1-}" ] || [ "${PARSED-}" ]; then
-  [ "${1}" != '-C' ] || shift
+  unset PARSED
+  [ "${1-}" != '-C' ] || shift
   if real="$(QUIET="${QUIET:-1}" real --dirname --fail "${1:-}")"; then
     if rv="$(/usr/local/bin/git -C "${real}" config --get "remote.origin.url" 2>&1)"; then
       echo "${rv}"

@@ -11,6 +11,7 @@
 . helpers.lib
 
 if [ ! "${1-}" ] || [ "${PARSED-}" ]; then
+  unset PARSED
   error=false
 
   if ! echo "${1:-}" | \

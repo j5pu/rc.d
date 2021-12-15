@@ -8,6 +8,7 @@
 . helpers.lib
 
 if [ ! "${1-}" ] || [ "${PARSED-}" ]; then
+  unset PARSED
   [ "${1-}" != '-C' ] || { C="${1}/"; shift; }
   if rv="$(/usr/local/bin/git rev-parse --show-toplevel "${C:-${1:-.}}" 2>&1)"; then
     echo "${rv}" | head -1

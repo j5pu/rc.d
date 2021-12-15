@@ -1,13 +1,24 @@
 #!/bin/sh
 # shellcheck disable=SC2086,SC3045
 
-for arg do
-  shift
-  skip=false
-  case "${arg}" in
-    --bypass)
-  esac
-done
+# By pass sbin git
+#
+
+. helpers.lib
+
+if [ ! "${1-}" ] || [ "${PARSED-}" ]; then
+  unset PARSED
+  bypass=false
+  for arg do
+    shift
+    skip=false
+    case "${arg}" in
+      --bypass) bypass=true ;;
+    esac
+  done
+else
+  PARSE="${0}" parse "$@"
+fi
 
 # TODO: mirar el comando que daba en git los comandos y excluir los mios de commands y si es .. oo con los alias no? porque no se si son de clone o de que el comando
 #   el parse esta mal en cuanto entra uno sin - ya pasa a ser comando
@@ -16,6 +27,10 @@ done
 # TODO: para usar el bashd de desarrollo si eso respeta el shell del shebang si es sh
 # TODO: cambiar las putas llamadas a ${@} y a ${*} si se hace expansion casca o sea comprobar ${@-} si quiero hacer expansion en ellas
 # TODO: probar todos los putos colores con los cambios de separador y de las funciones de color
+# TODO: tests de git name y git repo con PyCharm que tiene diferente directorio
+# TODO: anadir un --descs a commands
+# TODO: AQUI LO DEJO ESTABA PROBANDO EL commands --descs pero salia error en el git-clone y sale todo de color rojo y entonces con
+#   no sale la descripcion. MIRAR EL GIT-CLONE y como se imprimen los colores errores porque el de git sale apelotonado y luego creo que lo dejare que los comandos que no son mios, salga sin el die, o sea sacar la salida directamente.
 
 main () {
   name="$(basename "${0}")"
@@ -37,5 +52,4 @@ main () {
   fi
 }
 
-main "$@"
 

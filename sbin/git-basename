@@ -11,8 +11,9 @@
 . helpers.lib
 
 if [ ! "${1-}" ] || [ "${PARSED-}" ]; then
-  [ "${1}" != '-C' ] || shift
-  if real="$(QUIET="${QUIET:-1}" git-top "${1:-}")"; then
+  unset PARSED
+  [ "${1-}" != '-C' ] || shift
+  if rv="$(QUIET="${QUIET:-1}" git-top "${1:-}")"; then
     basename "${rv}"
   else
     QUIET="${QUIET:-1}" die "${rv}"

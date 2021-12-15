@@ -443,6 +443,7 @@ parse() {
       # <dd>
       # <pre><code class="language-bash">if [ ! &quot;${1-}&quot; ] || [ &quot;${PARSED-}&quot; ]; then
       # &emsp;for arg do; case &quot;${arg}&quot; in --other-option) echo &quot;${arg}&quot; ;; esac; done
+      # &emsp; unset PARSED
       # else
       # &emsp;parse &quot;$@&quot;
       # fi
@@ -474,6 +475,7 @@ parse() {
 # <dt>From a script in sh:</dt>
 # <dd>
 # <pre><code class="language-bash">if [ ! &quot;${1-}&quot; ] || [ &quot;${PARSED-}&quot; ]; then
+# &emsp;unset PARSED
 # &emsp;for arg do; case &quot;${arg}&quot; in --other-option) echo &quot;${arg}&quot; ;; esac; done
 # else
 # &emsp;PARSE=&quot;${0}&quot; parse &quot;$@&quot;
@@ -485,6 +487,7 @@ parse() {
 # <dt>From a script in bash:</dt>
 # <dd>
 # <pre><code class="language-bash">if [ ! &quot;${1-}&quot; ] || [ &quot;${PARSED-}&quot; ]; then
+# &emsp;unset PARSED
 # &emsp;for arg do; case &quot;${arg}&quot; in --other-option) echo &quot;${arg}&quot; ;; esac; done
 # else
 # &emsp;parse &quot;$@&quot;
