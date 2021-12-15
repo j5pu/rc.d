@@ -16,8 +16,11 @@ if [ ! "${1-}" ] || [ "${PARSED-}" ]; then
     esac
   done
 
+#  if rv="$(/usr/local/bin/git ls-files --cached --deduplicate --deleted --error-unmatch --full-name --killed \
+#    --modified --others --unmerged  "${path:-.}" 2>&1)"; then
+
   if rv="$(/usr/local/bin/git ls-files --cached --deduplicate --deleted --error-unmatch --full-name --killed \
-    --modified --others --unmerged  "${path:-.}" 2>&1)"; then
+    --modified --others   "${path:-.}" 2>&1)"; then
     echo "${rv}"
   else
     QUIET="${QUIET:-1}" die "${rv}"

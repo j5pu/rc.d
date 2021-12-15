@@ -141,7 +141,7 @@ cython_debug/
 
 ### macOS template
 # General
-#.DS_Store
+.DS_Store
 .AppleDouble
 .LSOverride
 
