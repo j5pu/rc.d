@@ -13,10 +13,10 @@
 if [ ! "${1-}" ] || [ "${PARSED-}" ]; then
   unset PARSED
   [ "${1-}" != '-C' ] || shift
-  if rv="$(QUIET="${QUIET:-1}" git-top "${1:-}")"; then
+  if rv="$(QUIET="${QUIET:-1}" git-top "${1:-}" 2>&1)"; then
     basename "${rv}"
   else
-    QUIET="${QUIET:-1}" die "${rv}"
+    QUIET="${QUIET-1}" die --white \$*="$*", rv: "${rv}"
   fi
 else
   PARSE="${0}" parse "${@}"

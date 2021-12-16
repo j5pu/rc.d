@@ -2,11 +2,13 @@
 
 # Prepend (beginning, the default), append (end) or remove to colon variables (PATH, INFOPATH, MANPATH etc.)
 #
+cd "$(dirname "$0")" || exit 1
 
-unset BASH_ENV ENV
-STRICT=1 . helpers.lib || exit 1
+. ./strict.lib; . ./os.lib
 
-base() { output "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"; }
+base() {
+  output
+}
 
 #######################################
 # Prepend script directory and script directory parent with sbin to 'PATH'
@@ -17,13 +19,16 @@ base() { output "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"; 
 # Outputs:
 #   Updated path value.
 #######################################
-bins() {
+dev() {
+  . ./dev.lib
+  if test "${PROJECT_DIR-}"; then
+    :
+  fi
   _export="${EXPORT:-}"; EXPORT=''
-  cd "$(dirname "${0}")"
   DIRECTORY="$(pwd)"
   VALUE="$(run)"
   if [ -d ../sbin ]; then
-    cd ../sbin
+    cd ../sbin || exit 1
     DIRECTORY="$(pwd)"
   fi
   EXPORT="${_export}"
@@ -40,30 +45,30 @@ bins() {
 #   value or variable and value with export command.
 #######################################
 init() {
-  _export="${EXPORT}"; EXPORT=''
-  . os.lib
-  if [ "$(uname -s)" = 'Darwin' ]; then
-    PATH="${PYCHARM}:${PYCHARM_CONTENTS}/MacOS:${PATH}"
-  else
-    PATH="${PYCHARM}:${PYCHARM_CONTENTS}/MacOS:${PATH}"
-    :
-  fi
+  _export="${EXPORT:-}"; EXPORT=''
+  base='/usr/sbin:/usr/bin:/sbin:/bin'
+  loc='/usr/local'
+  bin="${loc}/bin"
+  sbin="${loc}/sbin"
+
   case "${_export}" in
     PATH)
+      PATH="$(base)"
       if $MACOS; then
-        PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+        PATH="${sbin}:${bin}:${PYCHARM}:${PYCHARM_CONTENTS}/MacOS:${PATH}"
+        for i in $(cat /etc/paths.d/* 2>/dev/null || true); do
+          PATH="$(APPEND=true DIRECTORY="${i}" VALUE="${PATH}" run)"
+        done
       else
-        PATH="${HOMEBREW_PREFIX}/sbin:/usr/local/sbin:${HOMEBREW_PREFIX}/bin:\
-/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+        PATH="${sbin}:${HOMEBREW_PREFIX}/sbin:${HOMEBREW_PREFIX}/bin:${bin}:${PATH}"
       fi
+      dev
       ;;
     INFOPATH) true ;;
     MANPATH) true ;;
-    *)
-      EXPORT='PATH' eval "$(sbins)" && . die.lib
-      false || die Init not Supported: "${EXPORT}"
-      ;;
+    *) exit 1 ;;
   esac
+  unset base bin i loc sbin
 }
 
 #######################################
@@ -175,7 +180,7 @@ run() {
 #######################################
 main() {
   if [ ! "${1-}" ] || [ "${PARSED-}" ]; then
-    unset DIRECTORY VALUE
+    unset DIRECTORY PARSED VALUE
     APPEND=false
     base=false
     init=false
@@ -207,7 +212,7 @@ main() {
       fi
     fi
   else
-    PARSE="${0}" parse "${@:-}"
+    PARSE="${0}" parse "$@"
   fi
 }
 

@@ -1,9 +1,10 @@
 # shellcheck shell=sh
 
-# <html><h2>Generated rc.d Shell Libraries</h2>
-# <p><strong><code>$RCSHARE</code></strong> contains the directory to store auto generated libraries.</p>
-# </html>
-export RCSHARE="/usr/local/share/rc.d"
+# Profile hooks library.
+#
+
+command -v _direnv_hook >/dev/null || { ! command -v hook >/dev/null || eval "$(direnv hook bash)"; }
+type -p a
 
 ####################################### Executed: force & parse
 #

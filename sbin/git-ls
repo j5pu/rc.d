@@ -16,13 +16,8 @@ if [ ! "${1-}" ] || [ "${PARSED-}" ]; then
       *) path="${arg}"
     esac
   done
-
-  if rv="$(/usr/local/bin/git ls-files --cached --deduplicate --deleted --error-unmatch --full-name \
-    --modified --others "${path:-.}" 2>&1)"; then
-    echo "${rv}"
-  else
-    QUIET="${QUIET:-1}" die "${rv}"
-  fi
+  /usr/local/bin/git ls-files --cached --deduplicate --deleted --error-unmatch --full-name \
+    --modified --others "${path:-.}"
 else
   PARSE="${0}" parse "$@"
 fi

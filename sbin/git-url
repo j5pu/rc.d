@@ -14,7 +14,7 @@ if [ ! "${1-}" ] || [ "${PARSED-}" ]; then
     if rv="$(/usr/local/bin/git -C "${real}" config --get "remote.origin.url" 2>&1)"; then
       echo "${rv}"
     else
-      QUIET="${QUIET:-1}" die "${rv}"
+      QUIET="${QUIET-1}" die --white  \$*="$*", rv: "${rv}"
     fi
   fi
 else

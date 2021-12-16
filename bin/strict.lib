@@ -12,3 +12,20 @@ if [ "${BASH_VERSION-}" ]; then
   # shellcheck disable=SC3028,SC3054
   [ ! "${BASH_VERSINFO[0]}" -gt 4 ] || shopt -s inherit_errexit
 fi
+
+####################################### Executed: force & parse
+#
+if echo "$0" | grep -q 'strict.lib'; then
+  if test "$#" -eq 0 || test "${PARSED-}"; then
+    unset PARSE PARSED
+    FORCE="${FORCE-0}"
+    for arg do
+      case "${arg}" in
+        --force) FORCE=1 . "$0"
+      esac
+    done
+  else
+    STRICT=0 . helpers.lib  # Avoid recursion: STRICT=0
+    PARSE="$0" parse "$@"
+  fi
+fi

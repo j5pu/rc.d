@@ -13,7 +13,7 @@ if [ ! "${1-}" ] || [ "${PARSED-}" ]; then
   if rv="$(/usr/local/bin/git rev-parse --show-toplevel "${C:-${1:-.}}" 2>&1)"; then
     echo "${rv}" | head -1
   else
-    QUIET="${QUIET:-1}" die "${rv}"
+    QUIET="${QUIET-1}" die --white  \$*="$*", rv: "${rv}"
   fi
 else
   PARSE="${0}" parse "$@"

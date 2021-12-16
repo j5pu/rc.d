@@ -36,6 +36,7 @@ STRICT=1 . helpers.lib
 #   /private/tmp/dir1/file1
 #######################################
 if [ ! "${1-}" ] || [ "${PARSED-}" ]; then
+  unset PARSED
   for arg do
     shift
     case "${arg}" in

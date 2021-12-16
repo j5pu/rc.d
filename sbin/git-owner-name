@@ -28,10 +28,10 @@ if [ ! "${1-}" ] || [ "${PARSED-}" ]; then
     test "${rv}" || error=true
   else
     error=true
-    QUIET="${QUIET:-1}" die Invalid Input: \$1="${1:-}", real="${real:-}"
+    QUIET="${QUIET:-1}" die Invalid Input: \$1="${1:-}"
   fi
 
-  ! $error || QUIET="${QUIET:-1}" die Invalid Input: \$1="${1:-}", real="${real:-}", rv="${rv:-}"
+  ! $error || QUIET="${QUIET:-1}" die  --white \$*="$*", rv: "${rv}"
 
   echo "${rv}"
 else

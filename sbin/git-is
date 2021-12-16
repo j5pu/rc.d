@@ -14,11 +14,8 @@ if [ ! "${1-}" ] || [ "${PARSED-}" ]; then
   elif [ "${1}" = '-C' ]; then
     false || QUIET="${QUIET:-1}" die Invalid Git Directory and -C "can't" be used for ls-remote: \$*="$*", rv="${rv}"
   else
-    if rv="$(git ls-remote "${1}" CHECK_GIT_REMOTE_URL_REACHABILITY 2>&1)"; then
-      exit
-    else
-      QUIET="${QUIET:-1}" die Invalid Git Remote Url and or Invalid Git Directory: \$*="$*"
-    fi
+    rv="$(/usr/local/bin/git ls-remote "${1}" CHECK_GIT_REMOTE_URL_REACHABILITY 2>&1)" || \
+      QUIET="${QUIET:-1}" die  --white \$*: "$*", rv: "${rv}"
   fi
 else
   PARSE="${0}" parse "$@"
