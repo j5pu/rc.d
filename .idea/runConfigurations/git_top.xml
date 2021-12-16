@@ -1,5 +1,8 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="git-top" type="BashProRunConfiguration" singleton="false">
+    <envs>
+      <env name="RC_DEV" value="1" />
+    </envs>
     <option name="scriptPath" value="$PROJECT_DIR$/sbin/git-top" />
     <EXTENSION ID="net.ashald.envfile">
       <option name="IS_ENABLED" value="true" />

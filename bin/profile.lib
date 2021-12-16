@@ -5,21 +5,12 @@
 
 unset BASH_ENV ENV
 
-if test -z "${PROFILE_LIB_SOURCED}" || test "${FORCE}" = 1; then
-# <html><h2>Base $PATH</h2>
-# <p><strong><code>$PATH</code></strong> contains the initial $PATH.</p>
-# <p>It's needed by profile.lib since sourcing an when os.lib is source directly.</p>
-# <h3>Examples</h3>
-# <dl>
-# <dt>Usage:</dt>
-# <dd>
-# <pre><code class="language-bash">PATH=&quot;${BASE_PATH:-${PATH}}&quot;; export PATH
-# </code></pre>
-# </dd>
-# </dl>
+if test "${PROFILE_LIB_SOURCED-0}" -eq 0 || test "${FORCE-0}" -eq 1; then
+  PATH='/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'; export PATH
+# <html><h2>Source Development Library</h2>
+# <p><strong><code>$DEV</code></strong> when is 1 sources dev.lib and change directory of generated libraries.</p>
 # </html>
-  export BASE_PATH='/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
-  export PATH="${BASE_PATH}"
+  DEV="${DEV:-0}"; export DEV
 # <html><h2>Force removal of cached library files</h2>
 # <p><strong><code>$FORCE</code></strong> set to 1 to update all rc libraries.</p>
 # <h3>Examples</h3>
@@ -30,6 +21,7 @@ if test -z "${PROFILE_LIB_SOURCED}" || test "${FORCE}" = 1; then
 # </code></pre>
 # </dd>
 # </dl>
+# <dl>
 # <dt>To update them, running profile.lib:</dt>
 # <dd>
 # <pre><code class="language-bash">profile.lib --force
@@ -37,19 +29,24 @@ if test -z "${PROFILE_LIB_SOURCED}" || test "${FORCE}" = 1; then
 # </dd>
 # </dl>
 # </html>
-  FORCE="${FORCE-0}"
+  FORCE="${FORCE:-0}"
 # <html><h2>Profile Library Has Been Sourced</h2>
 # <p><strong><code>$PROFILE_LIB_SOURCED</code></strong> set to 1 when profile.lib has been sourced.</p>
 # </html>
-  export PROFILE_LIB_SOURCED=1
+  PROFILE_LIB_SOURCED=1; export PROFILE_LIB_SOURCED
+# <html><h2>Generated rc.d Shell Libraries</h2>
+# <p><strong><code>$RCSHARE</code></strong> contains the directory to store auto generated libraries.</p>
+# </html>
+  RC_D="${RC_DEV:+/tmp}/etc/rc.d"; export RC_D
 
-  . root.lib
-  . os.lib
+  . sudo.lib
+  . system.lib
   . dev.lib
 fi
 
 BASH_ENV="$(command -pv profile.lib || echo /etc/profile)"
 ENV="${BASH_ENV}"
+unset FORCE
 
 ####################################### PS1
 # Moved here since needed by sudo because it's not exported and needed by sudoers shell_noargs ('sudo -S').
@@ -62,13 +59,12 @@ ENV="${BASH_ENV}"
 ####################################### Executed: force & parse
 #
 if test "$#" -ne 0 && test "${PARSED-}"; then
-  unset PARSED
-  for arg do
-    case "${arg}" in
-      --force) FORCE=1 . "$0"
-    esac
-  done
+  unset PARSE PARSED
+  case "$1" in
+    --force) shift; FORCE=1 . profile.lib
+  esac
 elif test "$#" -ne 0; then
-    PARSE="$0" parse "$@"
+  . helpers.lib
+  PARSE="$0" parse "$@"
 fi
 

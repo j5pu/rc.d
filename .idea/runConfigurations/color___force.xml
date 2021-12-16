@@ -1,6 +1,9 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="color --lib" type="BashProRunConfiguration" singleton="false">
-    <option name="scriptParameters" value="--lib" />
+  <configuration default="false" name="color --force" type="BashProRunConfiguration" singleton="false">
+    <envs>
+      <env name="RC_DEV" value="1" />
+    </envs>
+    <option name="scriptParameters" value="--force" />
     <option name="scriptPath" value="$PROJECT_DIR$/bin/color" />
     <EXTENSION ID="net.ashald.envfile">
       <option name="IS_ENABLED" value="true" />

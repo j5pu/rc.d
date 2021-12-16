@@ -3,10 +3,6 @@
 # Development library with .env support and development helper functions
 #
 
-# <html><h2>Source Development Library</h2>
-# <p><strong><code>$DEV</code></strong> when set to 1 sources dev.lib.</p>
-# </html>
-DEV="${DEV:-0}"; export DEV
 
 if "${DEV}" -eq 1; then
   # <html><h2>Bats Test Filename Prefix (when sourcing: bats.lib)</h2>
@@ -25,11 +21,10 @@ fi
 #
 if test "$#" -ne 0 && test "${PARSED-}"; then
   unset PARSE PARSED
-  for arg do
-    case "${arg}" in
-      --force) FORCE=1 . "$0"
-    esac
-  done
+  case "$1" in
+    --force) shift; FORCE=1 . profile.lib
+  esac
 elif test "$#" -ne 0; then
-    PARSE="$0" parse "$@"
+  . helpers.lib
+  PARSE="$0" parse "$@"
 fi

@@ -155,15 +155,7 @@ if ! command -v red >/dev/null; then
 # </dd>
 # </dl>
 # </html>
-  redbold() {
-      if test "$#" -ne 0; then
-        if echo "$@" | grep 33; then
-          echo "$@"
-        else
-          printf '%b' "${RedBold}"; printf '%b' "$@"; printf '%b' "${Reset}"
-        fi
-      fi
-    }
+  redbold() { test "$#" -eq 0 || printf '%b' "${RedBold}"; printf '%b' "$@"; printf '%b' "${Reset}"; }
 
 # <html><h2>Red Dim</h2>
 # <p><strong><code>$RedDim</code></strong> Color Red Dim.</p>
@@ -231,15 +223,7 @@ if ! command -v red >/dev/null; then
 # </dd>
 # </dl>
 # </html>
-  redbg() {
-      if test "$#" -ne 0; then
-        if echo "$@" | grep 33; then
-          echo "$@"
-        else
-          printf '%b' "${RedBg}"; printf '%b' "$@"; printf '%b' "${Reset}"
-        fi
-      fi
-    }
+  redbg() { test "$#" -eq 0 || printf '%b' "${RedBg}"; printf '%b' "$@"; printf '%b' "${Reset}"; }
 
 # <html><h2>Green </h2>
 # <p><strong><code>$Green</code></strong> Color Green .</p>
@@ -858,14 +842,13 @@ fi
 ####################################### Executed: force & parse
 #
 if echo "$0" | grep -q 'color.lib'; then
-  if test "$#" -eq 0 || test "${PARSED-}"; then
+  if test "$#" -eq 0 || test "${1-}" = '--force' || test "${PARSED-}"; then
     unset PARSE PARSED
-    for arg do
-      case "${arg}" in
-        --force) FORCE=1 . "$0"
-      esac
-    done
+    case "$1" in
+      --force) shift; color --force
+    esac
   elif test "$#" -ne 0; then
+    . helpers.lib
     PARSE="$0" parse "$@"
   fi
 fi

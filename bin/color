@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# Show colors and helper functions output or generate color lib
+# Show colors and helper functions output, or generate color lib
 #
 
 . helpers.lib
@@ -33,8 +33,7 @@ EOF
 EOF
 }
 
-lib() {
-
+force() {
   tee "${file}" > /dev/null <<EOF
 # shellcheck shell=sh
 
@@ -62,14 +61,13 @@ fi
 ####################################### Executed: force & parse
 #
 if echo "\$0" | grep -q '${lib}'; then
-  if test "\$#" -eq 0 || test "\${PARSED-}"; then
+  if test "\$#" -eq 0 || test "\${1-}" = '--force' || test "\${PARSED-}"; then
     unset PARSE PARSED
-    for arg do
-      case "\${arg}" in
-        --force) FORCE=1 . "\$0"
-      esac
-    done
+    case "\$1" in
+      --force) shift; ${script} --force
+    esac
   elif test "\$#" -ne 0; then
+    . helpers.lib
     PARSE="\$0" parse "\$@"
   fi
 fi
@@ -80,7 +78,7 @@ EOF
 
 show() {
   prev_two=''
-  awk -F '[= ]' '/^  export / { print $4 }' "$(dirname "${0}")/color.lib" | while read -r i; do
+  awk -F '[= ]' '/^  export / { print $4 }' "$(dirname "${0}")/${lib}" | while read -r i; do
     first_two="$(echo "${i}" | awk '{print substr($0,0,2)}')"
     # shellcheck disable=SC2034
     [ "${first_two}" = "${prev_two}" ] || { echo; prev_two="${first_two}"; }
@@ -128,16 +126,17 @@ show() {
 main() {
   if test "$#" -eq 0 || test "${PARSED-}"; then
     unset PARSE PARSED
+    script="$(basename "$0")"
+    lib="${script}.lib"
     for arg do
       case "${arg}" in
-        --lib)
+        --force)
           top="$(git top)"
           repo="$(git name)"
           run="bin/$(basename "${0}")"
-          lib='color.lib'
           file="${top}/bin/${lib}"
           if test "${top-}" && test "${repo-}" && echo "${0}" | grep -q "/${repo}/${run}"; then
-            lib
+            force
             die Color Lib Generated
           else
             die Not top: "${top:-.}", or repo: "${repo:-}" or can only be run from rc.d repository: "$0"

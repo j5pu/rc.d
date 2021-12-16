@@ -798,8 +798,8 @@ warning() {
 if echo "$0" | grep -q 'helpers.lib'; then
   if test "$#" -eq 0 || test "${PARSED-}"; then
     unset PARSE PARSED
-    for arg do
-      case "${arg}" in
+    for helpers_arg do
+      case "${helpers_arg}" in
         --force) FORCE=1 . "$0"
       esac
     done
