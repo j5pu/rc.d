@@ -842,7 +842,7 @@ fi
 ####################################### Executed: force & parse
 #
 if echo "$0" | grep -q 'color.lib'; then
-  if test "$#" -eq 0 || test "${1-}" = '--force' || test "${PARSED-}"; then
+  if test "$#" -ne 0 || test "${PARSED-}"; then
     unset PARSE PARSED
     case "$1" in
       --force) shift; color --force

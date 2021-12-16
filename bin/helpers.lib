@@ -442,7 +442,7 @@ parse() {
 # <dt>From a library when executed (needs more than one argument):</dt>
 # <dd>
 # <pre><code class="language-bash">if echo &quot;$0&quot;| grep -q 'name.lib'; then
-# &emsp;if test &quot;$#&quot; -eq 0 || test &quot;${PARSED-}&quot;; then
+# &emsp;if test &quot;$#&quot; -ne 0 || test &quot;${PARSED-}&quot;; then
 # &emsp;&emsp;unset PARSED
 # &emsp;&emsp;for arg do; case &quot;${arg}&quot; in --other-option) echo &quot;${arg}&quot; ;; esac; done
 # &emsp;else
@@ -501,7 +501,7 @@ parse() {
 # <dt>From a library when executed:</dt>
 # <dd>
 # <pre><code class="language-bash">if echo &quot;$0&quot;| grep -q 'name.lib'; then
-# &emsp;if test &quot;$#&quot; -eq 0 || test &quot;${PARSED-}&quot;; then
+# &emsp;if test &quot;$#&quot; -ne 0 || test &quot;${PARSED-}&quot;; then
 # &emsp;&emsp;unset PARSED
 # &emsp;&emsp;for arg do; case &quot;${arg}&quot; in --other-option) echo &quot;${arg}&quot; ;; esac; done
 # &emsp;else
