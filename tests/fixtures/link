@@ -1,5 +1,0 @@
-#!/bin/sh
-
-. helpers.lib
-. has-"$(basename "${0}")".lib
-has --exclude="${0}" "$(basename "${0}")"
