@@ -8,7 +8,6 @@
 # </html>
 BATS_TEST_FILENAME_PREFIX="$(basename "${BATS_TEST_FILENAME:-}" .bats)"; export BATS_TEST_FILENAME_PREFIX
 
-
 # <html><h2>Project Remote Repository Name</h2>
 # <p><strong><code>$PROJECT_REPO_NAME</code></strong> contains output of 'git-name'.</p>
 # </html>

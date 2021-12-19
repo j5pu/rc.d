@@ -46,7 +46,7 @@ tests() {
 }
 
 main() {
-  if [ "${PARSED-}" ]; then
+  if test "$#" -eq 0 || { test "${1-}" = '--parsed' && shift; }; then
     top="$(git top || true)"
     cd "${1:-${top}}" || die Invalid Directory: "${1:-}", or Git Top "${top}"
 

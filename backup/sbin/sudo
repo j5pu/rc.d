@@ -49,7 +49,7 @@ main () {
 
     $user && ! $user_set && set -- "$@" "${USER}"  # if -u or --user is the latest argument.
     $chdir || chdir_arg="--chdir $(pwd)"  # sudo -i cambia el cwd a HOME del user o de root.
-    echo "exec /usr/bin/sudo ${_i} ${chdir_arg} ${*:-}" >/tmp/"${USER}-$(basename "${0}")"
+    echo "exec /usr/bin/sudo ${_i} ${chdir_arg} $*" >/tmp/"${USER}-$(basename "${0}")"
 
     if [ "${1-}" ]; then
       exec /usr/bin/sudo ${_i} ${chdir_arg} "$@"

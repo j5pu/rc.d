@@ -7,7 +7,7 @@
 
 . helpers.lib
 
-if [ ! "${1-}" ] || [ "${PARSED-}" ]; then
+if test "$#" -eq 0 || { test "${1-}" = '--parsed' && shift; }; then
   unset PARSED
   if rv="$(QUIET="${QUIET:-1}" git-top "$@" 2>&1)"; then
     exit

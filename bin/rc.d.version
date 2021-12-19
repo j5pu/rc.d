@@ -1,9 +1,0 @@
-#!/bin/sh
-
-# rc.d repository installed version
-#
-version='0.0.1'
-
-echo "${version}"
-
-# TODO: --updated

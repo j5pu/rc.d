@@ -1,0 +1,28 @@
+#!/bin/sh
+
+# Before:
+sudo -u jose echo "${SUDO_USER-}"
+sudo -ujose echo "${SUDO_USER-}"
+sudo --user=jose echo "${SUDO_USER-}"
+sudo --user jose echo "${SUDO_USER-}"
+sudo -u echo "${SUDO_USER-}"; 1
+sudo -u -- echo "${SUDO_USER-}"; 1
+sudo -u echo --; 1
+sudo --user echo "${SUDO_USER-}"; 1
+sudo -u=jose echo "${SUDO_USER-}"; 1
+sudo --userjose echo "${SUDO_USER-}"; 1
+sudo --user= echo "${SUDO_USER-}"; 1
+
+# After:
+sudo -u jose [ "${SUDO_USER-}" = "${PRE_SUDO_USER-}" ]
+sudo -ujose [ "${SUDO_USER-}" = "${PRE_SUDO_USER-}" ]
+sudo --user=jose [ "${SUDO_USER-}" = "${PRE_SUDO_USER-}" ]
+sudo --user jose [ "${SUDO_USER-}" = "${PRE_SUDO_USER-}" ]
+sudo -u [ "${SUDO_USER-}" = "${PRE_SUDO_USER-}" ]
+sudo -u -- [ "${SUDO_USER-}" = "${PRE_SUDO_USER-}" ]
+sudo -u echo --
+sudo --user [ "${SUDO_USER-}" = "${PRE_SUDO_USER-}" ]
+sudo -u=jose [ "${SUDO_USER-}" = "${PRE_SUDO_USER-}" ]; 1
+sudo --userjose [ "${SUDO_USER-}" = "${PRE_SUDO_USER-}" ]; 1
+sudo --user= [ "${SUDO_USER-}" = "${PRE_SUDO_USER-}" ]; 1
+# Test con {} y xargs

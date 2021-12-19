@@ -40,3 +40,4 @@ main () {
 }
 
 main "$@"
+PARSE="${0}" parse --novars "$@"

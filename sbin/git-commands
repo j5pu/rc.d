@@ -13,7 +13,7 @@ cmds() {
   done | sort -u
 }
 
-if [ ! "${1-}" ] || [ "${PARSED-}" ]; then
+if test "$#" -eq 0 || { test "${1-}" = '--parsed' && shift; }; then
   unset PARSED
   if [ "${1-}" = '--descs' ]; then
     cmds="$(cmds 2>/dev/null)"

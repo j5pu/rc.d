@@ -16,14 +16,11 @@ fi
 ####################################### Executed: force & parse
 #
 if echo "$0" | grep -q 'strict.lib'; then
-  if test "$#" -eq 0 || test "${PARSED-}"; then
+  if test "$#" -ne 0 && test "${1-}" = '--parsed' && shift; then
     unset PARSE PARSED
-    FORCE="${FORCE-0}"
-    for arg do
-      case "${arg}" in
-        --force) FORCE=1 . "$0"
-      esac
-    done
+    case "$1" in
+      --force) shift; PROFILE=0 . profile.lib
+    esac
   else
     STRICT=0 . helpers.lib  # Avoid recursion: STRICT=0
     PARSE="$0" parse "$@"

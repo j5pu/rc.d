@@ -5,6 +5,7 @@
 
 
 if "${DEV}" -eq 1; then
+  # TODO: Conversion de project dir?
   # <html><h2>Bats Test Filename Prefix (when sourcing: bats.lib)</h2>
   # <p><strong><code>$BATS_TEST_FILENAME_PREFIX</code></strong> prefix of BATS_TEST_FILENAME basename.</p>
   # </html>
@@ -19,12 +20,14 @@ fi
 
 ####################################### Executed: force & parse
 #
-if test "$#" -ne 0 && test "${PARSED-}"; then
-  unset PARSE PARSED
-  case "$1" in
-    --force) shift; FORCE=1 . profile.lib
-  esac
-elif test "$#" -ne 0; then
-  . helpers.lib
-  PARSE="$0" parse "$@"
+if echo "$0" | grep -q 'dev.lib$'; then
+  if test "$#" -ne 0 && test "${1-}" = '--parsed' && shift; then
+    unset PARSE PARSED
+    case "$1" in
+      --force) shift; PROFILE=0 . profile.lib
+    esac
+  elif test "$#" -ne 0; then
+    . helpers.lib
+    PARSE="$0" parse "$@"
+  fi
 fi

@@ -1,0 +1,89 @@
+#!/bin/sh
+
+# Sudo command or not command if no sudo installed, also strops out the sudo options if no sudo command.
+#
+
+# shellcheck disable=SC2016
+
+. helpers.lib
+
+
+check() { $exists || set=false; }
+
+run() {
+  if test "$#" -eq 0 || { test "${1-}" = '--parsed' && shift; }; then
+    next=false  # true: word/words expected after the - or -- options of sudo, so we do not consider it as run=true
+    run=false  # true: command to run with sudo already parsed.
+    user=false  # -u or --user has been set, expecting <name>.
+    for arg do
+      shift
+      set=true
+      case "${arg}" in
+        -u|--user) $run || { user=true; check; } ;;
+        -C|--close-from|-D|--chdir|-g|--group|--host|-p|--prompt|-R|--chroot|-T|--command-timeout|-U|--other-user)
+          if ! $run; then
+            next=true
+            ! $user || { user=false; ! $exists || set -- "$@" "${USER}"; }
+          fi
+          ;;
+        -*|[a-z,A-Z]*=*)
+          if ! $run; then
+            test "${arg}" != '--' || run=true
+            $skip || true
+            if $user && ! id "${arg}" >/dev/null 2>&1; then
+             user=false; ! $exists || set -- "$@" "${USER}"
+            fi
+            ! $next || next=false
+          fi
+          ;;
+        *)
+          if ! $run; then
+            if $next; then
+              next=false
+            elif $user; then
+              user=false
+              if ! id "${arg}" >/dev/null 2>&1; then
+                run=true
+                ! $exists || set -- "$@" "${USER}"
+              fi
+            else
+              run=true
+            fi
+          fi
+      esac
+      ! $set || set -- "$@" "${arg}"
+    done
+
+    verbose "${sudo} $*"
+    if [ "${DRYRUN-0}" = 0 ]; then
+      if $exists; then
+        exec ${sudo} "$@"
+      else
+        if test -x "$(command -v "${1-}" | grep -v '^alias ' 2>/dev/null)" ; then
+          exec "$@"
+        else
+          "$@"
+        fi
+      fi
+    fi
+  else
+    PARSE="${0}" parse --novars "$@"
+  fi
+}
+
+main() {
+  sudo='/usr/bin/sudo'
+  exists=true; test -x "${sudo}" || exists=false
+  if [ "${1-}" = '--bypass' ]; then
+    run "$@"
+  else
+    shift
+    if $exists; then
+      exec "${sudo}" "$@"
+    else
+      "$@"
+    fi
+  fi
+}
+
+main "$@"

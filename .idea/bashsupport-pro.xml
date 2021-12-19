@@ -15,16 +15,12 @@
           <source path="bin/profile.lib" />
           <source path="bin/root.lib" />
           <source path="bin/strict.lib" />
+          <source path="share/bashpro/bats.sh" />
         </sources>
         <targets>
           <target recursive="true" />
         </targets>
       </library>
     </scriptLibraries>
-    <globalVariables>
-      <var name="image" />
-      <var name="executable" />
-      <var name="firstrc" />
-    </globalVariables>
   </component>
 </project>

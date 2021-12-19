@@ -60,9 +60,8 @@ fi
 
 ####################################### Executed: force & parse
 #
-if echo "\$0" | grep -q '${lib}'; then
-  if test "\$#" -ne 0 || test "\${PARSED-}"; then
-    unset PARSE PARSED
+if echo "\$0" | grep -q '${lib}\$'; then
+  if test "\$#" -ne 0 && test "\${1-}" = '--parsed' && shift; then
     case "\$1" in
       --force) shift; ${script} --force
     esac
@@ -124,7 +123,7 @@ show() {
 }
 
 main() {
-  if test "$#" -eq 0 || test "${PARSED-}"; then
+  if test "$#" -eq 0 || { test "${1-}" = '--parsed' && shift; }; then
     unset PARSE PARSED
     script="$(basename "$0")"
     lib="${script}.lib"

@@ -2,9 +2,9 @@
 
 # Helpers shell library. Sources strict.lib by default when $STRICT is set.
 #
-
 [ "${STRICT-1}" -eq 0 ] || . strict.lib
 . color.lib
+
 
 # <html><h2>Bash Strict Mode</h2>
 # <p><strong><code>$STRICT</code></strong> set to 0 when sourcing helpers.lib to not source strict.lib (Default: 1).</p>
@@ -28,7 +28,7 @@ unset STRICT
 # Globals:
 #   DEBUG              Show if DEBUG set, unless QUIET is set (default: unset).
 #   GreyDim            Grey dimmed color for info message and > symbol.
-#   QUIET              Do not show message if set (but 0), takes precedence over VERBOSE/DRY_RUN (default: unset).
+#   QUIET              Do not show message if set (but 0), takes precedence over VERBOSE/DRYRUN (default: unset).
 #   Reset              Reset color.
 # Arguments:
 #   message            Message to show.
@@ -47,8 +47,7 @@ unset STRICT
 #   Message to stdout.
 #######################################
 debug() {
-  if [ ! "${1-}" ] || [ "${PARSED-}" ]; then
-    unset PARSE PARSED
+  if test "$#" -eq 0 || { test "${1-}" = '--parsed' && shift; }; then
     if test "${QUIET-0}" -ne 1 && test "${DEBUG-}"; then
 # <html><h2>Show Debug Messages</h2>
 # <p><strong><code>$DEBUG</code></strong> (Default: unset).</p>
@@ -59,42 +58,42 @@ debug() {
 # <li><code>--debug</code></li>
 # </ul>
 # </html>
-        DEBUG=1
-        add=''; content=''; line=''; sep=' '
-        sets="$(set +o | tr '\n' ';')"
-        set +o nounset  # set +u
-        add=""; content=""; suffix=""
-        if command -v caller >/dev/null; then
-          i=0
-          while c="$(caller "${i}")"; do
-            if [ "$(echo "${c}" | awk '{ print $2 }')" = 'die' ] \
-              || [ "$(basename "$(echo "${c}" | awk '{ print $3 }')")" = 'helpers.lib' ]; then
-              i="$((i+1))"
-            else
-              break
-            fi
-          done
-          file="$(basename "$(echo "${c}" | awk '{ print $3 }')")"
-          line="$(echo "${c}" | awk '{ print $1 }')"
-        fi
-
-        [ "${file-}" ] || file="$(basename "$(psargs '' | awk '{ print $1 }')" 2>/dev/null || true)"
-        [ ! "${file-}" ] || add="$(greyinvert "${file}[${line}]"): "
-
-        for arg do
-          content="${content}${suffix}${arg}=$(eval echo "\$${arg}")"
-          suffix=", "
+      DEBUG=1
+      add=''; content=''; line=''; sep=' '
+      sets="$(set +o | tr '\n' ';')"
+      set +o nounset  # set +u
+      add=""; content=""; suffix=""
+      if command -v caller >/dev/null; then
+        i=0
+        while c="$(caller "${i}")"; do
+          if [ "$(echo "${c}" | awk '{ print $2 }')" = 'die' ] \
+            || [ "$(basename "$(echo "${c}" | awk '{ print $3 }')")" = 'helpers.lib' ]; then
+            i="$((i+1))"
+          else
+            break
+          fi
         done
+        file="$(basename "$(echo "${c}" | awk '{ print $3 }')")"
+        line="$(echo "${c}" | awk '{ print $1 }')"
+      fi
 
-        if test -z "${content}" && test "${add}"; then
-          add="${add%??}" # if no args, remove trailing ": "
-        elif test -z "${content}"; then
-          sep=''
-        fi
+      [ "${file-}" ] || file="$(basename "$(psargs '' | awk '{ print $1 }')" 2>/dev/null || true)"
+      [ ! "${file-}" ] || add="$(greyinvert "${file}[${line}]"): "
 
-        printf '%b\n' "$(greybold '!')${sep}${add}$(greydim "${content}")" >&2
-        eval "${sets}"  # set -u, if it was set before
-        unset add arg c content sep sets suffix
+      for arg do
+        content="${content}${suffix}${arg}=$(eval echo "\$${arg}")"
+        suffix=", "
+      done
+
+      if test -z "${content}" && test "${add}"; then
+        add="${add%??}" # if no args, remove trailing ": "
+      elif test -z "${content}"; then
+        sep=''
+      fi
+
+      printf '%b\n' "$(greybold '!')${sep}${add}$(greydim "${content}")" >&2
+      eval "${sets}"  # set -u, if it was set before
+      unset add arg c content sep sets suffix
     fi
   else
     DESC='Show info message with + symbol in grey bold if DEBUG is set, unless QUIET is set' \
@@ -108,8 +107,7 @@ debug() {
 #   Green              Green color for ✓ symbol.
 #   PARSE              Function name or file.
 #                      Default if BASH_VERSION: FUNCNAME[1] if BASH_SOURCE[1] is *.lib, otherwise BASH_SOURCE[1].
-#   PARSED             Function called has been parsed already, run the function.
-#   QUIET              Do not show message if set (but 0), takes precedence over VERBOSE/DRY_RUN (default: unset).
+#   QUIET              Do not show message if set (but 0), takes precedence over VERBOSE/DRYRUN (default: unset).
 #   Red                Red color for error message and x symbol.
 #   Reset              Reset color.
 # Arguments:
@@ -136,8 +134,7 @@ debug() {
 #######################################
 die() {
   rc=$?
-  if [ ! "${1-}" ] || [ "${PARSED-}" ]; then
-    unset PARSED
+  if test "$#" -eq 0 || { test "${1-}" = '--parsed' && shift; }; then
     rc="${firstrc:-${rc}}"
     if test "${QUIET-0}" -ne 1; then
       case "${rc}" in
@@ -182,8 +179,7 @@ and exit" PARSE='die' parse "$@"
 # Globals:
 #   PARSE              Function name or file.
 #                      Default if BASH_VERSION: FUNCNAME[1] if BASH_SOURCE[1] is *.lib, otherwise BASH_SOURCE[1].
-#   PARSED             Function called has been parsed already, run the function.
-#   QUIET              Do not show message if set (but 0), takes precedence over VERBOSE/DRY_RUN (default: unset).
+#   QUIET              Do not show message if set (but 0), takes precedence over VERBOSE/DRYRUN (default: unset).
 #   Red                Red color for error message and x symbol.
 #   Reset              Reset color.
 # Arguments:
@@ -203,8 +199,7 @@ and exit" PARSE='die' parse "$@"
 #   Message to stderr.
 #######################################
 error() {
-  if [ ! "${1-}" ] || [ "${PARSED-}" ]; then
-    unset PARSED
+  if test "$#" -eq 0 || { test "${1-}" = '--parsed' && shift; }; then
     if test "${QUIET-0}" -ne 1; then
       add=''; line=''; sep=' '
       if command -v caller >/dev/null; then
@@ -247,11 +242,10 @@ error() {
 ####################################### has
 # Check if an executable exists.
 # Arguments:
-#   --all               Find all paths ('type -aP' or 'which -a' when 'type -a' is not available).
-#   --binary            The first with shebang and not in sbin.
-#   --path              Use path (ignore for '--all').
-#   --value             Show value (ignore for '-a').
-#   --exclude=<path>    Exclude executable (sets the '--all' option and returns all but exe)
+#   --all               Find all paths.
+#   --bin               The first without /bin/sh shebang (does not work with sudo).
+#   --path              Use path (does not have any effect for: '--all' and '--bin', always searches in $PATH).
+#   --value             Show value (does not have any effect for: '--all' and '--bin', always shows value).
 #   executable          Executable to check (default: sudo if no image and not executable).
 #   image               The image name (default: local).
 # Common Arguments:
@@ -270,19 +264,16 @@ error() {
 #   1 if it does not exist.
 #######################################
 has() {
-  if test "${QUIET-0}" -ne 1; then
-    unset PARSED
-    doc() { docker run -i --rm --entrypoint sh "${image}" -c "${c} ${executable}"; }
-    loc() { ${c} "${executable}"; }
+  if test "$#" -eq 0 || { test "${1-}" = '--parsed' && shift; }; then
+    doc() { docker run -i --rm --entrypoint sh "${image}" -c "${1}"; }
 
-    all=false; binary=false; c='command -v'; p=false; t='type -aP'; v=false; w='which -a'
+    all=false; bin=false; path=false; value=false
     for arg; do
       case "${arg}" in
-        --all) all=true; c="${w}" ;;
-        --binary) all=true; binary=true; c="${w}" ;;
-        --path) c='which'; p=true ;;
-        --value) v=true ;;
-        --exclude=*) all=true; c="${w}"; exclude="$(echo "${arg}" | sed 's/--exclude=//')";;
+        --all) all=true; value=true ;;
+        --bin) all=true; bin=true; value=true ;;
+        --path) path=true ;;
+        --value) value=true ;;
         *)
           if [ "${executable-}" ]; then
             image="${arg}"
@@ -295,73 +286,48 @@ has() {
 
     executable="${executable:-sudo}"
 
-    if [ "${image-}" ] && $all; then
-      if which docker >/dev/null 2>&1 || command -vp docker >/dev/null; then
-        if docker run -i --rm --entrypoint sh "${image}" -c "${w} cut" >/dev/null 2>&1; then
-          rv="$(doc)"; rc=$?
-        else
-          c="${t}"; rv="$(doc)"; rc=$?
-        fi
-      fi
-    elif [ "${image-}" ]; then
-      if $p; then
-        if docker run -i --rm --entrypoint sh "${image}" -c "which cut" >/dev/null 2>&1; then
-          rv="$(doc)"; rc=$?
-        else
-          c='type -P'; rv="$(doc)"; rc=$?
-        fi
+    if [ "${image-}" ]; then
+      docker --version >/dev/null || exit
+      if $all; then
+        rv="$(doc "which -a ${executable} || type -aP ${executable} || true")"
+      elif $path; then
+        rv="$(doc "command -v ${executable} | grep -v '^alias ' || true")"
+      elif $bin; then
+        rv="$(doc "command -vp ${executable} || true")"
       else
-        rv="$(doc)"; rc=$?
-      fi
-    elif $all; then
-      if ${w} cut >/dev/null 2>&1; then
-        rv="$(loc)"; rc=$?
-      else
-        c="${t}"; rv="$(loc)"; rc=$?
+        rv="$(doc "command -v ${executable} || true")"
       fi
     else
-      if $p; then
-        if ${c} cut >/dev/null 2>&1; then
-          rv="$(loc)"; rc=$?
-        else
-          c='type -P'; rv="$(loc)"; rc=$?
-        fi
+      if $all; then
+        # shellcheck disable=SC3045
+        rv="$(which -a "${executable}" || type -aP "${executable}" || true)"
+      elif $path; then
+        rv="$(command -v "${executable}" | grep -v '^alias ' || true)"
+      elif $bin; then
+        rv="$(command -vp "${executable}" || true)"
       else
-        rv="$(loc)"; rc=$?
+        rv="$(command -v "${executable}" || true)"
+      fi
+    fi
+
+    if $bin; then
+      brew="$(brew --prefix "${executable}" 2>/dev/null || true)"
+      if [ "${brew-}" ]; then
+        if [ "${rv-}" ]; then
+          # shellcheck disable=SC3037
+          rv="$(echo -e "${brew}\n${rv}")"
+        else
+          rv="${brew}"
+        fi
       fi
     fi
 
     if test "${rv-}"; then
-      if $v; then
-        echo "${rv}"
-
-      elif $all; then
-        tmp="$(mktemp)"
-        for i in ${rv}; do
-          real="$(real --resolved "${i}")"
-          grep -q "^${real}$" "${tmp}" >/dev/null || echo "${real}" >> "${tmp}"
-        done
-
-        rv="$(cat "${tmp}")"
-
-        if test "${binary-}"; then
-          rc=1
-          for i in $(echo "${rv}" | grep -v '/sbin/'); do
-            head -1 "${i}" | grep -q '^#\!' || { rc=0; echo "${i}"; break; }
-          done
-        elif test "${exclude-}"; then
-          rc=1
-          real="$(real --resolved "${exclude}")"
-          for i in ${rv}; do
-            [ "${i}" = "${real}" ] || { rc=0; echo "${i}"; }
-          done
-        else
-          echo "${rv}"
-        fi
-      fi
+      ! $value || echo "${rv}"
+    else
+      false
     fi
-    unset all c executable i image real realp rv t tmp v w; unset -f doc loc
-    return "${rc}" 2>/dev/null || exit "${rc}"
+    unset all bin executable image path rv value; unset -f doc
   else
     DESC='Check if an executable exists' PARSE='has' parse "$@"
   fi
@@ -372,18 +338,20 @@ has() {
 # Globals:
 #   PARSE              Function name or file.
 #                      Default if BASH_VERSION: FUNCNAME[1] if BASH_SOURCE[1] is *.lib, otherwise BASH_SOURCE[1].
-#   PARSED             Function called has been parsed already, run the function.
 #   POSTPARSE          Variables to unset after each run of a function when parsed.
-#   QUIET              Do not show message if set (but 0), takes precedence over VERBOSE/DRY_RUN (default: unset).
+#   QUIET              Do not show message if set (but 0), takes precedence over VERBOSE/DRYRUN (default: unset).
 #   Red                Red color for error message and x symbol.
 #   Reset              Reset color.
 # Arguments:
 #   -parse             As first argument indicates to parse for itself and expects only one long arguments,
 #                      otherwise act as proxy (parse function).
-#   --man              Show help from man page and exit.
-#   --desc             Show description from $DESC or header file comment and exit.
-#   --manrepo          Show repository from man page and exit.
-#   --vers             Show version from man page and exit.
+#   --man              Show help from man page and exit (must be the first argument).
+#   --desc             Show description from $DESC or header file comment and exit (must be the first argument).
+#   --manrepo          Show repository from man page and exit (must be the first argument).
+#   --novars           Skip parsing options which generates globals (--debug, etc.)
+#                      so they remain for the following command, for instance: bash, sh, sudo etc.
+#                      (must be the first argument).
+#   --vers             Show version from man page and exit (must be the first argument).
 # Optional Arguments:
 #   --debug            Show debug messages.
 #   --dryrun           Show commands that will be executed.
@@ -400,7 +368,7 @@ has() {
 # shellcheck disable=SC3028,SC3054
 parse() {
   if [ "${1-}" ]; then
-    unset _arg
+    unset arg
     if [ "${#}" -eq 2 ] && [ "${1}" = '-parse' ]; then
       case "${2-}" in --desc|--man|--manrepo|--vers) shift;; esac
 # <html><h2>Function one line Description</h2>
@@ -429,8 +397,7 @@ parse() {
 # <dl>
 # <dt>From a function:</dt>
 # <dd>
-# <pre><code class="language-bash">if [ ! &quot;${1-}&quot; ] || [ &quot;${PARSED-}&quot; ]; then
-# &emsp;unset PARSED
+# <pre><code class="language-bash">if test &quot;$#&quot; -eq 0 || { test &quot;${1-}&quot; = '--parsed' && shift; }; then
 # &emsp;for arg do; case &quot;${arg}&quot; in --other-option) echo &quot;${arg}&quot; ;; esac; done
 # else
 # &emsp;DESC='description' PARSE='function' parse &quot;$@&quot;
@@ -442,8 +409,7 @@ parse() {
 # <dt>From a library when executed (needs more than one argument):</dt>
 # <dd>
 # <pre><code class="language-bash">if echo &quot;$0&quot;| grep -q 'name.lib'; then
-# &emsp;if test &quot;$#&quot; -ne 0 || test &quot;${PARSED-}&quot;; then
-# &emsp;&emsp;unset PARSED
+# &emsp;if test &quot;$#&quot; -ne 0 && test &quot;${1-}&quot; = '--parsed' && shift; then
 # &emsp;&emsp;for arg do; case &quot;${arg}&quot; in --other-option) echo &quot;${arg}&quot; ;; esac; done
 # &emsp;else
 # &emsp;&emsp;PARSE=&quot;$0&quot; parse &quot;$@&quot;
@@ -455,9 +421,8 @@ parse() {
 # <dl>
 # <dt>From a script in sh:</dt>
 # <dd>
-# <pre><code class="language-bash">if [ ! &quot;${1-}&quot; ] || [ &quot;${PARSED-}&quot; ]; then
+# <pre><code class="language-bash">if test &quot;$#&quot; -eq 0 || { test &quot;${1-}&quot; = '--parsed' && shift; }; then
 # &emsp;for arg do; case &quot;${arg}&quot; in --other-option) echo &quot;${arg}&quot; ;; esac; done
-# &emsp; unset PARSED
 # else
 # &emsp;PARSE=&quot;${0}&quot; parse &quot;$@&quot;
 # fi
@@ -467,11 +432,21 @@ parse() {
 # <dl>
 # <dt>From a script in bash:</dt>
 # <dd>
-# <pre><code class="language-bash">if [ ! &quot;${1-}&quot; ] || [ &quot;${PARSED-}&quot; ]; then
+# <pre><code class="language-bash">if test &quot;$#&quot; -eq 0 || { test &quot;${1-}&quot; = '--parsed' && shift; }; then
 # &emsp;for arg do; case &quot;${arg}&quot; in --other-option) echo &quot;${arg}&quot; ;; esac; done
-# &emsp; unset PARSED
 # else
 # &emsp;parse &quot;$@&quot;
+# fi
+# </code></pre>
+# </dd>
+# </dl>
+# <dl>
+# <dt>From a script in which invokes commands to keep the options for the command: bash, sh, etc.:</dt>
+# <dd>
+# <pre><code class="language-bash">if test &quot;$#&quot; -eq 0 || { test &quot;${1-}&quot; = '--parsed' && shift; }; then
+# &emsp;for arg do; case &quot;${arg}&quot; in --other-option) echo &quot;${arg}&quot; ;; esac; done
+# else
+# &emsp;parse --novars &quot;$@&quot;
 # fi
 # </code></pre>
 # </dd>
@@ -481,118 +456,67 @@ parse() {
     fi
 
     if [ "${PARSE-}" ]; then
-# <html><h2>Arguments Parsed</h2>
-# <p><strong><code>$PARSED</code></strong> will be set when arguments have been parsed to avoid recursion.</p>
-# <p>Check if <strong>$PARSE</strong> is set before calling `parse` from a function or script.</p>
-# <h3>Examples</h3>
-# <dl>
-# <dt>From a function:</dt>
-# <dd>
-# <pre><code class="language-bash">if [ ! &quot;${1-}&quot; ] || [ &quot;${PARSED-}&quot; ]; then
-# &emsp;unset PARSED
-# &emsp;for arg do; case &quot;${arg}&quot; in --other-option) echo &quot;${arg}&quot; ;; esac; done
-# else
-# &emsp;DESC='description' PARSE='function' parse &quot;$@&quot;
-# fi
-# </code></pre>
-# </dd>
-# </dl>
-# <dl>
-# <dt>From a library when executed:</dt>
-# <dd>
-# <pre><code class="language-bash">if echo &quot;$0&quot;| grep -q 'name.lib'; then
-# &emsp;if test &quot;$#&quot; -ne 0 || test &quot;${PARSED-}&quot;; then
-# &emsp;&emsp;unset PARSED
-# &emsp;&emsp;for arg do; case &quot;${arg}&quot; in --other-option) echo &quot;${arg}&quot; ;; esac; done
-# &emsp;else
-# &emsp;&emsp;PARSE=&quot;$0&quot; parse &quot;$@&quot;
-# &emsp;fi
-# fi
-# </code></pre>
-# </dd>
-# </dl>
-# <dl>
-# <dt>From a script in sh:</dt>
-# <dd>
-# <pre><code class="language-bash">if [ ! &quot;${1-}&quot; ] || [ &quot;${PARSED-}&quot; ]; then
-# &emsp;unset PARSED
-# &emsp;for arg do; case &quot;${arg}&quot; in --other-option) echo &quot;${arg}&quot; ;; esac; done
-# else
-# &emsp;PARSE=&quot;${0}&quot; parse &quot;$@&quot;
-# fi
-# </code></pre>
-# </dd>
-# </dl>
-# <dl>
-# <dt>From a script in bash:</dt>
-# <dd>
-# <pre><code class="language-bash">if [ ! &quot;${1-}&quot; ] || [ &quot;${PARSED-}&quot; ]; then
-# &emsp;unset PARSED
-# &emsp;for arg do; case &quot;${arg}&quot; in --other-option) echo &quot;${arg}&quot; ;; esac; done
-# else
-# &emsp;parse &quot;$@&quot;
-# fi
-# </code></pre>
-# </dd>
-# </dl>
-# </html>
-      unset PARSED
       if echo "${PARSE}" | grep -qE '^/'; then
-        _path="${PARSE}"
-        _cmd="$(basename "${_path}")"  # script.
+        path_parse="${PARSE}"
+        cmd_parse="$(basename "${path_parse}")"  # script.
       else
-        _cmd="${PARSE}"
-        _path="$(command -pv "${_cmd}" || false)"  # function: no path.
+        cmd_parse="${PARSE}"
+        path_parse="$(command -pv "${cmd_parse}" || false)"  # function: no path.
       fi
     elif [ "${BASH_VERSION-}" ]; then
       if echo "${BASH_SOURCE[1]}" | grep -q '.lib$' ; then
-        _cmd="${FUNCNAME[1]}"  # function: path.
+        cmd_parse="${FUNCNAME[1]}"  # function: path.
       else
-        _cmd="$(basename "${BASH_SOURCE[1]}")"  # script.
+        cmd_parse="$(basename "${BASH_SOURCE[1]}")"  # script.
       fi
-      _path="${BASH_SOURCE[1]}"
+      path_parse="${BASH_SOURCE[1]}"
     fi
-    _variables='PARSED=1'
-    _first=true
-    for _arg do
-      _skip=false
+    first=true; novars=false; variables_parse=''
+    for arg do
+      skip=false
       shift
       set +x
-      case "${_arg}" in
-        --noquiet) _variables="${_variables} QUIET=0" ;;
+      case "${arg}" in
+        --noquiet) ! $novars || { variables_parse="${variables_parse} QUIET=0"; skip=true; } ;;
+        --novars) ! $first || { novars=true; skip=true; } ;;
         --debug|--dryrun|--quiet|--verbose|--warning|--white)
-          _variables="${_variables} $(echo "${_arg}" | sed 's/--//' | tr '[:lower:]' '[:upper:]')=1"
-          _skip=true
+          if $novars; then
+            variables_parse="${variables_parse} $(echo "${arg}" | sed 's/--//' | tr '[:lower:]' '[:upper:]')=1"
+            skip=true
+          fi
           ;;
         --desc)
-          if $_first; then
-            if [ ! "${DESC-}" ] && [ "${_path-}" ]; then
+          if $first; then
+            if [ ! "${DESC-}" ] && [ "${path_parse-}" ]; then
               DESC="$(awk '/^#/ && ! /^#!/ && ! /^##/ && ! /^#$/ && ! /^# shellcheck/ {sub(/^# /, ""); print $0=$0 }' \
-                "${_path}" | head -1)"
+                "${path_parse}" | head -1)"
             fi
             [ "${DESC-}" ] || exit
             echo "${DESC}"; exit
           fi
           ;;
          --man|--manrepo|--vers)
-          if $_first; then
-            _page="$(man -P cat "${_cmd}" 2>/dev/null || true)"
-            [ "${_page:-}" ] || exit 1
-            case "${_arg}" in
-              --man) echo "${_page}" ;;
-              --manrepo) echo "${_page}" | awk '/^REPOSITORY$/{ getline; print $1 }' ;;
-              --vers) echo "${_page}" | tail -1 | awk '{ print $2 }' ;;
+          if $first; then
+            page="$(man -P cat "${cmd_parse}" 2>/dev/null || true)"
+            [ "${page:-}" ] || exit 1
+            case "${arg}" in
+              --man) echo "${page}" ;;
+              --manrepo) echo "${page}" | awk '/^REPOSITORY$/{ getline; print $1 }' ;;
+              --vers) echo "${page}" | tail -1 | awk '{ print $2 }' ;;
             esac
             exit
           fi
           ;;
       esac
-      _first=false
-      $_skip || set -- "$@" "${_arg}"
+      first=false
+      $skip || set -- "$@" "${arg}"
     done
-    unset _arg DESC _page PARSE
-    eval "${_variables} ${_path:-${_cmd}}" "\$@"
+    unset arg DESC first novars page PARSE skip
+    run_parse=${path_parse:-${cmd_parse}}
+    test "$(type "${run_parse}")" != 'file' || exec='exec'
+    eval "${variables_parse} ${exec:-} ${run_parse} --parsed" "\$@"
     eval_rc=$?
+    unset cmd_parse path_parse variables_parse
     if [ "${DRYRUN-}" ]; then
       # <html><h2>Dry Run</h2>
       # <p><strong><code>$DRYRUN</code></strong> (Default: unset).</p>
@@ -624,8 +548,7 @@ parse() {
 #   1 if error during installation of procps or not know to install ps or --usage and not man page.
 # ######################################
 psargs() {
-  if [ ! "${1-}" ] || [ "${PARSED-}" ]; then
-    unset PARSED
+  if test "$#" -eq 0 || { test "${1-}" = '--parsed' && shift; }; then
     if command -v ps >/dev/null; then
       if ! ps -p $$ -o args= 2>/dev/null; then
         ps -o pid= -o args= | awk '/$$/ { $1=$1 };1' | grep "^$$ " | cut -d '' -f 2-
@@ -642,8 +565,7 @@ psargs() {
 #   Green              Green color for ✓ symbol.
 #   PARSE              Function name or file.
 #                      Default if BASH_VERSION: FUNCNAME[1] if BASH_SOURCE[1] is *.lib, otherwise BASH_SOURCE[1].
-#   PARSED             Function called has been parsed already, run the function.
-#   QUIET              Do not show message if set (but 0), takes precedence over VERBOSE/DRY_RUN (default: unset).
+#   QUIET              Do not show message if set (but 0), takes precedence over VERBOSE/DRYRUN (default: unset).
 #   Reset              Reset color.
 # Arguments:
 #   message            Message to show.
@@ -662,8 +584,7 @@ psargs() {
 #   Message to stdout.
 #######################################
 success() {
-  if [ ! "${1-}" ] || [ "${PARSED-}" ]; then
-    unset PARSED
+  if test "$#" -eq 0 || { test "${1-}" = '--parsed' && shift; }; then
     if test "${QUIET-0}" -ne 1; then
       sep=''
       test "$#" -eq 0 || sep=' '
@@ -676,10 +597,11 @@ success() {
 }
 
 ####################################### > verbose: VERBOSE (default: unset), QUIET (default: unset)
-# Show verbose/dry-run message with > symbol in grey dim if VERBOSE or DRY_RUN are set, unless QUIET is set
+# Show verbose/dry-run message with > symbol in grey dim if VERBOSE or DRYRUN are set, unless QUIET is set
 # Globals:
+#   DRYRUN             Show message if set, unless QUIET is set (default: unset).
 #   GreyDim            Grey dimmed color for info message and > symbol.
-#   QUIET              Do not show message if set (but 0), takes precedence over VERBOSE/DRY_RUN (default: unset).
+#   QUIET              Do not show message if set (but 0), takes precedence over VERBOSE/DRYRUN (default: unset).
 #   Reset              Reset color.
 #   VERBOSE            Shows message if set, unless QUIET is set (default: unset).
 # Arguments:
@@ -699,9 +621,8 @@ success() {
 #   Message to stdout.
 #######################################
 verbose() {
-  if [ ! "${1-}" ] || [ "${PARSED-}" ]; then
-    unset PARSED
-    if test "${QUIET-0}" -ne 1 && test "${VERBOSE-}"; then
+  if test "$#" -eq 0 || { test "${1-}" = '--parsed' && shift; }; then
+    if test "${QUIET-0}" -ne 1 && { test "${VERBOSE-}" || test "${DRYRUN-}"; }; then
 # <html><h2>Show Verbose Messages</h2>
         # <p><strong><code>$VERBOSE</code></strong>  (Default: unset).</p>
         # <p><strong><code>Verbose messages are not shown if unset.</code></strong></p>
@@ -718,7 +639,7 @@ verbose() {
         unset sep
     fi
   else
-    DESC='Show verbose/dry-run message with > symbol in grey dim if VERBOSE or DRY_RUN are set, unless QUIET is set' \
+    DESC='Show verbose/dry-run message with > symbol in grey dim if VERBOSE or DRYRUN are set, unless QUIET is set' \
       PARSE='verbose' parse "$@"
   fi
 }
@@ -728,7 +649,7 @@ verbose() {
 # Globals:
 #   Yellow             Yellow color for warning message and ! symbol.
 #   Reset              Reset color.
-#   QUIET              Do not show message if set (but 0), takes precedence over VERBOSE/DRY_RUN (default: unset).
+#   QUIET              Do not show message if set (but 0), takes precedence over VERBOSE/DRYRUN (default: unset).
 #   WARNING            Shows message if is set, unless QUIET is set (default: unset).
 # Arguments:
 #   message            Message to show.
@@ -747,8 +668,7 @@ verbose() {
 #   Message to stderr.
 #######################################
 warning() {
-  if [ ! "${1-}" ] || [ "${PARSED-}" ]; then
-    unset PARSED
+  if test "$#" -eq 0 || { test "${1-}" = '--parsed' && shift; }; then
      if test "${QUIET-0}" -ne 1 && test "${WARNING-}"; then
 # <html><h2>Show Warning Messages</h2>
 # <p><strong><code>$WARNING</code></strong>  (Default: unset).</p>
@@ -795,14 +715,11 @@ warning() {
 
 ####################################### Executed: force & parse
 #
-if echo "$0" | grep -q 'helpers.lib'; then
-  if test "$#" -eq 0 || test "${PARSED-}"; then
-    unset PARSE PARSED
-    for helpers_arg do
-      case "${helpers_arg}" in
-        --force) FORCE=1 . "$0"
-      esac
-    done
+if echo "$0" | grep -q 'helpers.lib$'; then
+  if test "$#" -ne 0 && test "${1-}" = '--parsed' && shift; then
+    case "$1" in
+      --force) shift; PROFILE=0 . profile.lib
+    esac
   elif test "$#" -ne 0; then
     PARSE="$0" parse "$@"
   fi

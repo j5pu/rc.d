@@ -49,12 +49,12 @@ cmd() {
 @test "has --value link" { EXPECTED="alias link='link'"; FIXTURE='link'; cmd; }
 @test "has --path link" { unset EXPECTED; FIXTURE='link'; cmd; }
 has::--value::--path::link() {
-  p="${path_link}"
+  path="${path_link}"
   if [ "${1}" = 'macOS' ]; then
-    p="${HOME}${path_link}"
+    path="${HOME}${path_link}"
   fi
-  assert_output "${p}"
-  unset p
+  assert_output "${path}"
+  unset path
 }
 @test "has --value --path link" { CALLBACK=1; FIXTURE='link'; cmd; }
 has::--all::link() {

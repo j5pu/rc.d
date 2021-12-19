@@ -1,15 +1,7 @@
 #!/bin/sh
 # shellcheck disable=SC2086
 
-# dash: A login shell first reads commands
-#     from the files /etc/profile and .profile if they exist.  If the
-#     environment variable ENV is set on entry to an interactive shell,
-#     or is set in the .profile of a login shell, the shell next reads
-#     commands from the file named in ENV.  Therefore, a user should
-#     place commands that are to be executed only at login time in the
-#     .profile file, and commands that are executed for every interactive
-#     shell inside the ENV file.
-
+# TODO: tener en cuenta los que en dash no funcionaba lo de rc e init-file
 main () {
   expected=false
   file='/etc/profile'

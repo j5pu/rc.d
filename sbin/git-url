@@ -7,7 +7,7 @@
 
 . helpers.lib
 
-if [ ! "${1-}" ] || [ "${PARSED-}" ]; then
+if test "$#" -eq 0 || { test "${1-}" = '--parsed' && shift; }; then
   unset PARSED
   [ "${1-}" != '-C' ] || shift
   if real="$(QUIET="${QUIET:-1}" real --dirname --fail "${1:-}")"; then

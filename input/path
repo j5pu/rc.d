@@ -1,0 +1,57 @@
+# shellcheck shell=sh
+# shellcheck disable=SC2034
+
+# PATH, MANPATH and INFOPATH. Format: path;OS
+#
+fields=2
+darwin_clt='/Library/Developer/CommandLineTools/usr'
+linux_brew='/home/linuxbrew/.linuxbrew'
+
+# <html><h2>Operating System System Name</h2>
+# <p><strong><code>$UNAME</code></strong> (always exported).</p>
+# <ul>
+# <li><code>darwin</code></li>
+# <li><code>linux</code></li>
+# </ul>
+# </html>
+UNAME="$(uname)"
+
+path="$(cat <<EOF
+${RC_D}/sbin;${UNAME}
+${RC_D}/bin;${UNAME}
+/opt/sbin;${UNAME}
+/opt/bin;${UNAME}
+${linux_brew}/sbin;Linux
+${linux_brew}/bin;Linux
+/usr/local/sbin;${UNAME}
+/usr/local/bin;${UNAME}
+${darwin_clt}/bin;Darwin
+/usr/sbin;${UNAME}
+/usr/bin;${UNAME}
+/sbin;${UNAME}
+/bin;${UNAME}
+${PYCHARM:-};Darwin
+${PYCHARM_CONTENTS:+${PYCHARM_CONTENTS:+/MacOS}};Darwin
+$(sed 's/$/;Darwin/g' /etc/paths.d/* | uniq 2>/dev/null || echo ';')
+EOF
+)"
+
+manpath="$(cat <<EOF
+${RC_D}/share/man;${UNAME}
+/opt/share/man;${UNAME}
+${linux_brew}/share/man;Linux
+/usr/local/bin/share/man;${UNAME}
+${darwin_clt}/share/mann;Darwin
+EOF
+)"
+
+infopath="$(cat <<EOF
+${RC_D}/share/info;${UNAME}
+/opt/share/info;${UNAME}
+${linux_brew}/info;Linux
+/usr/local/bin/info;${UNAME}
+${darwin_clt}/info;Darwin
+EOF
+)"
+
+unset darwin_clt linux_brew

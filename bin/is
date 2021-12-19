@@ -18,10 +18,10 @@ ssh() { [ "${SSH_CLIENT-}" ] || [ "${SSH_CONNECTION-}" ] || [ "${SSH_TTY-}" ]; }
 user() { ! is root && ! is sudo; }
 
 main() {
-  if [ ! "${1-}" ] || [ "${PARSED-}" ]; then
+  if test "$#" -eq 0 || { test "${1-}" = '--parsed' && shift; }; then
     for arg do
-      skip=false
       shift
+      skip=false
       case "${arg}" in
         --commands) awk -F '\(' '/^[a-z].*\() {/ && !/^main/ { print $1 }' "${0}"; exit ;;
         *) test "${func-}" || { func="${arg}"; skip=true; } ;;

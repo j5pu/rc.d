@@ -31,3 +31,8 @@ main () {
 
 main "$@"
 
+if test "$#" -eq 0 || { test "${1-}" = '--parsed' && shift; }; then
+  :
+else
+  PARSE="${0}" parse --novars "$@"
+fi

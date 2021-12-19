@@ -35,8 +35,7 @@ STRICT=1 . helpers.lib
 #   $ cd /tmp; rm -rf d1 d2; mkdir d1; ln -s d1 d2; touch d1/f1;ln -s d1/f1 d1/f2;real --resolved d1/f2
 #   /private/tmp/dir1/file1
 #######################################
-if [ ! "${1-}" ] || [ "${PARSED-}" ]; then
-  unset PARSED
+if test "$#" -eq 0 || { test "${1-}" = '--parsed' && shift; }; then
   for arg do
     shift
     case "${arg}" in

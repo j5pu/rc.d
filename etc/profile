@@ -3,4 +3,11 @@
 # System profile.
 #
 
+profile="$(cat <<EOF
+# System profile.
+#
+
 . /usr/local/bin/profile.lib
+EOF
+)"
+

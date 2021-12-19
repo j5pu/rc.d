@@ -4,17 +4,16 @@
 #
 
 command -v _direnv_hook >/dev/null || { ! command -v hook >/dev/null || eval "$(direnv hook bash)"; }
-type -p a
 
 ####################################### Executed: force & parse
 #
-if test "$#" -ne 0 && test "${PARSED-}"; then
-  unset PARSED
-  for arg do
-    case "${arg}" in
-      --force) FORCE=1 . "$0"
+if echo "$0" | grep -q 'hooks.lib$'; then
+  if test "$#" -ne 0 && test "${1-}" = '--parsed' && shift; then
+    case "$1" in
+      --force) shift; PROFILE=0 . profile.lib
     esac
-  done
-elif test "$#" -ne 0; then
+  elif test "$#" -ne 0; then
+    . helpers.lib
     PARSE="$0" parse "$@"
+  fi
 fi

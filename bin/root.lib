@@ -1,0 +1,17 @@
+# shellcheck shell=sh
+
+# Root directories.
+#
+
+####################################### Executed: force & parse
+#
+if echo "$0" | grep -q 'root.lib'; then
+  if test "$#" -ne 0 && test "${1-}" = '--parsed' && shift; then
+    case "$1" in
+      --force) shift; PROFILE=0 . profile.lib
+    esac
+  else
+   . helpers.lib
+   PARSE="$0" parse "$@"
+  fi
+fi
