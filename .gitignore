@@ -1,4 +1,4 @@
-generated/[a-z,A-Z]*
+generated.d/[a-zA-Z]*
 tests/output
 
 # Created by .ignore support plugin (hsz.mobi)
