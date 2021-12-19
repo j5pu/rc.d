@@ -5,8 +5,11 @@
     <option name="isActive" value="true" />
     <option name="isHighlightColorEnabled" value="true" />
     <option name="useProjectFrame" value="true" />
+    <option name="settingsSelectedTab" value="1" />
     <option name="highlightColor" value="990303" />
     <option name="projectFrameColor" value="990303" />
+    <option name="useCustomTitle" value="true" />
+    <option name="customTitle" value="rc.d [btrap]" />
     <option name="tabHighlightPosition" value="Full" />
   </component>
 </project>

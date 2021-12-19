@@ -10,35 +10,35 @@ shopt -s inherit_errexit 2>/dev/null || true
 EXCLUDE="^bats|^python"
 #######################################
 # FIELDS            Fields in 'IMAGES' global.
-FIELDS="6"
+FIELDS="7"
 #######################################
-# IMAGES            enable;<repo owner>;<repo name>;<tag>;stripname;striptag
+# IMAGES            enable;<repo owner>;<repo name>;<tag>;stripname;striptag;sh_is_bash
 IMAGES=$(cat <<EOF
-1;alpine;;;;
-1;archlinux;;;;
-1;bash;;;;
-0;bash;;5.1;;
-0;bash;;5.0;;
-0;bash;;4.4;;
-1;bats;bats;;;
-1;busybox;;;;
-1;centos;;;;
-1;debian;;;;
-1;debian;;bullseye-backports;;bullseye-
-1;debian;;bullseye-slim;;bullseye-
-1;fedora;;;;
-0;jrei;systemd-ubuntu;;;
-1;kalilinux;kali-rolling;;-rolling;
-1;kalilinux;kali-bleeding-edge;;-bleeding;
-1;nixos;nix;;;
-0;python;;3.9-alpine;;-alpine
-0;python;;3.9-bullseye;;
-0;python;;3.9-slim;;
-1;python;;3.10-alpine;;-alpine
-1;python;;3.10-bullseye;;
-1;python;;3.10-slim;;
-1;ubuntu;;;;
-1;zshusers;zsh;;;
+1;alpine;;;;;
+1;archlinux;;;;;
+1;bash;;;;;
+0;bash;;5.1;;;
+0;bash;;5.0;;;
+0;bash;;4.4;;;
+1;bats;bats;;;;
+1;busybox;;;;;
+1;centos;;;;1
+1;debian;;;;;
+1;debian;;bullseye-backports;;bullseye-;
+1;debian;;bullseye-slim;;bullseye-;
+1;fedora;;;;;
+0;jrei;systemd-ubuntu;;;;
+1;kalilinux;kali-rolling;;-rolling;;
+1;kalilinux;kali-bleeding-edge;;-bleeding;;
+1;nixos;nix;;;;
+0;python;;3.9-alpine;;-alpine;
+0;python;;3.9-bullseye;;;
+0;python;;3.9-slim;;;
+1;python;;3.10-alpine;;-alpine;
+1;python;;3.10-bullseye;;;
+1;python;;3.10-slim;;;
+1;ubuntu;;;;;
+1;zshusers;zsh;;;;
 EOF
 )
 
@@ -726,7 +726,7 @@ ${Yellow}Summary${Reset}:
 #######################################
 build::vars() {
   local param="${1:-${REPOSITORY}}"
-  local enable owner name tag stripname striptag
+  local enable owner name tag stripname striptag sh_is_bash
   local id build container repo tag
   local line sep short suffix
 
@@ -735,7 +735,7 @@ build::vars() {
       || die Incorrect Fields: "${line}"
   done
 
-  while IFS=";" read -r enable owner name tag stripname striptag; do
+  while IFS=";" read -r enable owner name tag stripname striptag sh_is_bash; do
     [ "${enable}" -ne "1" ] && continue
     sep="-"
     suffix=""
@@ -789,8 +789,8 @@ build::vars() {
 build::main() {
   local arg args=() command dry=false finish=false ids msg="Option" targets
   export BASE=false CACHE DOCKERFILE_PATH ENTRY="/bin/sh" FORCE=false GIT=j5pu HUB=true ID IMAGE
-  export FUNC="${FUNCNAME[0]%%:*}" OUTPUT=false PUSH=false REPOSITORY="rc" SCAN=false SHOW=false START=false TARGET
-  export TARGETS TEST=false WARN=false
+  export FUNC="${FUNCNAME[0]%%:*}" OUTPUT=false PUSH=false REPOSITORY="rc" SCAN=false SH_BASH=false SHOW=false
+  export START=false TARGET TARGETS TEST=false WARN=false
   if [ ! "${DOCKERFILE_PATH-}" ]; then
     cd "$(dirname "${0}")/.." || exit 1
     command -v ok >/dev/null || source ./profile.d/00.sh
@@ -824,6 +824,7 @@ build::main() {
       --push) PUSH=true ;;
       --repo=*) REPOSITORY="${arg/--repo=/}" ;;
       --scan) SCAN=true ;;
+      --sh-bash) SH_BASH=true ;;
       --show) SHOW=true ;;
       --start) START=true ;;
       --target=*)

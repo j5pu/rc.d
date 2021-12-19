@@ -1,6 +1,0 @@
-<component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Multirun: echo" type="Multirun" singleton="false" separateTabs="false" reuseTabsWithFailures="false" startOneByOne="true" markFailedProcess="true" hideSuccessProcess="false" delayTime="0.0">
-    <runConfiguration name="External Tools: pwd $ProjectFileDir$" type="External Tools" />
-    <method v="2" />
-  </configuration>
-</component>

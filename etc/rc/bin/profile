@@ -3,55 +3,7 @@
 
 { is root && f='s'; } || s='s'
 export PATH="/usr/local/${f}bin:/usr/local/${s}bin:/usr/${f}bin:/usr/${s}bin:/${f}bin:/${s}bin"
-export COLORS=""
-# TODO: estaba con el path, usar el color. empezar poniendo el man page y los tests y el bash-completion.
-# TODO: meter la librería de bats aqui y a tomar por culo.
-####################################### color
-# Write color
-# Globals:
-#   COLORS
-#######################################
 
-####################################### header
-#
-#######################################
-header() {
-  tee "${__PROFILE_GENERATED}" > /dev/null <<EOF
-# shellcheck shell=sh
-
-#
-# Generated profile
-EOF
-  . "${__PROFILE_GENERATED}"
-
-}
-
-####################################### Globals: OS (Linux), CONTAINER and SSH
-# Common to Darwin and Linux
-#######################################
-linux() {
-  #######################################
-  # ALPINE               '1' if 'DIST_ID' is 'alpine'.
-  # ALPINE_LIKE          '1' if 'DIST_ID' is 'alpine'.
-  # ARCHLINUX            '1' if 'DIST_ID' is 'arch'.
-  # BUSYBOX              '1' if not '/etc/os-release' and not '/sbin'.
-  # CENTOS               '1' if 'DIST_ID' is 'centos'.
-  # CONTAINER            '1' if running in docker container.
-  # DEBIAN               '1' if 'DIST_ID' is 'debian'.
-  # DEBIAN_LIKE          '1' if 'DIST_ID_LIKE is 'debian'.
-  # DEBIAN_FRONTEND      'noninteractive' if 'IS_CONTAINER' and 'DEBIAN_LIKE' are set.
-  # DIST_ID_LIKE         <alpine|debian|rhel fedora>.
-  # FEDORA               '1' if 'DIST_ID' is 'fedora'.
-  # FEDORA_LIKE          '1' if 'DIST_ID' is 'fedora' or 'fedora' in 'DIST_ID_LIKE'.
-  # HOST_PROMPT          Symbol and 'HOST' if 'CONTAINER' or 'SSH'.
-  # KALI                 '1' if 'DIST_ID' is 'kali'.
-  # NIXOS                '1' if 'DIST_ID' is 'alpine' and '/etc/nix'.
-  # RHEL                 '1' if 'DIST_ID' is 'rhel'.
-  # RHEL_LIKE            '1' if 'DIST_ID' is 'rhel' or 'rhel' in 'DIST_ID_LIKE'.
-  # SSH                  '1' if 'SSH_CLIENT' or 'SSH_TTY' or 'SSH_CONNECTION'.
-  # UBUNTU               '1' if 'DIST_ID' is 'ubuntu'.
-
-}
 
 ####################################### Globals: ROOT
 # https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
@@ -148,172 +100,13 @@ export ROOT_DIRS='${ROOT_DIRS}'
 EOF
 }
 
-####################################### Globals: OS (Common: Darwin & Linux)
-# Common to Darwin & Linux
-#######################################
-os() {
-  # DIST_CODENAME        'Catalina', 'Big Sur', 'kali-rolling', 'focal', etc.
-  DIST_CODENAME=''
-  # DIST_ID              <alpine|centos|debian|kali|macOS|ubuntu>.
-  DIST_ID=''
-  # DIST_VERSION         macOS <10.15.1|10.16|...>, kali <2021.2|...>, ubuntu <20.04|...>.
-  DIST_VERSION=''
-  # HOST                 First part of hostname.
-  HOST="$(hostname | cut -d. -f1)"
-  # MACOS                true if 'UNAME' is 'darwin', else false.
-  MACOS='true'          # to boll in '__PROFILE_GENERATED'
-  # PM                   Package manager (apk, apt, brew, nix or yum) for 'DIST_ID'.
-  PM='brew'
-  # PM_INSTALL           Package manager install command with options quiet.
-  PM_INSTALL=''
-  # UNAME                 darwin or linux.
-  UNAME="$(uname -s | tr '[:upper:]' '[:lower:]')"
-
-  tee "${__PROFILE_GENERATED}" > /dev/null <<EOF
-
-####################################### OS
-export DIST_CODENAME='${DIST_CODENAME}'
-export DIST_ID='${DIST_ID}'
-export DIST_VERSION='${DIST_VERSION}'
-export HOST='${HOST}'
-export MACOS=${MACOS}
-export PM='${PM}'
-export PM_INSTALL='${PM_INSTALL}'
-export UNAME='${UNAME}'
-EOF
-}
-
-if [ "${UNAME}" = 'darwin' ]; then
-  DIST_ID="$(sw_vers -ProductName)"
-  DIST_VERSION="$(sw_vers -ProductVersion)"
-  case "$(echo "${DIST_VERSION}" | awk -F. '{ print $1 $2 }')" in
-    1013) DIST_CODENAME='High Sierra' ;;
-    1014) DIST_CODENAME='Mojave' ;;
-    1015) DIST_CODENAME='Catalina' ;;
-    11*) DIST_CODENAME='Big Sur' ;;
-    12*) DIST_CODENAME='Monterey' ;;
-    *) DIST_CODENAME='Other' ;;
-  esac
-  PYCHARM_CONTENTS='/Applications/PyCharm.app/Contents'
-  PYCHARM="${PYCHARM_CONTENTS}/bin"
-  PATH="${PYCHARM}:${PYCHARM_CONTENTS}/MacOS:${PATH}"
-else
-  brew='/home/linuxbrew/.linuxbrew'
-  MACOS='false'
-  PATH="${brew}/${s}bin:${brew}/${f}bin:${PATH}"
-fi
-
-
-  if ! $MACOS; then
-    file='/etc/os-release'
-    if test -f "${f}"; then
-      while IFS='=' read -r var value; do
-        case "${var}" in
-          ID)
-            DIST_ID="${value}"
-            case "${DIST_ID}" in
-              alpine)
-                {
-                  echo 'export ALPINE=1'
-                  echo 'export ALPINE_LIKE=1'
-                  echo "export DIST_ID_LIKE='${DIST_ID}'"
-                  if [ -r '/etc/nix' ]; then
-                    echo 'export NIXOS=1'
-                    PM='nix-env'
-                  else
-                    PM='apk'
-                  fi
-                } >> "${__PROFILE_GENERATED}"
-                ;;
-              arch)
-                echo 'export ARCHLINUX=1' >> "${__PROFILE_GENERATED}"
-                PM='pacman'
-                ;;
-              centos)
-                echo 'export CENTOS=1' >> "${__PROFILE_GENERATED}"
-                PM='yum'
-                ;;
-              debian)
-                {
-                  echo 'export DEBIAN=1'
-                  echo 'export DEBIAN_LIKE=1'
-                  echo "export DIST_ID_LIKE='${DIST_ID}'"
-                } >> "${__PROFILE_GENERATED}"
-                ;;
-              fedora)
-                {
-                  echo 'export FEDORA=1'
-                  echo 'export FEDORA_LIKE=1'
-                } >> "${__PROFILE_GENERATED}"
-                PM='dnf'; export FEDORA_LIKE
-                ;;
-              kali) echo 'export KALI=1' >> "${__PROFILE_GENERATED}" ;;
-              rhel)
-                {
-                  echo 'export RHEL=1'
-                  echo 'export RHEL_LIKE=1'
-                } >> "${__PROFILE_GENERATED}"
-                PM='yum'
-                ;;
-              ubuntu) echo 'export UBUNTU=1' >> "${__PROFILE_GENERATED}" ;;
-              *) echo 'export DIST_UNKNOWN=1' >> "${__PROFILE_GENERATED}" ;;
-            esac
-            ;;
-          ID_LIKE)
-            DIST_ID="${value}"
-            case "${DIST_ID}" in
-              debian)
-                echo 'export DEBIAN_LIKE=1' >> "${__PROFILE_GENERATED}"
-                PM='apt'
-                ;;
-              *fedora*) echo 'export FEDORA_LIKE=1' >> "${__PROFILE_GENERATED}" ;;
-              *rhel*) echo 'export RHEL_LIKE=1' >> "${__PROFILE_GENERATED}" ;;
-            esac
-            ;;
-          VERSION_ID) DIST_VERSION="${value}" ;;
-          VERSION_CODENAME) DIST_CODENAME="${value}" ;;
-        esac
-      done < "${file}"
-    else
-      [ -d '/sbin' ] && echo 'export BUSYBOX=1' >> "${__PROFILE_GENERATED}"
-    fi
-  fi
-  case "${PM}" in
-    apk) PM_INSTALL='add -q --no-progress'; no_cache='--no-cache' ;;
-    apt) PM_INSTALL='install -y -qq' ;;
-    brew) PM_INSTALL='install --quiet' ;;
-    dnf) PM_INSTALL='install -y -q' ;;
-    nix) PM_INSTALL='--install -A' ;; # nixos -> nixos.curl, no nixos --> nixpkgs.curl
-    pacman) PM_INSTALL='-S --noconfirm' ;;
-    yum) PM_INSTALL='install -y -q' ;;
-  esac
-
-  [ "${PM-}" ] && [ "${PM_INSTALL-}" ] && PM_INSTALL="${PM} ${PM_INSTALL}"
-  if [ "${SSH_CLIENT-}" ] || [ "${SSH_CONNECTION-}" ] || [ "${SSH_TTY-}" ]; then
-    HOST_PROMPT='ꜿ'; echo 'export SSH=1' >> "${__PROFILE_GENERATED}"
-  fi
-  if [ -f '/proc/1/environ' ] || [ -f '/.dockerenv' ]; then
-    HOST_PROMPT='⌁'; echo 'export CONTAINER=1' >> "${__PROFILE_GENERATED}"
-    [ "${DIST_ID}" = 'debian' ] && echo "export DEBIAN_FRONTEND='noninteractive'" >> "${__PROFILE_GENERATED}"
-    [ "${PM_INSTALL-}" ] && PM_INSTALL="${PM_INSTALL} ${no_cache}"
-  fi
-  [ ! "${HOST_PROMPT-}" ] || echo "export HOST_PROMPT='${HOST_PROMPT} ${HOST}'" >> "${__PROFILE_GENERATED}"
-
-  $MACOS && tee -a "${__PROFILE_GENERATED}" >/dev/null <<EOF
-
-####################################### PYCHARM
-# PYCHARM_CONTENTS                            PyCharm contents (initial plugins, etc.).
-export PYCHARM_CONTENTS='${PYCHARM_CONTENTS}'
-# PYCHARM                                     PyCharm repository, application executable and configuration full path.
-export PYCHARM='${PYCHARM_CONTENTS}/bin'
-EOF
   if brew="$(brew --prefix 2>/dev/null)"; then
     ruby="$(brew --prefix ruby 2>/dev/null)" && PATH="${ruby}/bin:${ruby}/lib/ruby/gems/3.0.0/bin:${PATH}"
     brew_info="${brew}/share/info:"
     brew_man=":${brew}/share/man"
   fi
 
-  tee -a "${__PROFILE_GENERATED}" >/dev/null <<EOF
+  tee -a "${file}" >/dev/null <<EOF
 
 ####################################### INFOPATH, MANPATH & PATH
 export INFOPATH='${INFO}:${brew_info}${INFOPATH:-}'
@@ -325,7 +118,3 @@ EOF
   unset -f color
 
 echo > "$(home)/.hushlogin"
-
-pycharm() {
-
-}

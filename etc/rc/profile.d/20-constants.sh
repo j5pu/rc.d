@@ -95,6 +95,8 @@ if has brew; then
   export HOMEBREW_COLOR=1
   # HOMEBREW_NO_ANALYTICS                       If set, do not send analytics. For more information.
   export HOMEBREW_NO_ANALYTICS=1
+  # HOMEBREW_NO_ENV_HINTS                       If set hide hints during command execution.
+  export HOMEBREW_NO_ENV_HINTS=1
   # HOMEBREW_UPDATE_REPORT_ONLY_INSTALLED       If set, brew update only lists updates to installed software.
   export HOMEBREW_UPDATE_REPORT_ONLY_INSTALLED=1
 fi
