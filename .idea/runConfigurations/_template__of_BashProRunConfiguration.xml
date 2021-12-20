@@ -1,5 +1,7 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="true" type="BashProRunConfiguration" singleton="false">
+    <option name="defaultInterpreter" value="none" />
+    <option name="interpreterPath" value="/Users/jose/rc.d/shell/sh" />
     <EXTENSION ID="net.ashald.envfile">
       <option name="IS_ENABLED" value="true" />
       <option name="IS_SUBST" value="true" />

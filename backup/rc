@@ -1,0 +1,65 @@
+#!/bin/sh
+
+# Creates system profile generated files.
+#
+set -eu
+command -p cd "$(command -p dirname "$(command -p dirname "$0")")" || exit 1
+#. helpers.lib
+
+_generated() {
+  sudo=''; test -w "${RC_GENERATED}" || sudo='sudo'
+  content="$1"; shift
+  if [ "${append-}" ]; then
+    echo "${content}" | ${sudo} tee "${append}" "${file}" >/dev/null || echo "${file}" >&2
+  else
+    echo "${content}" | ${sudo} tee "${file}" >/dev/null || echo "${file}" >&2
+  fi
+  . "${file}"
+  unset append
+}
+
+_input() {
+  . "input/${function}"
+  file="${RC_GENERATED}/${function}.sh"
+}
+
+env() {
+  function='env'
+  _input
+
+  if [ ! "${RC_PREFIX-}" ] || $force; then
+    tmp="$(mktemp)"
+    echo "${_rc}" | sort > "${tmp}"
+    while IFS='=' read -r variable value; do
+      _generated "${variable}=${variable}; export ${variable}"
+    done
+    _generated "${_rc}"
+  else
+    . "${file}"
+  fi
+  echo Updated: "${file}$*" >&2
+  ! $env || cat "${file}"
+  unset _infopath _manpath _path _rc tmp value variable
+}
+
+system() {
+  true
+}
+
+main() {
+  if test "$#" -eq 0 || { test "${1-}" = '--parsed' && shift; }; then
+    env=false
+    force=false; [ "${RC_PROFILE-0}" -eq 1 ] || force=true
+    for arg do
+      case "${arg}" in
+        env) env=true; ${arg}; exit ;;
+        --force) force=true ;;
+      esac
+    done
+    for func in env system; do ${func}; done
+  else
+    PARSE="${0}" parse "$@"
+  fi
+}
+
+main "$@"

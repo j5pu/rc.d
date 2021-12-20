@@ -1,6 +1,0 @@
-[submodule "share/bats-assert"]
-	path = share/bats-assert
-	url = https://github.com/bats-core/bats-assert.git
-[submodule "share/bats-file"]
-	path = share/bats-file
-	url = https://github.com/bats-core/bats-assert.git

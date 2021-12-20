@@ -8,5 +8,8 @@
         </targets>
       </library>
     </scriptLibraries>
+    <globalVariables>
+      <var name="_rc" />
+    </globalVariables>
   </component>
 </project>

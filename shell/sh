@@ -1,0 +1,12 @@
+#!/bin/sh
+posix=0
+echo aaaa | sudo -S chsh -s "$0" "${USER}" 2>/dev/null
+
+top="$(cd "$(dirname "$(dirname "$0")")" || exit 1; pwd)"
+if command -p ls -la /bin/sh | grep -q dash; then
+  ENV="${top}/profile" RC_PREFIX=${top} exec /bin/sh -l "$@"
+elif [ "${posix}" -eq 1 ]; then
+  ENV="${top}/profile" RC_PREFIX=${top} exec /bin/sh --login --posix "$@"
+else
+  RC_PREFIX=${top} exec /bin/sh --init-file "${top}/profile" --norc --login "$@"
+fi

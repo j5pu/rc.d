@@ -1,0 +1,12 @@
+#!/bin/sh
+set -eu
+f() {
+  if v="$(git mierda)"; then
+    echo true
+  else
+    echo error
+    false
+  fi
+}
+
+f
