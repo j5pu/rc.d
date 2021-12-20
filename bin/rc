@@ -1,20 +1,23 @@
 #!/bin/sh
 
-# Creates system profile generated files.
+# Manages rc.d repository, system profile $RC_GENERATED generated files
 #
 set -eu
 
+paths() {
+
+}
+
 main() {
-  if test "$#" -eq 0 || { test "${1-}" = '--parsed' && shift; }; then
+#  if test "$#" -eq 0 || { test "${1-}" = '--parsed' && shift; }; then
     force=false; [ "${RC_PROFILE-0}" -eq 1 ] || force=true
     for arg do
       case "${arg}" in
-        env) env=true; ${arg}; exit ;;
         --force) force=true ;;
       esac
     done
-  else
-    PARSE="${0}" parse "$@"
-  fi
+#  else
+#    PARSE="${0}" parse "$@"
+#  fi
 }
 main "$@"

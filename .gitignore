@@ -1,4 +1,5 @@
 generated.d/[a-zA-Z]*
+scratches/
 tests/output
 **/.DS_Store
 
