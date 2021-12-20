@@ -11,4 +11,7 @@ f() {
   fi
 }
 
-f
+tmp="$(mktemp -d)"
+for i in "${tmp}"/*.sh ; do
+  . "${i}"
+done 2>/dev/null || true

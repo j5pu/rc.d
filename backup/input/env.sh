@@ -7,17 +7,10 @@ _fields=2
 _darwin_clt='/Library/Developer/CommandLineTools/usr'
 _linux_brew='/home/linuxbrew/.linuxbrew'
 
-RC_PREFIX="${PWD}"
-RC_GENERATED="${PWD}/generated.d"
 UNAME="$(command -p uname)"
 
 _rc="$(command -p cat <<EOF
-RC_NAME='${PWD##*/}'
-RC_D='/etc/${RC_NAME}'
 RC_COMPLETION='${PWD}/bash_completion.d'
-RC_GENERATED='${RC_GENERATED}'
-RC_PASSWORD_FILE='${RC_GENERATED}/password.sh'
-RC_PREFIX='${RC_PREFIX}'
 RC_INSTALLED=$(if [ "${RC_D}" = "${RC_PREFIX}" ]; then true; else false; fi)
 EOF
 )"
