@@ -2,7 +2,7 @@
 
 # Add & updates bats submodules, sources libraries and set helper variables.
 #
-set -eu
+set -eux
 
 # <html><h2>Bats Test Filename Prefix (when sourcing: bats.lib)</h2>
 # <p><strong><code>$BATS_TEST_PREFIX</code></strong> prefix of BATS_TEST_DIRNAME basename.</p>
