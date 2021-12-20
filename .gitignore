@@ -1,6 +1,11 @@
 generated.d/[a-zA-Z]*
+!generated.d/alias.d
+generated.d/alias.d/[a-zA-Z]*
+
 scratches/
+
 tests/output
+
 **/.DS_Store
 
 # Created by .ignore support plugin (hsz.mobi)

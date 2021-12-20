@@ -30,29 +30,15 @@ export RC_PREFIX
 # </html>
 export RC_GENERATED
 
+# <html><h2>Generated rc.d Shell Aliases for Directories and $PM_INSTALL</h2>
+# <p><strong><code>$RC_GENERATED_ALIASES</code></strong> contains the compat directory for generated aliases.</p>
+# </html>
+export RC_GENERATED_ALIASES
+
 # <html><h2>RC Bash Completions Compat Directory</h2>
 # <p><strong><code>$RC_COMPLETION</code></strong> contains the path of bash completions.</p>
 # </html>
 export RC_COMPLETION
-
-# <html><h2>User System Login Password</h2>
-# <p><strong><code>$PASSWORD</code></strong> contains the User System Login Password.</p>
-# <h3>Examples</h3>
-# <dl>
-# <dt>To update it, sourcing system profile:</dt>
-# <dd>
-# <pre><code class="language-bash">RC_FORCE=1 PASSWORD='new' . /etc/profile
-# </code></pre>
-# </dd>
-# </dl>
-# <dt>To update it, running profile.lib:</dt>
-# <dd>
-# <pre><code class="language-bash">PASSWORD='new' profile.lib --force
-# </code></pre>
-# </dd>
-# </dl>
-# </html>
-export RC_PASSWORD_FILE
 
 # <html><h2>Source after Update RC Share and Generated libraries</h2>
 # <p><strong><code>$RC_PROFILE</code></strong> set to 1 to update all rc libraries.</p>
@@ -85,13 +71,4 @@ export RC_PASSWORD_FILE
 # </dd>
 # </dl>
 # </html>
-declare RC_PROFILE
-
-# <html><h2>Operating System System Name</h2>
-# <p><strong><code>$UNAME</code></strong> (always exported).</p>
-# <ul>
-# <li><code>Darwin</code></li>
-# <li><code>Linux</code></li>
-# </ul>
-# </html>
-export UNAME
+export RC_PROFILE

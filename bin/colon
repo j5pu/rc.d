@@ -4,6 +4,52 @@
 #
 set -eu
 
+fields=2
+# Paths to Add (format: path;UNAME)
+#
+path="$(command -p cat <<EOF
+${RC_PREFIX}/sbin;${UNAME}
+${RC_PREFIX}/bin;${UNAME}
+${RC_PREFIX}/lib;${UNAME}
+${RC_D}/sbin;${UNAME}
+${RC_D}/bin;${UNAME}
+${RC_D}/lib;${UNAME}
+/opt/sbin;${UNAME}
+/opt/bin;${UNAME}
+${HOMEBREW_PREFIX}/sbin;Linux
+${HOMEBREW_PREFIX}/bin;Linux
+/usr/local/sbin;${UNAME}
+/usr/local/bin;${UNAME}
+${CLT}/usr/bin;Darwin
+/usr/sbin;${UNAME}
+/usr/bin;${UNAME}
+/sbin;${UNAME}
+/bin;${UNAME}
+${PYCHARM:-};Darwin
+${PYCHARM_CONTENTS:+${PYCHARM_CONTENTS:+/MacOS}};Darwin
+EOF
+)"
+
+infopath="$(command -p cat <<EOF
+${RC_PREFIX};${UNAME}
+${RC_D};${UNAME}
+/opt;${UNAME}
+${HOMEBREW_PREFIX}/info;Linux
+/usr/local/bin/info;${UNAME}
+${CLT}/share/info;Darwin
+EOF
+)"
+
+manpath="$(command -p cat <<EOF
+${RC_PREFIX}/share/man;${UNAME}
+${RC_D}/share/man;${UNAME}
+/opt/share/man;${UNAME}
+${HOMEBREW_PREFIX}/share/man;Linux
+/usr/local/share/man;${UNAME}
+${CLT}/share/man;Darwin
+EOF
+)"
+
 #######################################
 # Prepend script directory and script directory parent with sbin to 'PATH'
 # Globals:
@@ -34,7 +80,7 @@ dev() {
 #   asi que mejor instalar el bash y el git como no link y hacer lo de brew/opt si es macos para el path
 #   adaptar el has cuando el bin que lo he puesto con command -vp para que mire el brew si es mac.
 #  hacer el colon bien del init y meter el CLTs.
-# TODO: instalar brew en /opt/homebrew a tomar por culo y hacer el shellenv, copiar el CLT.
+# TODO: copiar el CLT de homebrew
 # TODO: setenv PATH en macOS y el /etc/environment ?
 # TODO: poner el root.lib
 # TODO: mover el has a executable.
@@ -52,10 +98,27 @@ dev() {
 #  también el main group del usuario y el grupo en local lo mantiene git????
 # TODO: SOLUCIÓN. PRE-COMMIT CAMBIA TODOS LOS SOURCES Y CORRE UNOS TESTS. importar todas las generated.
 init() {
-  file="${RC_GENERATED}/${0##*/}.sh"
-  for f in /etc/paths.d/*; do value="$(run "${f}" "${value:-}")"; done
+  for i in /etc/paths.d/*; do value="$(run "${i}" "${value:-}")"; done
+  tmp="$(command -p mktemp)"
+  echo "${path}" | grep "${UNAME}" | tail -r > "${tmp}" || die
+  while read -r i; do
+    [ "$(echo "${i}" | awk -F ';' '{ print NF-1 }')" -eq "$(( fields-1 ))" ] || echo Incorrect Fields: "${i}"
+    value="$(run "${i%";${UNAME}"}" "${value}")"
+  done < "${tmp}"
   EXPORT='PATH' output "${value}"
+  . "${tmp}"
+  echo "${PATH}" | while IFS=':' read -r i; do
+    init_info_man "$(echo "${i}" | command -p sed 's|/sbin$|g; s|/bin$|g; s|/lib|g')"
+  done
+  EXPORT='INFOPATH' output "${infopath}"
+  EXPORT='MANPATH' output "${manpath}"
 }
+
+init_info_man() {
+  infopath="$(run "${1}/share/info" "${infopath:-}")";
+  manpath="$(run "${1}/share/man" "${manpath:-}")"
+}
+
 #######################################
 # Show plain output or with export command
 # Globals:
@@ -128,7 +191,7 @@ run() {
 #                       (default: script directory and script directory parent with sbin).
 #   VALUE               Path value to manipulate (default: "" if 'DIRECTORY' provided, 'PATH' if no 'DIRECTORY').
 # Note:
-#   Eval output for the three variables is shown when not arguments are provided.
+#   Generates file to be sourced for the three variables when not arguments are provided.
 # Outputs:
 #   Updated path value or variable and value with export command.
 # Examples:

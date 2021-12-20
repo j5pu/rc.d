@@ -1,0 +1,154 @@
+#!/bin/sh
+
+# Automatic creation of system and PATH variables compat directory for rc.d
+#
+set -eu
+
+id() {
+  case "${DIST_ID}" in
+    alpine)
+      write ALPINE_LIKE '1'; write DIST_ID_LIKE "${DIST_ID}"
+      if [ -r '/etc/nix' ]; then write NIXOS '1'; write PM 'nix-env'; else write "${DIST_ID}" '1'; write PM 'apk'; fi
+      ;;
+    arch) write "${DIST_ID}" '1'; write PM 'pacman' ;;
+    centos) write "${DIST_ID}" '1'; write PM 'yum' ;;
+    debian) write "${DIST_ID}" '1'; write DEBIAN_LIKE '1'; write DIST_ID_LIKE "${DIST_ID}" ;;
+    fedora) write "${DIST_ID}" '1'; write FEDORA_LIKE '1'; write PM 'dnf' ;;
+    kali) write "${DIST_ID}" '1' ;;
+    rhel) write "${DIST_ID}" '1'; write RHEL_LIKE '1'; write PM 'yum' ;;
+    ubuntu) write "${DIST_ID}" '1' ;;
+    *) write DIST_UNKNOWN '1' ;;
+  esac
+}
+
+id_like() {
+  case "${DIST_ID}" in
+    debian) write DEBIAN_LIKE '1'; write PM 'apt' ;;
+    *fedora*) write FEDORA_LIKE '1';;
+    *rhel*) write RHEL_LIKE '1' ;;
+  esac
+}
+
+path() { "$(command -p dirname "$0")/bin/colon" > "${file}"; . "${file}"; }
+
+pm_install() {
+  if [ "${PM-}" ]; then
+    case "${PM}" in
+      # pacman -Sy (like apt update)
+      apk) PM_INSTALL="${PM} ${PM} add -q --no-progress"; NO_CACHE='--no-cache' ;;
+      apt) PM_INSTALL="${PM} -qq full-upgrade -y && ${PM} -qq auto-remove -y && ${PM} -qq update -y \
+&& ${PM} -qq install -y" ;;
+      brew) PM_INSTALL="${PM} install --quiet" ;;
+      dnf) PM_INSTALL="${PM} install -y -q" ;;
+      nix) PM_INSTALL="${PM} --install -A" ;; # nixos -> nixos.curl, no nixos --> nixpkgs.curl
+      pacman) PM_INSTALL="${PM} -Sy && ${PM} -S --noconfirm" ;;
+      yum) PM_INSTALL="${PM} install -y -q" ;;
+      *) PM_INSTALL=''
+    esac
+  fi
+}
+
+proxy() {
+  for func in system path; do
+    file="${RC_GENERATED}/${func}.sh"
+    aliases="${RC_GENERATED_ALIASES}/${func}.sh"
+    tmp="$(command -p mktemp)"
+    if [ ! "${file}" ] || $FORCE; then
+      command -p rm "${file}"
+      command -p rm "${aliases}"
+      ${func}
+      command -p sort "${file}" > "${tmp}"
+      command -p mv "${tmp}" "${file}"
+      command -p sort "${aliases}" > "${tmp}"
+      command -p mv "${tmp}" "${file}"
+    fi
+  done
+  command -p env | command -p grep -Eo '^RC_[a-z,A-Z]=' | while read -r variable; do
+    value="$(eval echo "\$${variable}")"
+    [ ! -d "${value}" ] || write_alias "${variable}" "${value}"
+  done
+}
+
+system() {
+  write HOST "$(command -p hostname -s || { command -p cat /etc/hostname | command -p cut -d '.' -f 1; })"
+  write UNAME "$(command -p uname)"
+  if [ "${UNAME}" = 'Darwin' ]; then
+    write CLT="$(command -p xcode-select -p)"
+    write DIST_ID "$(command -p sw_vers -ProductName)"
+    write DIST_VERSION "$(command -p sw_vers -ProductVersion)"
+      # shellcheck disable=SC2016
+      case "$(echo "${DIST_VERSION}" | command -p awk -F. '{ print $1 $2 }')" in
+      1013) write DIST_CODENAME 'High Sierra' ;;
+      1014) write DIST_CODENAME 'Mojave' ;;
+      1015) write DIST_CODENAME 'Catalina' ;;
+      11*) write DIST_CODENAME 'Big Sur' ;;
+      12*) write DIST_CODENAME 'Monterey' ;;
+      *) write DIST_CODENAME 'Other' ;;
+    esac
+    write HOMEBREW_PREFIX '/usr/local'
+    write MACOS 'true'
+    write PM 'brew'
+    write PM_INSTALL "${PM} install"
+    write PYCHARM_CONTENTS '/Applications/PyCharm.app/Contents'
+    write PYCHARM "${PYCHARM_CONTENTS}/bin"
+  else
+    if [ -f '/etc/os-release' ]; then
+      while IFS='=' read -r name value; do
+        case "${name}" in
+          ID) write DIST_ID "${value}"; id ;;
+          ID_LIKE) id_like ;;
+          VERSION_ID) write DIST_VERSION "${value}" ;;
+          VERSION_CODENAME) rite DIST_CODENAME "${value}" ;;
+        esac
+      done < '/etc/os-release'
+    else
+      write BUSYBOX '1'; write PM ''
+    fi
+    write HOMEBREW_PREFIX '/home/linuxbrew/.linuxbrew'
+    write MACOS 'false'
+  fi
+
+  pm_install
+
+  if [ "${SSH_CLIENT-}" ] || [ "${SSH_CONNECTION-}" ] || [ "${SSH_TTY-}" ]; then
+    write SSH '1'
+    write HOST_PROMPT "⌁ ${HOST}"
+    write PM_INSTALL "${PM_INSTALL}"
+  elif [ -f '/proc/1/environ' ] || [ -f '/.dockerenv' ]; then
+    write CONTAINER '1'
+    write HOST_PROMPT "ꜿ ${HOST}"
+    [ ! "${DEBIAN_LIKE-}" ] || write DEBIAN_FRONTEND noninteractive
+    if [ "${NO_CACHE-}" ]; then
+      write PM_INSTALL "${PM_INSTALL} ${NO_CACHE}"
+    else
+      write PM_INSTALL "${PM_INSTALL}"
+    fi
+  else
+    write PM_INSTALL "${PM_INSTALL}"
+  fi
+}
+
+write() {
+  echo "export $(echo "${1}" | command -p tr '[:lower:]' '[:upper:]')='${2}'" >> "${file}"
+  . "${file}"
+  case "${1}" in
+    PM_INSTALL) write_alias "${1}" "${2}" ;;
+  esac
+  [ ! -d "${2}" ] || write_alias "${1}" "${2}"
+}
+
+write_alias() { echo "alias .$(echo "${1}" | command -p tr '[:upper:]' '[:lower:]')='${2}'" >> "${aliases}"; }
+
+main() {
+  if [ "$#" -eq 0 ]; then
+    FORCE=false
+    proxy
+  elif [ "${1-}" = '--force' ]; then
+    FORCE=true
+    proxy
+  elif [ "${1-}" != '--parsed' ]; then
+    PARSE="${0}" parse "$@"
+  fi
+}
+
+main "$@"

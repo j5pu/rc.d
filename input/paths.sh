@@ -39,22 +39,5 @@ $(command -p sed 's/$/;Darwin/g' /etc/paths.d/* | command -p uniq 2>/dev/null ||
 EOF
 )"
 
-_infopath="$(command -p cat <<EOF
-${RC_D}/share/info;${UNAME}
-/opt/share/info;${UNAME}
-${_linux_brew}/info;Linux
-/usr/local/bin/info;${UNAME}
-${_darwin_clt}/info;Darwin
-EOF
-)"
-
-_manpath="$(command -p cat <<EOF
-${RC_D}/share/man;${UNAME}
-/opt/share/man;${UNAME}
-${_linux_brew}/share/man;Linux
-/usr/local/bin/share/man;${UNAME}
-${_darwin_clt}/share/mann;Darwin
-EOF
-)"
 
 unset _darwin_clt _linux_brew
