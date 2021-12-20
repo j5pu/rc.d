@@ -3,6 +3,10 @@
   <component name="bashsupport-pro.project">
     <scriptLibraries>
       <library name="rc.d">
+        <sources>
+          <source path="lib" recursive="true" />
+          <source path="share" recursive="true" />
+        </sources>
         <targets>
           <target recursive="true" />
         </targets>

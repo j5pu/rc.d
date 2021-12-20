@@ -1,5 +1,5 @@
 #!/bin/sh
-posix=0
+posix=1
 echo aaaa | sudo -S chsh -s "$0" "${USER}" 2>/dev/null
 
 top="$(cd "$(dirname "$(dirname "$0")")" || exit 1; pwd)"

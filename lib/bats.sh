@@ -2,7 +2,7 @@
 
 # Add & updates bats submodules, sources libraries and set helper variables.
 #
-set -eux
+set -eu
 
 # <html><h2>Bats Test Filename Prefix (when sourcing: bats.lib)</h2>
 # <p><strong><code>$BATS_TEST_PREFIX</code></strong> prefix of BATS_TEST_DIRNAME basename.</p>
@@ -13,42 +13,39 @@ set -eux
 BATS_TEST_FILENAME_PREFIX="$(basename "${BATS_TEST_FILENAME:-}" .bats)"; export BATS_TEST_FILENAME_PREFIX
 
 bats_add() {
-  cd "${RC_PREFIX}"
-  if git submodule --quiet add --name "$1" https://github.com/bats-core/"$1" share/"$1" 1>/dev/null; then
-    directory="$(bats_path "$1")"
-    [ "${directory-}" ] && git submodule --quiet sync --recursive "${directory}"
+  if command -p git -C "${RC_PREFIX}" submodule --quiet add --name "$1" \
+    https://github.com/bats-core/"$1" share/"$1" 1>/dev/null; then
+    bats_directory="$(bats_path "$1")"
+    [ "${bats_directory-}" ] && command -p git -C "${RC_PREFIX}" submodule --quiet sync --recursive "${bats_directory}"
+    echo "${bats_directory}"
+    unset bats_directory
   fi
 }
 
-bats_load() {
-  if [ ! "${directory-}" ] || ! directory="$(bats_path "$1")"; then
-    bats_add "$1"
-  fi
-  [ "${directory-}" ] && [ "${BASH_VERSION-}" ] && . "${directory}/load.bash"
-}
+bats_load() { [ "${1-}" ] && { [ ! "${BASH_VERSION-}" ] || . "${RC_PREFIX}/${1}/load.bash"; }; }
 
-bats_path() { git -C "${RC_PREFIX}" config --file .gitmodules "submodule.${1}.path" 2>/dev/null; }
+bats_path() { command -p git -C "${RC_PREFIX}" config --file .gitmodules "submodule.${1}.path" 2>/dev/null; }
 
-bats_update() {
-  if [ ! "${directory-}" ] || ! directory="$(bats_path "$1")"; then
-    bats_add "$1"
-  fi
-  [ "${directory-}" ] && git submodule --quiet update --init "${directory}"
-}
+bats_update() { [ "${1-}" ] && command -p git -C "${RC_PREFIX}" submodule --quiet update --init "${1}"; }
 
 bats_main() {
-  if ! command -v assert_success > /dev/null; then
-    for submodule in bats-asserts bats-file; do
-      if [ "${RC_PROFILE-0}" -eq 1 ]; then
-        bats_update "${submodule}"
+  if ! command -v assert_success >/dev/null; then
+    for submodule in bats-assert bats-file; do
+      if ! bats_directory="$(bats_path "${submodule}")"; then
+        bats_directory="$(bats_add "${submodule}")"
       fi
-      bats_load "${submodule}"
+      if [ "${RC_PROFILE-0}" -eq 0 ]; then
+        bats_update "${bats_directory}"
+      fi
+        bats_load "${bats_directory}"
     done
+    [ ! "${BASH_VERSION-}" ] || command -v assert_success >/dev/null
   fi
-  unset directory submodule
+  unset bats_directory submodule
 }
 
 bats_main
+
 unset -f bats_add bats_load bats_main bats_path bats_update
 
 ####################################### Executed: force & parse
