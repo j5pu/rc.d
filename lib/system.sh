@@ -22,7 +22,7 @@ export CENTOS
 
 # '1' if running in docker container.
     #
-    export CONTAINER
+export CONTAINER
 
 # '1' if 'DIST_ID' is 'debian'.
 #
@@ -30,7 +30,7 @@ export DEBIAN
 
 # 'noninteractive' if 'IS_CONTAINER' and 'DEBIAN_LIKE' are set.
     #
-    export DEBIAN_FRONTEND
+export DEBIAN_FRONTEND
 
 # '1' if 'DIST_ID_LIKE is 'debian'.
 #
@@ -60,6 +60,14 @@ export DIST_CODENAME
 # </ul>
 # </html>
 export DIST_ID
+
+# <alpine|debian|rhel fedora>.
+#
+export DIST_ID_LIKE
+
+# '1' if 'DIST_ID' is unknown.
+#
+export DIST_UNKNOWN
 
 # <html><h2>Distribution Version</h2>
 # <p><strong><code>$DIST_ID</code></strong> (always exported).</p>
@@ -184,8 +192,12 @@ export RHEL
 export RHEL_LIKE
 
 # '1' if 'SSH_CLIENT' or 'SSH_TTY' or 'SSH_CONNECTION'.
-    #
+#
 export SSH
+
+# '1' if 'DIST_ID' is 'ubuntu'.
+#
+export UBUNTU
 
 # <html><h2>Operating System System Name</h2>
 # <p><strong><code>$UNAME</code></strong> (always exported).</p>
@@ -196,3 +208,100 @@ export SSH
 # </html>
 export UNAME
 
+dist_id() {
+  case "${DIST_ID}" in
+    alpine)
+      ALPINE_LIKE='1'; DIST_ID_LIKE="${DIST_ID}"
+      if [ -r '/etc/nix' ]; then NIXOS='1'; PM='nix-env'; else ALPINE='1'; PM='apk'; fi
+      ;;
+    arch) ARCH='1'; PM='pacman' ;;
+    centos) CENTOS='1'; PM='yum' ;;
+    debian) DEBIAN='1'; DEBIAN_LIKE='1'; DIST_ID_LIKE="${DIST_ID}" ;;
+    fedora) FEDORA='1'; FEDORA_LIKE='1'; PM='dnf' ;;
+    kali) KALI='1' ;;
+    rhel) RHEL='1'; RHEL_LIKE='1'; PM='yum' ;;
+    ubuntu) UBUNTU='1' ;;
+    *) DIST_UNKNOWN='1' ;;
+  esac
+}
+
+dist_id_like() {
+  case "${DIST_ID}" in
+    debian) DEBIAN_LIKE='1'; PM='apt' ;;
+    *fedora*) FEDORA_LIKE='1';;
+    *rhel*) RHEL_LIKE='1' ;;
+  esac
+}
+
+pm_install() {
+  if [ "${PM-}" ]; then
+    case "${PM}" in
+      # pacman -Sy (like apt update)
+      apk) PM_INSTALL="${PM} ${PM} add -q --no-progress"; NO_CACHE='--no-cache' ;;
+      apt) PM_INSTALL="${PM} -qq full-upgrade -y && ${PM} -qq auto-remove -y && ${PM} -qq update -y \
+&& ${PM} -qq install -y" ;;
+      brew) PM_INSTALL="${PM} install --quiet" ;;
+      dnf) PM_INSTALL="${PM} install -y -q" ;;
+      nix) PM_INSTALL="${PM} --install -A" ;; # nixos -> nixos.curl, no nixos --> nixpkgs.curl
+      pacman) PM_INSTALL="${PM} -Sy && ${PM} -S --noconfirm" ;;
+      yum) PM_INSTALL="${PM} install -y -q" ;;
+      *) PM_INSTALL=''
+    esac
+  fi
+}
+
+system() {
+  HOST="$(hostname -s || cut -d '.' -f 1 /etc/hostname)"
+  UNAME="$(uname)"
+  if [ "${UNAME}" = 'Darwin' ]; then
+    CLT="$(xcode-select -p)/usr"
+    DIST_ID="$(sw_vers -ProductName)"
+    DIST_VERSION="$(sw_vers -ProductVersion)"
+      # shellcheck disable=SC2016
+      case "$(echo "${DIST_VERSION}" | awk -F. '{ print $1 $2 }')" in
+      1013) DIST_CODENAME='High Sierra' ;;
+      1014) DIST_CODENAME='Mojave' ;;
+      1015) DIST_CODENAME='Catalina' ;;
+      11*) DIST_CODENAME='Big Sur' ;;
+      12*) DIST_CODENAME='Monterey' ;;
+      *) DIST_CODENAME='Other' ;;
+    esac
+    HOMEBREW_PREFIX='/usr/local'
+    MACOS='true'
+    PM='brew'
+    PM_INSTALL="${PM} install"
+    PYCHARM_CONTENTS='/Applications/PyCharm.app/Contents'
+    PYCHARM="${PYCHARM_CONTENTS}/bin"
+  else
+    if [ -f '/etc/os-release' ]; then
+      while IFS='=' read -r name value; do
+        case "${name}" in
+          ID) DIST_ID="${value}"; dist_id; unset -f dist_id ;;
+          ID_LIKE) dist_id_like; unset -f dist_id_like ;;
+          VERSION_ID) DIST_VERSION="${value}" ;;
+          VERSION_CODENAME) DIST_CODENAME="${value}" ;;
+        esac
+      done < '/etc/os-release'
+    else
+      BUSYBOX='1'; PM=''
+    fi
+    HOMEBREW_PREFIX='/home/linuxbrew/.linuxbrew'
+    MACOS='false'
+  fi
+
+  pm_install; unset pm_install
+
+  if [ "${SSH_CLIENT-}" ] || [ "${SSH_CONNECTION-}" ] || [ "${SSH_TTY-}" ]; then
+    SSH='1'
+    HOST_PROMPT="⌁ ${HOST}"
+  elif [ -f '/proc/1/environ' ] || [ -f '/.dockerenv' ]; then
+    CONTAINER='1'
+    HOST_PROMPT="ꜿ ${HOST}"
+    [ ! "${DEBIAN_LIKE-}" ] || DEBIAN_FRONTEND='noninteractive'
+    if [ "${NO_CACHE-}" ]; then
+      PM_INSTALL="${PM_INSTALL} ${NO_CACHE}"
+    fi
+  fi
+}
+
+system; unset -f system

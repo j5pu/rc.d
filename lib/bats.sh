@@ -13,6 +13,16 @@ set -eu
 # </html>
 BATS_TEST_FILENAME_PREFIX="$(basename "${BATS_TEST_FILENAME:-}" .bats)"; export BATS_TEST_FILENAME_PREFIX
 
+# <html><h2>Git Top Path (when sourcing: bats.lib)</h2>
+# <p><strong><code>$BATS_TOP</code></strong> contains the git top directory when sourced from a git dir.</p>
+# </html>
+BATS_TOP="$(git top)"; export BATS_TOP
+
+# <html><h2>Git Top Basename (when sourcing: bats.lib)</h2>
+# <p><strong><code>$BATS_TOP_NAME</code></strong> basename of git top directory when sourced from a git dir.</p>
+# </html>
+BATS_TOP_NAME="$(git basename)"; export BATS_TOP_NAME
+
 bats_add() {
   if command -p git -C "${RC_PREFIX}" submodule --quiet add --name "$1" \
     https://github.com/bats-core/"$1" share/"$1" 1>/dev/null; then
