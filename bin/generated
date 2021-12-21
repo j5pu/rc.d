@@ -30,7 +30,7 @@ id_like() {
 }
 
 # shellcheck disable=SC1090
-path() { "$(command -p dirname "$0")/bin/colon" > "${file}"; . "${file}"; }
+path() { "$(command -p dirname "$0")/colon" > "${file}"; . "${file}"; }
 
 pm_install() {
   if [ "${PM-}" ]; then
@@ -50,31 +50,39 @@ pm_install() {
 }
 
 proxy() {
+  set -x
   for func in system path; do
     file="${RC_GENERATED}/${func}.sh"
     aliases="${RC_GENERATED_ALIASES}/${func}.sh"
     tmp="$(command -p mktemp)"
-    if [ ! "${file}" ] || $FORCE; then
-      command -p rm "${file}"
-      command -p rm "${aliases}"
+    if [ ! -f "${file}" ] || $FORCE; then
+      command -p rm -f "${file}"
+      command -p rm -f "${aliases}"
       ${func}
-      command -p sort "${file}" > "${tmp}"
-      command -p mv "${tmp}" "${file}"
-      command -p sort "${aliases}" > "${tmp}"
-      command -p mv "${tmp}" "${file}"
+      sort "${file}"
+      sort "${aliases}"
     fi
   done
-  command -p env | command -p grep -Eo '^RC_[a-z,A-Z]=' | while read -r variable; do
+
+  # shellcheck disable=SC2016
+  command -p env | command -p awk -F '=' '/^RC_[A-Z].*=/ {print $1}' | while read -r variable; do
     value="$(eval echo "\$${variable}")"
     [ ! -d "${value}" ] || write_alias "${variable}" "${value}"
   done
 }
 
+sort() {
+  tmp="$(mktemp)"
+  if [ -f "${1}" ]; then
+    command -p sort "${1}" > "${tmp}"
+    command -p mv "${tmp}" "${1}"
+  fi
+}
 system() {
   write HOST "$(command -p hostname -s || { command -p cat /etc/hostname | command -p cut -d '.' -f 1; })"
   write UNAME "$(command -p uname)"
   if [ "${UNAME}" = 'Darwin' ]; then
-    write CLT="$(command -p xcode-select -p)"
+    write CLT "$(command -p xcode-select -p)/usr"
     write DIST_ID "$(command -p sw_vers -ProductName)"
     write DIST_VERSION "$(command -p sw_vers -ProductVersion)"
       # shellcheck disable=SC2016
@@ -142,8 +150,8 @@ write() {
 write_alias() { echo "alias .$(echo "${1}" | command -p tr '[:upper:]' '[:lower:]')='${2}'" >> "${aliases}"; }
 
 main() {
+  FORCE=false; [ "${RC_PROFILE-0}" -eq 1 ] || FORCE=true
   if [ "$#" -eq 0 ]; then
-    FORCE=false
     proxy
   elif [ "${1-}" = '--force' ]; then
     FORCE=true

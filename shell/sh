@@ -1,12 +1,14 @@
 #!/bin/sh
-posix=1
-echo aaaa | sudo -S chsh -s "$0" "${USER}" 2>/dev/null
-
+posix=0
+#echo aaaa | sudo -S chsh -s "$0" "${USER}" 2>/dev/null
+set -x
 top="$(cd "$(dirname "$(dirname "$0")")" || exit 1; pwd)"
+echo "${top}/.envrc"
+
 if command -p ls -la /bin/sh | grep -q dash; then
-  ENV="${top}/profile" RC_PREFIX=${top} exec /bin/sh -l "$@"
+  ENV="${top}/.envrc" RC_PREFIX=${top} exec /bin/sh -l "$@"
 elif [ "${posix}" -eq 1 ]; then
-  ENV="${top}/profile" RC_PREFIX=${top} exec /bin/sh --login --posix "$@"
+  ENV="${top}/.envrc" RC_PREFIX=${top} exec /bin/sh --login --posix "$@"
 else
-  RC_PREFIX=${top} exec /bin/sh --init-file "${top}/profile" --norc --login "$@"
+  RC_PREFIX=${top} /bin/sh --init-file "${top}/.envrc" --norc --login "$@"
 fi

@@ -185,7 +185,7 @@ export RHEL_LIKE
 
 # '1' if 'SSH_CLIENT' or 'SSH_TTY' or 'SSH_CONNECTION'.
     #
-    export SSH
+export SSH
 
 # <html><h2>Operating System System Name</h2>
 # <p><strong><code>$UNAME</code></strong> (always exported).</p>

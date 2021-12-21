@@ -27,7 +27,7 @@ ${CLT}/usr/bin;Darwin
 /sbin;${UNAME}
 /bin;${UNAME}
 ${PYCHARM:-};Darwin
-${PYCHARM_CONTENTS:+${PYCHARM_CONTENTS:+/MacOS}};Darwin
+${PYCHARM_CONTENTS:+${PYCHARM_CONTENTS}/MacOS};Darwin
 EOF
 )"
 
@@ -101,12 +101,12 @@ dev() {
 init() {
   for i in /etc/paths.d/*; do value="$(run "${i}" "${value:-}")"; done
   tmp="$(command -p mktemp)"
-  echo "${path}" | grep "${UNAME}" | tail -r > "${tmp}" || die
+  echo "${path}" | command -p grep "${UNAME}" | command -p tail -r > "${tmp}"
   while read -r i; do
-    [ "$(echo "${i}" | awk -F ';' '{ print NF-1 }')" -eq "$(( fields-1 ))" ] || echo Incorrect Fields: "${i}"
+    [ "$(echo "${i}" | command -p awk -F ';' '{ print NF-1 }')" -eq "$(( fields-1 ))" ] || echo Incorrect Fields: "${i}"
     value="$(run "${i%";${UNAME}"}" "${value}")"
   done < "${tmp}"
-  EXPORT='PATH' output "${value}"
+  EXPORT='PATH' output "${value}" > "${tmp}"
   # shellcheck disable=SC1090
   . "${tmp}"
   echo "${PATH}" | while IFS=':' read -r i; do
@@ -116,9 +116,14 @@ init() {
   EXPORT='MANPATH' output "${manpath}"
 }
 
+# TODO: aqui lo dejo. no se por que sale eso del tricolor
+# TODO: me parece que estoy haciendo una mierda
+# TODO: mirar por que no funciona los run con el /bin/sh y no coge el init.file y en iTerm si.
+#   igual es porque al no ir a terminal entonces el primer shell es bash y no es login.....
+#   tambien el git top si se va a HOME como le pasaba a iTerm no encontraria el envrc, no sale error si son esta el fichero. claro es que el TOP esta mal !!!!
 init_info_man() {
-  infopath="$(run "${1}/share/info" "${infopath:-}")";
-  manpath="$(run "${1}/share/man" "${manpath:-}")"
+  infopath="$(APPEND=true run "${1}/share/info" "${infopath:-}")";
+  manpath="$(APPEND=true run "${1}/share/man" "${manpath:-}")"
 }
 
 #######################################
@@ -132,7 +137,7 @@ init_info_man() {
 #######################################
 output() {
   if [ "${EXPORT-}" ]; then
-    echo "${EXPORT}=${1}; export ${EXPORT}"
+    echo "${EXPORT}='${1}'; export ${EXPORT}"
   else
     echo "${1}"
   fi
@@ -235,12 +240,10 @@ run() {
 #   PATH='/bar'; export PATH
 #######################################
 main() {
+  APPEND=false; EXISTS=false; REMOVE=false
   if [ "$#" -eq 0 ]; then
     init
   elif { test "${1-}" = '--parsed' && shift; }; then
-    APPEND=false
-    EXISTS=false
-    REMOVE=false
     for arg do
       shift
       case "${arg}" in

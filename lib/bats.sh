@@ -1,4 +1,5 @@
 #!/bin/sh
+# shellcheck disable=SC1090
 
 # Add & updates bats submodules, sources libraries and set helper variables.
 #
@@ -22,7 +23,8 @@ bats_add() {
   fi
 }
 
-bats_load() { [ "${1-}" ] && { [ ! "${BASH_VERSION-}" ] || . "${RC_PREFIX}/${1}/load.bash"; }; }
+bats_load() {
+ [ "${1-}" ] && { [ ! "${BASH_VERSION-}" ] || . "${RC_PREFIX}/${1}/load.bash"; }; }
 
 bats_path() { command -p git -C "${RC_PREFIX}" config --file .gitmodules "submodule.${1}.path" 2>/dev/null; }
 

@@ -2,4 +2,4 @@
 
 echo aaaa | sudo -S chsh -s "$0" "${USER}" 2>/dev/null
 top="$(cd "$(dirname "$(dirname "$0")")" || exit 1; pwd)"
-ENV="${top}/profile" RC_PREFIX=${top} exec /usr/local/bin/dash -l "$@"
+ENV="${top}/.envrc" RC_PREFIX=${top} exec /usr/local/bin/dash -l "$@"
