@@ -29,6 +29,7 @@ id_like() {
   esac
 }
 
+# shellcheck disable=SC1090
 path() { "$(command -p dirname "$0")/bin/colon" > "${file}"; . "${file}"; }
 
 pm_install() {
@@ -130,6 +131,7 @@ system() {
 
 write() {
   echo "export $(echo "${1}" | command -p tr '[:lower:]' '[:upper:]')='${2}'" >> "${file}"
+  # shellcheck disable=SC1090
   . "${file}"
   case "${1}" in
     PM_INSTALL) write_alias "${1}" "${2}" ;;

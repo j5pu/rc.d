@@ -4,6 +4,7 @@
 #
 set -eu
 
+# bashsupport disable=BP5001
 fields=2
 # Paths to Add (format: path;UNAME)
 #
@@ -106,6 +107,7 @@ init() {
     value="$(run "${i%";${UNAME}"}" "${value}")"
   done < "${tmp}"
   EXPORT='PATH' output "${value}"
+  # shellcheck disable=SC1090
   . "${tmp}"
   echo "${PATH}" | while IFS=':' read -r i; do
     init_info_man "$(echo "${i}" | command -p sed 's|/sbin$|g; s|/bin$|g; s|/lib|g')"
