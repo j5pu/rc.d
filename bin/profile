@@ -11,18 +11,6 @@ _input() {
   file="${RC_GENERATED}/${function}.sh"
 }
 
-_generated() {
-  sudo=''; test -w "${RC_GENERATED}" || sudo='sudo'
-  content="$1"; shift
-  if [ "${append-}" ]; then
-    echo "${content}" | ${sudo} tee "${append}" "${file}" >/dev/null || die "${file}"
-  else
-    echo "${content}" | ${sudo} tee "${file}" >/dev/null || die "${file}"
-  fi
-  . "${file}"
-  success Updated: "${file}$*"
-  unset append
-}
 
 #######################################
 # RC env: directories and files

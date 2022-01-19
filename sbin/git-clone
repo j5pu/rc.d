@@ -41,7 +41,7 @@ if test "$#" -eq 0 || { test "${1-}" = '--parsed' && shift; }; then
     cmd='pull'
   fi
 
-  /usr/local/bin/git ${path:+-C ${path}} ${cmd} ${quiet:-} ${force:-} "$@" ${url:-}
+  command -p git ${path:+-C ${path}} ${cmd} ${quiet:-} ${force:-} "$@" ${url:-}
 else
   PARSE="${0}" parse "$@"
 fi

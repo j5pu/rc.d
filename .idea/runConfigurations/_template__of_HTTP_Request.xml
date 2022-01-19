@@ -1,5 +1,0 @@
-<component name="ProjectRunConfigurationManager">
-  <configuration default="true" type="HttpClient.HttpRequestRunConfigurationType" factoryName="HTTP Request" singleton="false" path="">
-    <method v="2" />
-  </configuration>
-</component>

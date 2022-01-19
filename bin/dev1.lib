@@ -3,11 +3,6 @@
 # Converts project .env with EnvFile format to .envrc (shell) and manages bats libraries (source it in .envrc).
 #
 
-# <html><h2>Bats Test Filename Prefix (when sourcing: bats.lib)</h2>
-# <p><strong><code>$BATS_TEST_FILENAME_PREFIX</code></strong> prefix of BATS_TEST_FILENAME basename.</p>
-# </html>
-BATS_TEST_FILENAME_PREFIX="$(basename "${BATS_TEST_FILENAME:-}" .bats)"; export BATS_TEST_FILENAME_PREFIX
-
 # <html><h2>Project Remote Repository Name</h2>
 # <p><strong><code>$PROJECT_REPO_NAME</code></strong> contains output of 'git-name'.</p>
 # </html>
@@ -18,21 +13,11 @@ PROJECT_REPO_NAME="$(git name || basename "${PROJECT_DIR}")"; export PROJECT_REP
 # </html>
 PROJECT_BASENAME="$(git basename || echo "${PROJECT_REPO_NAME}" )"; export PROJECT_BASENAME
 
-
 # <html><h2>Project Directory in Container</h2>
 # <p><strong><code>$PROJECT_DIR_CONTAINER</code></strong> from $PROJECT_NAME$.</p>
 # </html>
 PROJECT_DIR_CONTAINER="/${PROJECT_NAME}"; export PROJECT_DIR_CONTAINER
 
-# <html><h2>Run Only Local Tests (not Docker)</h2>
-# <p><strong><code>$TESTS_LOCAL</code></strong> if set to 1 will not run container tests.</p>
-# </html>
-TESTS_LOCAL="${TESTS_LOCAL:-0}"; export TESTS_LOCAL
-
-# <html><h2>Tests Jobs</h2>
-# <p><strong><code>$TESTS_JOBS</code></strong>.</p>
-# </html>
-TESTS_JOBS="${TESTS_LOCAL:-1}"; export TESTS_JOBS
 
 if test -f "${PROJECT_DIR}/.env"; then
   grep -vE '^$|^#' "${PROJECT_DIR}/.env" | while IFS='=' read -r var value; do
@@ -48,22 +33,6 @@ fi
 done
 export MANPATH="${PROJECT_DIR}/share/man${MANPATH:+:${MANPATH}}"
 
-bats_libs() {
-  bats="${RCSHARE:-/tmp}/bats"
-  [ -d "${bats}" ] || mkdir "${bats}"
-
-  for repo in bats-assert bats-file bats-support; do
-    dir="${bats}/${repo}"
-    # FIXME: change to git-clone-pull con sbin
-    if [ ! -d "${dir}" ]; then
-      git clone --quiet "https://github.com/bats-core/${repo}.git" "${dir}" || { return >/dev/null || exit; }
-    elif [ "${FORCE-}" ]; then
-      git -C "${dir}" pull --quiet --force || { return >/dev/null || exit; }
-    fi
-    [ ! "${BASH_VERSION-}" ] || . "${dir}/load.bash"
-  done
-  unset bats dir repo
-}
 container() {
   # TODO: Do not setup manpath y path for container. Do it with the scripts ?
   image="${1}"
@@ -89,11 +58,3 @@ detach() {
     "${1}"
 }
 
-if test "${1-}" && [ "${PARSED-}" ]; then
-    . strict.lib
-    unset PARSED; _run="${1}"; shift; ${_run} "$@"
-elif test "${1-}"; then
-    PARSE="${0}" parse "$@"
-fi
-
-unset to_name top var value

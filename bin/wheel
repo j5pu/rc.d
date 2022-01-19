@@ -13,7 +13,7 @@ sudoers="$(cat <<EOF
 #   ${script}
 
 User_Alias ADMINS = %admin, %sudo, %wheel
-Defaults:ADMINS always_set_home, !authenticate, !env_reset, !logfile, runchroot=*, runcwd=*, shell_noargs, !syslog
+Defaults:ADMINS always_set_home, !authenticate, !env_reset, !logfile, runchroot=*, runcwd=*, shell_noargs, !syslog, umask=0002, umask_override
 EOF
 )"
 

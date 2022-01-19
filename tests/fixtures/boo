@@ -1,4 +1,0 @@
-#!/bin/sh
-
-. helpers.lib
-has --exclude="${0}" "$(basename "${0}")"
