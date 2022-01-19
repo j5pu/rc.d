@@ -1,9 +1,0 @@
-<component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="PyCharm: git all" type="RUN_ANYTHING_CONFIGURATION" factoryName="RunAnythingFactory" singleton="false">
-    <option name="arguments" value="all" />
-    <option name="command" value="git" />
-    <option name="inputText" value="" />
-    <option name="workingDirectory" value="$PyCharm$" />
-    <method v="2" />
-  </configuration>
-</component>
