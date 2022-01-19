@@ -13,6 +13,8 @@ https://git.io/rc.d
 curl https://git.io/ -i -F "url=https://raw.githubusercontent.com/j5pu/rc.d/main/Dockerfile" -F "code=rc.Dockerfile"
 https://git.io/rc.Dockerfile
 
+curl https://git.io/ -i -F "url=https://raw.githubusercontent.com/j5pu/sudoers/main/install" -F "code=sudoers"
+curl https://git.io/ -i -F "url=https://raw.githubusercontent.com/j5pu/sudoers.d/main/install" -F "code=sudoers.d"
 
 https://developer.apple.com/library/archive/documentation/MacOSX/Conceptual/BPSystemStartup/Chapters/CreatingLaunchdJobs.html
 - Estaba con el rc.ls
