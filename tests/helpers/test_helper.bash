@@ -14,11 +14,6 @@ alpine() {
   docker run -it -v "${PWD}"/bin:/usr/local/bin --entrypoint sh alpine -c color
 }
 
-description() {
-  echo "   [$(magenta "$(echo "${BATS_TEST_DESCRIPTION}" | awk '{ $1=$1 };1')")] [$(green "${1:-macOS}")] \
-${2:+[$(blue "${2}")]}" >&3
-}
-
 getdesc() { head -1 "${INPUT}/${1}.desc"; }
 
 is_sh() { rcdocker image --sh --base | grep -q "${1}"; }
