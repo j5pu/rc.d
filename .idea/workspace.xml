@@ -1,0 +1,334 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="7330a246-093c-49a2-81a4-df947bdb392f" name="Changes" comment="" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="DockerExecCommands">
+    <ExecCommand>
+      <option name="command" value="wget" />
+    </ExecCommand>
+    <ExecCommand>
+      <option name="command" value="curl" />
+    </ExecCommand>
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="BashSupport Pro Bash" />
+        <option value="Markdown .md" />
+        <option value="Bash .bash" />
+        <option value="Shell .sh" />
+        <option value="Python Script" />
+        <option value="BashSupport Pro POSIX" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="PUSH_TAGS">
+      <GitPushTagMode>
+        <option name="argument" value="--tags" />
+        <option name="title" value="All" />
+      </GitPushTagMode>
+    </option>
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="main" />
+      </map>
+    </option>
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitSEFilterConfiguration">
+    <file-type-list>
+      <filtered-out-file-type name="LOCAL_BRANCH" />
+      <filtered-out-file-type name="REMOTE_BRANCH" />
+      <filtered-out-file-type name="TAG" />
+      <filtered-out-file-type name="COMMIT_BY_MESSAGE" />
+    </file-type-list>
+  </component>
+  <component name="GitToolBoxStore">
+    <option name="projectConfigVersion" value="4" />
+    <option name="recentBranches">
+      <RecentBranches>
+        <option name="branchesForRepo">
+          <list>
+            <RecentBranchesForRepo>
+              <option name="branches">
+                <list>
+                  <RecentBranch>
+                    <option name="branchName" value="large" />
+                    <option name="lastUsedInstant" value="1638643093" />
+                  </RecentBranch>
+                  <RecentBranch>
+                    <option name="branchName" value="main" />
+                    <option name="lastUsedInstant" value="1638643092" />
+                  </RecentBranch>
+                </list>
+              </option>
+              <option name="repositoryRootUrl" value="file://$PROJECT_DIR$" />
+            </RecentBranchesForRepo>
+          </list>
+        </option>
+      </RecentBranches>
+    </option>
+  </component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="file://$PROJECT_DIR$/install" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/backup/btrap/info/.gitkeep" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/backup/btrap/install" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/tests/test-00.sh" root0="FORCE_HIGHLIGHTING" />
+  </component>
+  <component name="MacroExpansionManager">
+    <option name="directoryName" value="izdg93lx" />
+  </component>
+  <component name="Make.Settings">
+    <option name="autoScrollToSourceInToolWindow" value="true" />
+    <option name="sortAlphabeticallyInToolWindow" value="true" />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProjectId" id="20xVCRqUsYpKPPbERCIZAys94Oq" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+    <option name="showMembers" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="NIXITCH_NIXPKGS_CONFIG" value="" />
+    <property name="NIXITCH_NIX_CONF_DIR" value="" />
+    <property name="NIXITCH_NIX_OTHER_STORES" value="" />
+    <property name="NIXITCH_NIX_PATH" value="" />
+    <property name="NIXITCH_NIX_PROFILES" value="" />
+    <property name="NIXITCH_NIX_REMOTE" value="" />
+    <property name="NIXITCH_NIX_USER_PROFILE_DIR" value="" />
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
+    <property name="TODO_SCOPE" value="All Places" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="settings.editor.selected.configurable" value="Errors" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/etc/rc/src/man" />
+      <recent name="$APPLICATION_CONFIG_DIR$/scratches/man" />
+      <recent name="$PROJECT_DIR$/bin" />
+      <recent name="$PROJECT_DIR$/sbin" />
+      <recent name="$PROJECT_DIR$/etc/bash_completion.d" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$APPLICATION_CONFIG_DIR$/scratches/bats-tests-vars/bin" />
+      <recent name="$PROJECT_DIR$/backup" />
+      <recent name="$PROJECT_DIR$/backup/.runConfigurations" />
+      <recent name="$PROJECT_DIR$/etc/rc" />
+      <recent name="$PROJECT_DIR$/etc/rc/share" />
+    </key>
+  </component>
+  <component name="RunManager" selected="bats-core.binman.bats">
+    <configuration name="back" type="MAKEFILE_TARGET_RUN_CONFIGURATION" factoryName="Makefile" temporary="true">
+      <makefile filename="$PROJECT_DIR$/Makefile" target="back" workingDirectory="" arguments="">
+        <envs />
+      </makefile>
+      <method v="2" />
+    </configuration>
+    <configuration name="echo" type="MAKEFILE_TARGET_RUN_CONFIGURATION" factoryName="Makefile" temporary="true">
+      <makefile filename="$PROJECT_DIR$/Makefile" target="echo" workingDirectory="" arguments="">
+        <envs />
+      </makefile>
+      <method v="2" />
+    </configuration>
+    <configuration name="envv" type="MAKEFILE_TARGET_RUN_CONFIGURATION" factoryName="Makefile" temporary="true">
+      <makefile filename="$PROJECT_DIR$/env/Makefile" target="envv" workingDirectory="" arguments="">
+        <envs />
+      </makefile>
+      <method v="2" />
+    </configuration>
+    <configuration name="man" type="MAKEFILE_TARGET_RUN_CONFIGURATION" factoryName="Makefile" temporary="true">
+      <makefile filename="$PROJECT_DIR$/Makefile" target="man" workingDirectory="" arguments="">
+        <envs />
+      </makefile>
+      <method v="2" />
+    </configuration>
+    <configuration name="binman.bats" type="bashpro.bats-core" temporary="true">
+      <option name="testDataPath" value="$APPLICATION_CONFIG_DIR$/scratches/bats-tests-vars/binman.bats" />
+      <method v="2" />
+    </configuration>
+    <list>
+      <item itemvalue="BashSupport Pro.colon /foo /bar" />
+      <item itemvalue="BashSupport Pro.colon /foo /bar:/foo --remove" />
+      <item itemvalue="BashSupport Pro.colon --append /foo /bar" />
+      <item itemvalue="BashSupport Pro.colon /foo /bar --append" />
+      <item itemvalue="BashSupport Pro.colon /foo --remove /bar:/foo" />
+      <item itemvalue="BashSupport Pro.colon /foo" />
+      <item itemvalue="BashSupport Pro.alpine: -t env" />
+      <item itemvalue="BashSupport Pro.alpine: -it env" />
+      <item itemvalue="BashSupport Pro.alpine: env" />
+      <item itemvalue="BashSupport Pro.install" />
+      <item itemvalue="BashSupport Pro.install --self" />
+      <item itemvalue="BashSupport Pro.docker.sh: prune" />
+      <item itemvalue="BashSupport Pro.docker.sh: scan" />
+      <item itemvalue="BashSupport Pro.docker.sh: remove" />
+      <item itemvalue="BashSupport Pro.docker.sh: build" />
+      <item itemvalue="BashSupport Pro.images.sh: hooks" />
+      <item itemvalue="BashSupport Pro.images.sh: tests" />
+      <item itemvalue="BashSupport Pro.images.sh: tests-images" />
+      <item itemvalue="BashSupport Pro.images.sh: output" />
+      <item itemvalue="BashSupport Pro.pre-commit-install.sh" />
+      <item itemvalue="BashSupport Pro.images.sh: images-sh" />
+      <item itemvalue="BashSupport Pro.images.sh: images" />
+      <item itemvalue="bats-core.binman.bats" />
+      <item itemvalue="Makefile Target.back" />
+      <item itemvalue="Makefile Target.echo" />
+      <item itemvalue="Makefile Target.envv" />
+      <item itemvalue="Makefile Target.man" />
+    </list>
+    <recent_temporary>
+      <list>
+        <item itemvalue="bats-core.binman.bats" />
+        <item itemvalue="Makefile Target.man" />
+        <item itemvalue="Makefile Target.envv" />
+        <item itemvalue="Makefile Target.echo" />
+        <item itemvalue="Makefile Target.back" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TerminalProjectNonSharedOptionsProvider">
+    <envs>
+      <env key="RC_TEST" value="1" />
+    </envs>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <option name="CHECK_NEW_TODO" value="false" />
+    <MESSAGE value="auto" />
+    <option name="LAST_COMMIT_MESSAGE" value="auto" />
+  </component>
+  <component name="ch.raffael.plugins.idea.runpopup.RunConfigurationUseTracker">
+    <option name="runConfInfo">
+      <map>
+        <entry key="BashSupport Pro.colon --append /foo /bar">
+          <value>
+            <RunConfInfo>
+              <option name="confId" value="BashSupport Pro.colon --append /foo /bar" />
+              <option name="executorId" value="Run" />
+              <option name="timestamp" value="1638140759511" />
+            </RunConfInfo>
+          </value>
+        </entry>
+        <entry key="BashSupport Pro.colon /foo">
+          <value>
+            <RunConfInfo>
+              <option name="confId" value="BashSupport Pro.colon /foo" />
+              <option name="executorId" value="Run" />
+              <option name="timestamp" value="1638140295956" />
+            </RunConfInfo>
+          </value>
+        </entry>
+        <entry key="BashSupport Pro.colon /foo --remove /bar:/foo">
+          <value>
+            <RunConfInfo>
+              <option name="confId" value="BashSupport Pro.colon /foo --remove /bar:/foo" />
+              <option name="executorId" value="Run" />
+              <option name="timestamp" value="1638140771387" />
+            </RunConfInfo>
+          </value>
+        </entry>
+        <entry key="BashSupport Pro.colon /foo /bar">
+          <value>
+            <RunConfInfo>
+              <option name="confId" value="BashSupport Pro.colon /foo /bar" />
+              <option name="executorId" value="Run" />
+              <option name="timestamp" value="1638140303652" />
+            </RunConfInfo>
+          </value>
+        </entry>
+        <entry key="BashSupport Pro.colon /foo /bar --append">
+          <value>
+            <RunConfInfo>
+              <option name="confId" value="BashSupport Pro.colon /foo /bar --append" />
+              <option name="executorId" value="Run" />
+              <option name="timestamp" value="1638140313693" />
+            </RunConfInfo>
+          </value>
+        </entry>
+        <entry key="BashSupport Pro.colon /foo /bar:/foo --remove">
+          <value>
+            <RunConfInfo>
+              <option name="confId" value="BashSupport Pro.colon /foo /bar:/foo --remove" />
+              <option name="executorId" value="Run" />
+              <option name="timestamp" value="1638140346750" />
+            </RunConfInfo>
+          </value>
+        </entry>
+        <entry key="BashSupport Pro.install">
+          <value>
+            <RunConfInfo>
+              <option name="confId" value="BashSupport Pro.install" />
+              <option name="executorId" value="Run" />
+              <option name="timestamp" value="1637906124522" />
+            </RunConfInfo>
+          </value>
+        </entry>
+        <entry key="BashSupport Pro.install --self">
+          <value>
+            <RunConfInfo>
+              <option name="confId" value="BashSupport Pro.install --self" />
+              <option name="executorId" value="Run" />
+              <option name="timestamp" value="1637585806706" />
+            </RunConfInfo>
+          </value>
+        </entry>
+        <entry key="Makefile Target.back">
+          <value>
+            <RunConfInfo>
+              <option name="confId" value="Makefile Target.back" />
+              <option name="executorId" value="Run" />
+              <option name="timestamp" value="1638137248722" />
+            </RunConfInfo>
+          </value>
+        </entry>
+        <entry key="Makefile Target.echo">
+          <value>
+            <RunConfInfo>
+              <option name="confId" value="Makefile Target.echo" />
+              <option name="executorId" value="Run" />
+              <option name="timestamp" value="1638154223253" />
+            </RunConfInfo>
+          </value>
+        </entry>
+        <entry key="Makefile Target.envv">
+          <value>
+            <RunConfInfo>
+              <option name="confId" value="Makefile Target.envv" />
+              <option name="executorId" value="Run" />
+              <option name="timestamp" value="1638136735980" />
+            </RunConfInfo>
+          </value>
+        </entry>
+        <entry key="Makefile Target.man">
+          <value>
+            <RunConfInfo>
+              <option name="confId" value="Makefile Target.man" />
+              <option name="executorId" value="Run" />
+              <option name="timestamp" value="1638163125370" />
+            </RunConfInfo>
+          </value>
+        </entry>
+        <entry key="bats-core.binman.bats">
+          <value>
+            <RunConfInfo>
+              <option name="confId" value="bats-core.binman.bats" />
+              <option name="executorId" value="Run" />
+              <option name="timestamp" value="1638481012167" />
+            </RunConfInfo>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+</project>
